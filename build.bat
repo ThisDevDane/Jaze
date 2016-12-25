@@ -1,5 +1,5 @@
 @echo off
-SET MAINFILE=src\win32\jaze_win32.cpp
+SET MAINFILE=src\jaze.cpp
 SET OUTPUT=jaze_win32
 SET PDBOUT=jaze_win32
 SET LIBRARIES=
