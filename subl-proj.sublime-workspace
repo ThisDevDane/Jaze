@@ -1,0 +1,1024 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"Buffer",
+				"BufferDataUsage"
+			],
+			[
+				"EBO",
+				"EBOHandle"
+			],
+			[
+				"ImGui",
+				"ImguiRender"
+			],
+			[
+				"imgui",
+				"imguiUtil"
+			],
+			[
+				"Bind",
+				"BindVertexArray"
+			],
+			[
+				"Attr",
+				"AttribLocProjMtx"
+			],
+			[
+				"Imgui",
+				"ImguiRenderState"
+			],
+			[
+				"fb",
+				"fbHeight"
+			],
+			[
+				"Blend",
+				"BlendEquations"
+			],
+			[
+				"Text",
+				"Texture2D"
+			],
+			[
+				"VAO",
+				"VAOHandle"
+			],
+			[
+				"Buff",
+				"BufferObject"
+			],
+			[
+				"ImGU",
+				"ImguiRenderState"
+			],
+			[
+				"ver",
+				"VertexShader"
+			],
+			[
+				"Shader",
+				"ShaderObject"
+			],
+			[
+				"Frag",
+				"FragmentShader"
+			],
+			[
+				"window",
+				"windowHandle"
+			],
+			[
+				"Get",
+				"GetOpenGLInfo"
+			],
+			[
+				"Vers",
+				"VersionMajor"
+			],
+			[
+				"suc",
+				"success"
+			],
+			[
+				"CONTEXT",
+				"CONTEXT_PROFILE_MASK_ARB_VALUES"
+			],
+			[
+				"CONTEXT_",
+				"CONTEXT_FLAGS_ARB_VALUES"
+			],
+			[
+				"win32",
+				"win32ext"
+			],
+			[
+				"De",
+				"DescribePixelFormat"
+			],
+			[
+				"att",
+				"attribList"
+			],
+			[
+				"attr",
+				"attribArray"
+			],
+			[
+				"Choose",
+				"ChoosePixelFormatARB"
+			],
+			[
+				"atr",
+				"attribList"
+			],
+			[
+				"Create",
+				"CreateOpenGLContext"
+			],
+			[
+				"wnd",
+				"wndHandle"
+			],
+			[
+				"Win",
+				"WindowHandle"
+			],
+			[
+				"win",
+				"win32vars"
+			],
+			[
+				"__",
+				"__SymInitialized"
+			],
+			[
+				"Pro",
+				"Procedure"
+			],
+			[
+				"f",
+				"Flags"
+			],
+			[
+				"byte",
+				"bytes_read"
+			],
+			[
+				"read",
+				"readSize"
+			],
+			[
+				"timing",
+				"timing_entry_array"
+			],
+			[
+				"mode",
+				"modeIsBegin"
+			],
+			[
+				"prin",
+				"println"
+			],
+			[
+				"byt",
+				"bytes_read"
+			],
+			[
+				"size",
+				"size_of_val"
+			],
+			[
+				"timin",
+				"timing_file_header"
+			],
+			[
+				"res",
+				"Result"
+			],
+			[
+				"Read",
+				"ReadAllEntries"
+			],
+			[
+				"end",
+				"endClockD"
+			],
+			[
+				"tim",
+				"timing_file_entry_flag"
+			],
+			[
+				"get",
+				"GetClock"
+			],
+			[
+				"mod",
+				"modeIsBegin"
+			],
+			[
+				"magi",
+				"MAGIC_VALUE"
+			],
+			[
+				"for",
+				"foreign"
+			],
+			[
+				"inc",
+				"incompleteCount"
+			],
+			[
+				"day",
+				"daysWithTimingCount"
+			],
+			[
+				"with",
+				"withErrors"
+			],
+			[
+				"tota",
+				"totalGraph"
+			],
+			[
+				"gra",
+				"GRAPH_WIDTH"
+			],
+			[
+				"grap",
+				"graphIndex"
+			],
+			[
+				"last",
+				"lastDayAt"
+			],
+			[
+				"this",
+				"thisDayIndex"
+			],
+			[
+				"mil",
+				"MillisecondsElapsed"
+			],
+			[
+				"days",
+				"daysWithTimingCount"
+			],
+			[
+				"lastDay",
+				"lastDayIndex"
+			],
+			[
+				"No",
+				"NoErrors"
+			],
+			[
+				"time",
+				"timing_file_entry_flag"
+			],
+			[
+				"daysp",
+				"daySpanCount"
+			],
+			[
+				"Entr",
+				"Entries"
+			],
+			[
+				"mill",
+				"MillisecondDifference"
+			],
+			[
+				"stat",
+				"stat_group"
+			],
+			[
+				"Gra",
+				"GRAPH_WIDTH"
+			],
+			[
+				"gr",
+				"GRAPH_HEIGHT"
+			],
+			[
+				"Mi",
+				"MillisecondsElapsed"
+			],
+			[
+				"mi",
+				"MillisecondsElapsed"
+			],
+			[
+				"timi",
+				"timing_file_entry"
+			],
+			[
+				"GRAP",
+				"GRAPH_HEIGHT"
+			],
+			[
+				"En",
+				"Entries"
+			],
+			[
+				"entri",
+				"EntriesSize"
+			],
+			[
+				"entr",
+				"timing_entry_array"
+			],
+			[
+				"S",
+				"SystemTime"
+			],
+			[
+				"Wide",
+				"WideCharToMultiByte"
+			],
+			[
+				"windo",
+				"windowHandle"
+			],
+			[
+				"serv",
+				"serveFile                      *os.File                                 ν"
+			],
+			[
+				"serve",
+				"serveLogger                    *log.Logger                              ν"
+			],
+			[
+				"Prin",
+				"Println                        func(v ...interface{})                   ƒ"
+			],
+			[
+				"pre",
+				"prepareDBStatements            func() dbStatements                      ƒ"
+			],
+			[
+				"Init",
+				"initLeaderboadrDatabase        func()                                   ƒ"
+			],
+			[
+				"db",
+				"dbConn                         struct                                   ʈ"
+			],
+			[
+				"sele",
+				"SelectUsersStats               *sql.Stmt                                ν"
+			],
+			[
+				"t",
+				"TonightCount                   int                                      ν"
+			],
+			[
+				"king",
+				"kingEntry"
+			],
+			[
+				"MkDir",
+				"MkdirAll                       func(path string, perm os.FileMode) erro ƒ"
+			],
+			[
+				"Fata",
+				"Fatalln                        func(v ...interface{})                   ƒ"
+			],
+			[
+				"print",
+				"Println                        func(v ...interface{})                   ƒ"
+			],
+			[
+				"err",
+				"errLogger                      *log.Logger                              ν"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "src/main.odin",
+			"settings":
+			{
+				"buffer_size": 15239,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/jaze_gl_enums.odin",
+			"settings":
+			{
+				"buffer_size": 20080,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/jaze_gl.odin",
+			"settings":
+			{
+				"buffer_size": 16682,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/jaze_util.odin",
+			"settings":
+			{
+				"buffer_size": 294,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Packages/Golang Build/Go.sublime-build",
+					""
+				],
+				[
+					"Packages/Golang Build/Go.sublime-build",
+					"Run"
+				],
+				[
+					"Packages/Golang Build/Go.sublime-build",
+					"Test"
+				],
+				[
+					"Packages/Golang Build/Go.sublime-build",
+					"Install"
+				],
+				[
+					"Packages/Golang Build/Go.sublime-build",
+					"Cross-Compile (Interactive)"
+				],
+				[
+					"Packages/Golang Build/Go.sublime-build",
+					"Clean"
+				]
+			],
+			[
+				"Packages/Golang Build/Go.sublime-build",
+				"Install"
+			]
+		],
+		[
+			[
+				[
+					"Packages/User/buildbat.sublime-build",
+					""
+				],
+				[
+					"Packages/User/odin.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/User/odin.sublime-build",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 400.0,
+		"last_filter": "a",
+		"selected_items":
+		[
+			[
+				"a",
+				"Alignment: Align"
+			],
+			[
+				"al",
+				"Alignment: Align"
+			],
+			[
+				"previ",
+				"Bookmarks: Select Previous"
+			],
+			[
+				"next",
+				"Bookmarks: Select Next"
+			],
+			[
+				"Gotoo",
+				"GoTools: Lint"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"go ",
+				"Build With: Go - Cross-Compile (Interactive)"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"r",
+				"Package Control: Remove Package"
+			],
+			[
+				"remove",
+				"Package Control: Remove Channel"
+			],
+			[
+				"ss od",
+				"Set Syntax: Odin"
+			],
+			[
+				"ss go",
+				"Set Syntax: Go"
+			],
+			[
+				"ss",
+				"Set Syntax: SQL"
+			],
+			[
+				"ss c",
+				"Set Syntax: C#"
+			],
+			[
+				"ss odi",
+				"Set Syntax: Rd (R Documentation)"
+			],
+			[
+				"syntax",
+				"Plugin Development: Convert Syntax to .sublime-syntax"
+			]
+		],
+		"width": 536.0
+	},
+	"console":
+	{
+		"height": 126.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = 'df21e130d211cfc94d9b0905775a7c0f' + '1e3d39e33b79698005270310898eea76'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/W/Jaze",
+		"/W/Jaze/src",
+		"/E/Odin/core/sys"
+	],
+	"file_history":
+	[
+		"/W/School/WindClicker/WindClicker/main.cpp",
+		"/W/oToolkit/odimgui/src/imgui.odin",
+		"/W/odimgui/imgui.odin",
+		"/E/Odin/core/fmt.odin",
+		"/E/Odin/core/opengl.odin",
+		"/W/otime/src/otime.sublime-workspace",
+		"/C/Users/fyouc/AppData/Roaming/Sublime Text 3/Packages/Default/Default (Windows).sublime-keymap",
+		"/W/otime/otime-prj.sublime-project",
+		"/W/otime/src/otime.odin",
+		"/E/Odin/core/sys/windows.odin",
+		"/E/Odin/core/os_windows.odin",
+		"/C/Users/fyouc/Desktop/vfgh/MDErgo1-Default.json",
+		"/C/Users/fyouc/AppData/Local/Temp/7zOCD93.tmp/MDErgo1-Default.json",
+		"/W/otime/.gitignore",
+		"/W/otime/build/test.otm",
+		"/W/otime/build.bat",
+		"/W/otime/src/win32_util.odin",
+		"/E/Odin/core/os.odin",
+		"/W/Odin/core/sys/windows.odin",
+		"/E/Odin/core/_preload.odin",
+		"/E/Odin/core/mem.odin",
+		"/E/Odin/core/math.odin",
+		"/W/otime/ctime.c",
+		"/W/otime/build/test",
+		"/C/Users/fyouc/AppData/Roaming/Sublime Text 3/Packages/User/odin.sublime-build",
+		"/C/Users/fyouc/AppData/Roaming/Sublime Text 3/Packages/User/buildbat.sublime-build",
+		"/W/otime/test.ctm",
+		"/W/otime/src/test.odin",
+		"/C/Program Files (x86)/Windows Kits/8.1/Include/um/WinNls.h",
+		"/C/Program Files (x86)/Windows Kits/8.1/Include/um/stringapiset.h",
+		"/E/Odin/core/utf8.odin",
+		"/W/Jaze/ctime.c",
+		"/W/Jaze/src/build.bat",
+		"/W/Jaze/build.bat",
+		"/E/Golang-src/src/gogs/dania/website_server/www/templates/leaderboardDataTemplate.html",
+		"/E/Golang-src/src/gogs/dania/website_server/.gitignore",
+		"/E/Golang-src/src/gogs/dania/website_server/main.go",
+		"/E/Golang-src/src/gogs/dania/website_server/leaderboard.go:19:6: exported type StatData should have comment or be unexportedE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:37:6: exported type DBStatements should have comment or be unexportedE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:38:2: don't use underscores in Go names; struct field SelectKingUserStats_Beer should be SelectKingUserStatsBeerE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:39:2: don't use underscores in Go names; struct field SelectKingUserStats_Drink should be SelectKingUserStatsDrinkE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:40:2: don't use underscores in Go names; struct field SelectKingUserStats_Shot should be SelectKingUserStatsShotE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:41:2: don't use underscores in Go names; struct field SelectCurTopUserStats_Beer should be SelectCurTopUserStatsBeerE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:42:2: don't use underscores in Go names; struct field SelectCurTopUserStats_Drink should be SelectCurTopUserStatsDrinkE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:43:2: don't use underscores in Go names; struct field SelectCurTopUserStats_Shot should be SelectCurTopUserStatsShotE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:44:2: don't use underscores in Go names; struct field SelectTopUsersStats_Beer should be SelectTopUsersStatsBeerE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:45:2: don't use underscores in Go names; struct field SelectTopUsersStats_Drink should be SelectTopUsersStatsDrinkE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:46:2: don't use underscores in Go names; struct field SelectTopUsersStats_Shot should be SelectTopUsersStatsShotE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:47:2: don't use underscores in Go names; struct field SelectUsersStats_Beer should be SelectUsersStatsBeerE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:48:2: don't use underscores in Go names; struct field SelectUsersStats_Drink should be SelectUsersStatsDrinkE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:49:2: don't use underscores in Go names; struct field SelectUsersStats_Shot should be SelectUsersStatsShotE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:52:2: don't use underscores in Go names; struct field SelectUserWithName_Beer should be SelectUserWithNameBeerE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:53:2: don't use underscores in Go names; struct field SelectUserWithName_Drink should be SelectUserWithNameDrinkE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:54:2: don't use underscores in Go names; struct field SelectUserWithName_Shot should be SelectUserWithNameShotE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:58:2: don't use underscores in Go names; struct field UpdateUserStat_Beer should be UpdateUserStatBeerE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:59:2: don't use underscores in Go names; struct field UpdateUserStat_Drink should be UpdateUserStatDrinkE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:60:2: don't use underscores in Go names; struct field UpdateUserStat_Shot should be UpdateUserStatShotE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:63:2: don't use underscores in Go names; struct field InsertNewUser_Beer should be InsertNewUserBeerE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:64:2: don't use underscores in Go names; struct field InsertNewUser_Drink should be InsertNewUserDrinkE:/Golang-src/src/gogs/dania/website_server/leaderboard.go",
+		"/E/Golang-src/src/gogs/dania/website_server/leaderboard.go:13:6: exported type Entry should have comment or be unexportedE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:19:6: exported type StatData should have comment or be unexportedE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:37:6: exported type DBStatements should have comment or be unexportedE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:38:2: don't use underscores in Go names; struct field SelectKingUserStats_Beer should be SelectKingUserStatsBeerE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:39:2: don't use underscores in Go names; struct field SelectKingUserStats_Drink should be SelectKingUserStatsDrinkE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:40:2: don't use underscores in Go names; struct field SelectKingUserStats_Shot should be SelectKingUserStatsShotE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:41:2: don't use underscores in Go names; struct field SelectCurTopUserStats_Beer should be SelectCurTopUserStatsBeerE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:42:2: don't use underscores in Go names; struct field SelectCurTopUserStats_Drink should be SelectCurTopUserStatsDrinkE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:43:2: don't use underscores in Go names; struct field SelectCurTopUserStats_Shot should be SelectCurTopUserStatsShotE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:44:2: don't use underscores in Go names; struct field SelectTopUsersStats_Beer should be SelectTopUsersStatsBeerE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:45:2: don't use underscores in Go names; struct field SelectTopUsersStats_Drink should be SelectTopUsersStatsDrinkE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:46:2: don't use underscores in Go names; struct field SelectTopUsersStats_Shot should be SelectTopUsersStatsShotE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:47:2: don't use underscores in Go names; struct field SelectUsersStats_Beer should be SelectUsersStatsBeerE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:48:2: don't use underscores in Go names; struct field SelectUsersStats_Drink should be SelectUsersStatsDrinkE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:49:2: don't use underscores in Go names; struct field SelectUsersStats_Shot should be SelectUsersStatsShotE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:52:2: don't use underscores in Go names; struct field SelectUserWithName_Beer should be SelectUserWithNameBeerE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:53:2: don't use underscores in Go names; struct field SelectUserWithName_Drink should be SelectUserWithNameDrinkE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:54:2: don't use underscores in Go names; struct field SelectUserWithName_Shot should be SelectUserWithNameShotE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:58:2: don't use underscores in Go names; struct field UpdateUserStat_Beer should be UpdateUserStatBeerE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:59:2: don't use underscores in Go names; struct field UpdateUserStat_Drink should be UpdateUserStatDrinkE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:60:2: don't use underscores in Go names; struct field UpdateUserStat_Shot should be UpdateUserStatShotE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:63:2: don't use underscores in Go names; struct field InsertNewUser_Beer should be InsertNewUserBeerE:/Golang-src/src/gogs/dania/website_server/leaderboard.go:64:2: don't use underscores in Go names; struct field InsertNewUser_Drink should be InsertNewUserDrinkE:/Golang-src/src/gogs/dania/website_server/leaderboard.go",
+		"/E/Golang-src/src/gogs/dania/website_server/leaderboard.go",
+		"/E/Golang-src/src/gogs/dania/website_server/www/run_server.bat",
+		"/C/Users/fyouc/AppData/Roaming/Sublime Text 3/Packages/User/golang.sublime-settings",
+		"/C/Users/fyouc/AppData/Roaming/Sublime Text 3/Packages/GoSublime/CHANGELOG.md",
+		"/E/Odin/core/hash.odin",
+		"/C/Users/fyouc/AppData/Roaming/Sublime Text 3/Packages/User/Odin-lang.yaml"
+	],
+	"find":
+	{
+		"height": 38.0
+	},
+	"find_in_files":
+	{
+		"height": 104.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"int",
+			"cast(int",
+			"cast(int)",
+			"n",
+			"fbHeight",
+			"fbWidth",
+			"int",
+			"fmt.println(#file, #line, #procedure);",
+			"||",
+			"(G",
+			"||",
+			"VK",
+			"// ",
+			":",
+			"i",
+			"f",
+			"Blend",
+			"x",
+			"uint",
+			"int",
+			"=",
+			"_m",
+			"_M",
+			"_m",
+			"Texture",
+			"TexParameter",
+			"i32",
+			"ImguiRenderState.Attrib",
+			"EnableVertexAttribArray",
+			"GenVertexArrays",
+			"GenBuffers",
+			";",
+			": i32;",
+			":",
+			"Location",
+			"GetAt",
+			"vertexShader",
+			"Major",
+			"Clear",
+			"glClear",
+			");",
+			"wgl.AppendAttrib(^createAttr,",
+			");",
+			"wgl.AppendAttrib",
+			"\n#",
+			"int",
+			"#cc_c",
+			"#cc_c;",
+			"createAttr",
+			"attribs",
+			"fmt",
+			"WGL_CONTEXT_",
+			"cast(i32)",
+			"bool",
+			"(",
+			";",
+			"wgl",
+			"append(attribs, attr);",
+			"attr = ",
+			"attr := ",
+			"proc",
+			"Attribs",
+			"TYPE_",
+			":",
+			"0",
+			"GetString",
+			"=",
+			"GL_",
+			"#foreign",
+			":",
+			"#cc_c",
+			": p",
+			" #cc_c",
+			"::",
+			": p",
+			":",
+			"SYSTEMTIME",
+			"printf",
+			"DescribePixelFormat",
+			"WGL_DRAW_TO_WINDOW_ARB",
+			"DC",
+			"glDeleteBuffers",
+			"glBlendEquationSeparate",
+			"DrawElements",
+			"Scissor",
+			"BufferData",
+			"VertexAttribPointer",
+			"EnableVertexAttribArray",
+			"GenVertexArrays",
+			"BindVertexArray",
+			"glBindVertexArray",
+			"BlendEquation",
+			"CLIP_DISTANCE",
+			"CLIP_DISTANCE0",
+			"GL_BLEND_DST_ALPHA",
+			"BLEND_",
+			"BLEND_COLOR",
+			"BLEND_COL",
+			"BLEND",
+			"GL_ALIA",
+			"GetProcAddress",
+			"ShaderSource",
+			"GL_COMPUTE",
+			"u64",
+			"u32",
+			"u3264",
+			"i64",
+			"ULONG",
+			"s",
+			"Handle",
+			"otime",
+			"os.read",
+			"array",
+			"next",
+			"ShellExe",
+			"os.read",
+			"Read",
+			"ERROR",
+			"TODO",
+			"NOTE",
+			"fmt.println(\"Mode:\"",
+			"fmt",
+			"idx",
+			"handle != -1",
+			"buf",
+			"perm",
+			"ReadAllEntries",
+			"Handle"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			");\n",
+			"u32",
+			"i32",
+			"handle != os.INVALID_HANDLE",
+			"stmts.shot_stmts",
+			"stmts.drink_stmts",
+			"stmts.beer_stmts"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": true,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 3,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "src/main.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 15239,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								13865,
+								13866
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 5338.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "src/jaze_gl_enums.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 20080,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								50,
+								50
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "src/jaze_gl.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 16682,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								12408,
+								12408
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 7064.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "src/jaze_util.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 294,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								278,
+								278
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 25.0
+	},
+	"input":
+	{
+		"height": 37.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.9o://E:\\Golang-src\\src\\gogs\\dania\\website_server":
+	{
+		"height": 110.0
+	},
+	"output.exec":
+	{
+		"height": 88.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.godoc-output":
+	{
+		"height": 110.0
+	},
+	"output.golang_build":
+	{
+		"height": 110.0
+	},
+	"output.gotools_guru":
+	{
+		"height": 110.0
+	},
+	"output.gotools_syntax_errors":
+	{
+		"height": 110.0
+	},
+	"pinned_build_system": "",
+	"project": "subl-proj.sublime-project",
+	"replace":
+	{
+		"height": 46.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 190.0,
+		"last_filter": "Draw",
+		"selected_items":
+		[
+			[
+				"Draw",
+				"DrawElements"
+			],
+			[
+				"Capa",
+				"Capabilities"
+			]
+		],
+		"width": 400.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
