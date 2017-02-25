@@ -24,7 +24,7 @@ TRUE  :: 1;
 FALSE :: 0;
 
 // Types
-ShaderObject :: u32;
+Shader       :: u32;
 Program      :: u32;
 VAO          :: u32;
 VBO          :: u32;
@@ -41,7 +41,7 @@ DebugMessageCallbackProc :: #type proc(source : DebugSource, type : DebugType, i
     _GenBuffers              : proc(n : i32, buffer : ^u32)                                                             #cc_c;
     _GenVertexArrays         : proc(count: i32, buffers: ^u32)                                                          #cc_c;
     _EnableVertexAttribArray : proc(index: u32)                                                                         #cc_c;
-    _VertexAttribPointer     : proc(index: u32, size: i32, type: i32, normalized: bool, stride: u32, pointer: rawptr)     #cc_c;
+    _VertexAttribPointer     : proc(index: u32, size: i32, type: i32, normalized: bool, stride: u32, pointer: rawptr)   #cc_c;
     _BindVertexArray         : proc(buffer: u32)                                                                        #cc_c;
     _Uniform1i               : proc(loc: i32, v0: i32)                                                                  #cc_c;
     _Uniform2i               : proc(loc: i32, v0, v1: i32)                                                              #cc_c;
@@ -67,21 +67,48 @@ DebugMessageCallbackProc :: #type proc(source : DebugSource, type : DebugType, i
     _CompileShader           : proc(shader: u32)                                                                        #cc_c;
     _DebugMessageControl     : proc(source : i32, type : i32, severity : i32, count : i32, ids : ^u32, enabled : bool)  #cc_c;
     _DebugMessageCallback    : proc(callback : DebugMessageCallbackProc, userParam : rawptr)                            #cc_c;
+    _GetShaderiv             : proc(shader : u32, pname : i32, params : ^i32)                                           #cc_c;
+    _GetShaderInfoLog        : proc(shader : u32, maxLength : i32, length : ^i32, infoLog : ^byte)                      #cc_c;
+    _GetStringi              : proc(name : i32, index : u32) -> ^byte                                                   #cc_c;
 
     // Foreign Function Declarations
-    Viewport       :: proc(x : i32, y : i32, width : i32, height : i32)                                             #foreign lib "glViewport";
-    ClearColor     :: proc(red: f32, blue: f32, green: f32, alpha: f32)                                              #foreign lib "glClearColor";
-    Scissor        :: proc(x : i32, y : i32, width : i32, height : i32)                                             #foreign lib "glScissor";
-    _GetString     :: proc(name : i32) -> ^byte                                                                     #foreign lib "glGetString";
-    _TexImage2D    :: proc(target, level, internal_format, width, height, border, format, _type: i32, data: rawptr) #foreign lib "glTexImage2D";
-    _TexParameteri :: proc(target, pname, param: i32)                                                               #foreign lib "glTexParameteri";
-    _BindTexture   :: proc(target: i32, texture: u32)                                                               #foreign lib "glBindTexture";
-    _GenTextures   :: proc(count: i32, result: ^u32)                                                                #foreign lib "glGenTextures";
-    _BlendFunc     :: proc(sfactor : i32, dfactor: i32)                                                             #foreign lib "glBlendFunc";
-    _GetIntegerv   :: proc(name: i32, v: ^i32)                                                                      #foreign lib "glGetIntegerv";
-    _Enable        :: proc(cap: i32)                                                                                #foreign lib "glEnable";
-    _Disable       :: proc(cap: i32)                                                                                #foreign lib "glDisable";
-    _Clear         :: proc(mask: i32)                                                                               #foreign lib "glClear";
+    Viewport       :: proc(x : i32, y : i32, width : i32, height : i32)                                                  #foreign lib "glViewport";
+    ClearColor     :: proc(red : f32, blue : f32, green : f32, alpha : f32)                                              #foreign lib "glClearColor";
+    Scissor        :: proc(x : i32, y : i32, width : i32, height : i32)                                                  #foreign lib "glScissor";
+    _GetString     :: proc(name : i32) -> ^byte                                                                          #foreign lib "glGetString";
+    _TexImage2D    :: proc(target, level, internal_format, width, height, border, format, _type: i32, data: rawptr)      #foreign lib "glTexImage2D";
+    _TexParameteri :: proc(target, pname, param: i32)                                                                    #foreign lib "glTexParameteri";
+    _BindTexture   :: proc(target: i32, texture: u32)                                                                    #foreign lib "glBindTexture";
+    _GenTextures   :: proc(count: i32, result: ^u32)                                                                     #foreign lib "glGenTextures";
+    _BlendFunc     :: proc(sfactor : i32, dfactor: i32)                                                                  #foreign lib "glBlendFunc";
+    _GetIntegerv   :: proc(name: i32, v: ^i32)                                                                           #foreign lib "glGetIntegerv";
+    _Enable        :: proc(cap: i32)                                                                                     #foreign lib "glEnable";
+    _Disable       :: proc(cap: i32)                                                                                     #foreign lib "glDisable";
+    _Clear         :: proc(mask: i32)                                                                                    #foreign lib "glClear";
+
+// Utility
+
+UtilCreateAndCompileShader :: proc(type : ShaderTypes, source : string) -> (Shader, bool) {
+    shader : Shader;
+    shader = CreateShader(type);
+    ShaderSource(shader, source);
+    CompileShader(shader);
+
+    success :=  GetShaderValue(shader, GetShaderNames.CompileStatus);
+    if success == 0 {
+        logSize := GetShaderValue(shader, GetShaderNames.InfoLogLength);
+        logBytes := new_slice(byte, logSize);
+        _GetShaderInfoLog(cast(u32)shader, logSize, ^logSize, logBytes.data);
+
+        fmt.println("------ Shader Error ------");
+        fmt.print(to_odin_string(logBytes.data)); 
+        fmt.println("--------------------------");
+        //DeleteShader(shader);
+        return 0, false;
+    }
+
+    return shader, true;
+}
 
 // API
 
@@ -148,7 +175,7 @@ BindBuffer :: proc(vbo : VBO) {
     BindBuffer(BufferTargets.Array, cast(BufferObject)vbo);
 }
 
-BindBuffer_EBO :: proc(ebo : EBO) {
+BindBuffer :: proc(ebo : EBO) {
     BindBuffer(BufferTargets.ElementArray, cast(BufferObject)ebo);
      
 }
@@ -298,9 +325,7 @@ GetAttribLocation :: proc(program : Program, name : string) -> i32 {
 
 DrawElements :: proc(mode : DrawModes, count : i32, type : DrawElementsType, indices : rawptr) {
     if _DrawElements != nil {
-        fmt.println(#file, #line, #procedure);
         _DrawElements(cast(i32)mode, count, cast(i32)type, indices);
-        fmt.println(#file, #line, #procedure);
     } else {
         //Todo: logging
     }    
@@ -376,6 +401,27 @@ BlendFunc :: proc(sfactor : BlendFactors, dfactor : BlendFactors) {
     _BlendFunc(cast(i32)sfactor, cast(i32)dfactor);
 }
 
+GetShaderValue :: proc(shader : Shader, name : GetShaderNames) -> i32 {
+    if _GetShaderiv != nil {
+        res : i32;
+        _GetShaderiv(cast(u32)shader, cast(i32)name, ^res);
+        return res;
+    } else {
+
+    }
+
+    return 0;
+}
+
+GetString :: proc(name : GetStringNames, index : u32) -> string {
+    if _GetStringi != nil {
+        res := _GetStringi(cast(i32)name, index);
+        return to_odin_string(res);
+    } else {
+        return "nil";
+    }
+}
+
 GetString :: proc(name : GetStringNames) -> string {
     res := _GetString(cast(i32)name);
     return to_odin_string(res);
@@ -395,7 +441,7 @@ Disable  :: proc(cap : Capabilities) {
     _Disable(cast(i32)cap);
 }
 
-AttachShader :: proc(program : Program, obj : ShaderObject) {
+AttachShader :: proc(program : Program, obj : Shader) {
     if _AttachShader != nil {
         _AttachShader(cast(u32)program, cast(u32)obj);
     } else {
@@ -414,13 +460,13 @@ CreateProgram :: proc() -> Program {
     return 0;
 }
 
-ShaderSource :: proc(obj : ShaderObject, str : string) {
+ShaderSource :: proc(obj : Shader, str : string) {
     array : [1]string;
     array[0] = str;
     ShaderSource(obj, array[:]);
 }
 
-ShaderSource :: proc(obj : ShaderObject, strs : []string) {
+ShaderSource :: proc(obj : Shader, strs : []string) {
     if _ShaderSource != nil {
         newStrs := new_slice(^byte, strs.count); defer free(newStrs);
         lengths := new_slice(i32, strs.count); defer free(lengths);
@@ -434,17 +480,17 @@ ShaderSource :: proc(obj : ShaderObject, strs : []string) {
     }
 }
 
-CreateShader :: proc(type : ShaderTypes) -> ShaderObject {
+CreateShader :: proc(type : ShaderTypes) -> Shader {
     if _CreateShader != nil {
         res := _CreateShader(cast(i32)type);
-        return cast(ShaderObject)res;
+        return cast(Shader)res;
     } else {
         //Todo: logging
         return 0;
     }
 }
 
-CompileShader :: proc(obj : ShaderObject) {
+CompileShader :: proc(obj : Shader) {
     if _CompileShader != nil {
         _CompileShader(cast(u32)obj);
     } else {
@@ -506,5 +552,8 @@ Init :: proc() {
 
     set_proc_address(lib, ^_DebugMessageControl,     "glDebugMessageControlARB");
     set_proc_address(lib, ^_DebugMessageCallback,    "glDebugMessageCallbackARB");
-}
 
+    set_proc_address(lib, ^_GetShaderiv,             "glGetShaderiv");
+    set_proc_address(lib, ^_GetShaderInfoLog,        "glGetShaderInfoLog");
+    set_proc_address(lib, ^_GetStringi,              "glGetStringi");
+}

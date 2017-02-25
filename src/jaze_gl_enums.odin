@@ -1,5 +1,13 @@
 #import const "opengl_constants.odin";
 
+GetShaderNames :: enum i32 {
+    ShaderType = const.SHADER_TYPE,
+    DeleteStatus = const.DELETE_STATUS,
+    CompileStatus = const.COMPILE_STATUS,
+    InfoLogLength = const.INFO_LOG_LENGTH,
+    ShaderSourceLength = const.SHADER_SOURCE_LENGTH,
+}
+
 DebugSource :: enum i32 {
     Api                                = const.DEBUG_SOURCE_API,
     WindowSystem                       = const.DEBUG_SOURCE_WINDOW_SYSTEM,
@@ -135,6 +143,7 @@ GetStringNames :: enum i32 {
     Renderer                           = const.RENDERER,
     Version                            = const.VERSION,
     ShadingLanguageVersion             = const.SHADING_LANGUAGE_VERSION,
+    Extensions                         = const.EXTENSIONS,   
 }
 
 GetIntegerNames :: enum i32 {
