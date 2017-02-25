@@ -137,12 +137,10 @@ PrepareAttribArray :: proc(attribList : [dynamic]Attrib) -> [dynamic]i32 {
     return array;
 }
 
-CreateContextAttribsARB : proc(hdc : win32.HDC, shareContext : win32wgl.HGLRC
-, attribList : ^i32) -> win32wgl.HGLRC
- #cc_c;
+CreateContextAttribsARB : proc(hdc : win32.HDC, shareContext : win32wgl.HGLRC, attribList : ^i32) -> win32wgl.HGLRC #cc_c;
 ChoosePixelFormatARB : proc(hdc : win32.HDC, piAttribIList : ^i32, pfAttribFList : ^f32, nMaxFormats : u32, piFormats : ^i32, nNumFormats : ^u32) -> win32.BOOL #cc_c;
 SwapIntervalEXT : proc(interval : i32) -> bool #cc_c;
-GetExtensionsStringEXT : proc() -> ^byte #cc_c;
+GetExtensionsStringARB : proc(win32.HDC) -> ^byte #cc_c;
 
 TryGetExtensionList :: struct {
     Exts : map[string]rawptr,

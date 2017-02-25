@@ -9,6 +9,7 @@
 
 OpenGLVars_ :: struct {
     Ctx               : win32wgl.HGLRC,
+
     VersionMajorMax   : i32,
     VersionMajorCur   : i32,
     VersionMinorMax   : i32,
@@ -16,8 +17,15 @@ OpenGLVars_ :: struct {
     VersionString     : string,
     GLSLVersionString : string,
 
+    VendorString      : string,
+    RendererString    : string,
+
+    ContextFlags      : i32,
+
     NumExtensions     : i32,
     Extensions        : [dynamic]string,
+    NumWglExtensions  : i32,
+    WglExtensions     : [dynamic]string,
 }
 
 Win32Vars_ :: struct {
@@ -27,18 +35,34 @@ Win32Vars_ :: struct {
     Ogl          : OpenGLVars_,
 }
 
-GetOpenGLInfo :: proc(vars : ^OpenGLVars_) {
+GetOpenGLInfo :: proc(win32vars : ^Win32Vars_) {
+    vars := ^win32vars.Ogl;
     vars.VersionMajorCur = gl.GetInteger(gl.GetIntegerNames.MajorVersion);
     vars.VersionMinorCur = gl.GetInteger(gl.GetIntegerNames.MinorVersion);
+
+    vars.ContextFlags = gl.GetInteger(gl.GetIntegerNames.ContextFlags);
 
     vars.VersionString = gl.GetString(gl.GetStringNames.Version);
     vars.GLSLVersionString = gl.GetString(gl.GetStringNames.ShadingLanguageVersion);
 
+    vars.VendorString = gl.GetString(gl.GetStringNames.Vendor);
+    vars.RendererString = gl.GetString(gl.GetStringNames.Renderer);
+
     vars.NumExtensions = gl.GetInteger(gl.GetIntegerNames.NumExtensions);
     reserve(vars.Extensions, vars.NumExtensions);
-    for i : i32; i < vars.NumExtensions; i += 1 {
+    for i in 0..<vars.NumExtensions {
         ext := gl.GetString(gl.GetStringNames.Extensions, cast(u32)i);
         append(vars.Extensions, ext);
+    }
+
+    wglExts := strings.to_odin_string(wgl.GetExtensionsStringARB(win32vars.DeviceCtx));
+    s := 0;
+    for r, i in wglExts {
+        if r == ' ' {
+            append(vars.WglExtensions, wglExts[s:i]);
+            vars.NumWglExtensions += 1;
+            s = i+1;
+        }
     }
 }
 
@@ -83,6 +107,8 @@ CreateOpenGLContext :: proc (vars : ^Win32Vars_, modern : bool) -> win32wgl.HGLR
             extensions := wgl.TryGetExtensionList{};
             wgl.TryGetExtension(^extensions, ^wgl.ChoosePixelFormatARB, "wglChoosePixelFormatARB");
             wgl.TryGetExtension(^extensions, ^wgl.CreateContextAttribsARB, "wglCreateContextAttribsARB");
+            wgl.TryGetExtension(^extensions, ^wgl.GetExtensionsStringARB, "wglGetExtensionsStringARB");
+            wgl.TryGetExtension(^extensions, ^wgl.SwapIntervalEXT, "wglSwapIntervalEXT");
             wgl.LoadExtensions(oldCtx, wndDc, extensions);
 
             win32wgl.MakeCurrent(nil, nil);
@@ -181,10 +207,8 @@ WindowProc :: proc(hwnd: win32.HWND,
             PostQuitMessage(0);
         }
 
-        /*case win32ext.WM_MOUSEWHEEL : {
-            delta := cast(i16)(cast(u16)((cast(u32)((lparam >> 16) & 0xFFFF))));
-            delta /= 120;
-            fmt.println(delta);
+        case win32ext.WM_MOUSEWHEEL : {
+            delta := cast(i16)win32ext.HIWORD(wparam);
             if(delta > 1) {
                 ImGuiState.MouseWheelDelta += 1;
             }
@@ -194,13 +218,16 @@ WindowProc :: proc(hwnd: win32.HWND,
 
             result = 1;
         } 
-        */
 
         case WM_CHAR : {
             imgui.GuiIO_AddInputCharacter(cast(u16)wparam); 
             result = 1;
         }
         break;
+
+        case WM_SIZE : {
+            gl.Viewport(0, 0, cast(i32)win32ext.LOWORD(lparam), cast(i32)win32ext.HIWORD(lparam));
+        }
 
         default : {
             result = DefWindowProcA(hwnd, msg, wparam, lparam);
@@ -213,7 +240,6 @@ WindowProc :: proc(hwnd: win32.HWND,
 ImGuiState_ :: struct {
     //Misc
     MouseWheelDelta  : i32,
-
 
     //Render
     MainProgram      : gl.Program,
@@ -370,7 +396,7 @@ ImGuiInit :: proc(windowHandle : win32.HWND) {
 
 
     gl.EnableVertexAttribArray(cast(u32)ImGuiState.AttribLocPos);
-    gl.EnableVertexAttribArray(cast(u32)cast(u32)ImGuiState.AttribLocUV);
+    gl.EnableVertexAttribArray(cast(u32)ImGuiState.AttribLocUV);
     gl.EnableVertexAttribArray(cast(u32)ImGuiState.AttribLocColor);
 
     gl.VertexAttribPointer(cast(u32)ImGuiState.AttribLocPos,   2, gl.VertexAttribDataType.Float, false, size_of(imgui.DrawVert), cast(rawptr)cast(int)offset_of(imgui.DrawVert, pos));
@@ -402,26 +428,42 @@ ImGuiNewFrame :: proc(deltaTime : f64) {
     io.DisplaySize.x = cast(f32)rect.right;
     io.DisplaySize.y = cast(f32)rect.bottom;
 
-    pos : win32.POINT;
-    win32.GetCursorPos(^pos);
-    win32.ScreenToClient(cast(win32.HWND)io.ImeWindowHandle, ^pos);
-    io.MousePos.x = cast(f32)pos.x;
-    io.MousePos.y = cast(f32)pos.y;
-    io.MouseDown[0] = win32.is_key_down(win32.Key_Code.LBUTTON);
-    io.MouseDown[1] = win32.is_key_down(win32.Key_Code.RBUTTON);
+    if win32.GetActiveWindow() == cast(win32.HWND)io.ImeWindowHandle {
+        pos : win32.POINT;
+        win32.GetCursorPos(^pos);
+        win32.ScreenToClient(cast(win32.HWND)io.ImeWindowHandle, ^pos);
+        io.MousePos.x = cast(f32)pos.x;
+        io.MousePos.y = cast(f32)pos.y;
+        io.MouseDown[0] = win32.is_key_down(win32.Key_Code.LBUTTON);
+        io.MouseDown[1] = win32.is_key_down(win32.Key_Code.RBUTTON);
 
-    io.MouseWheel = cast(f32)ImGuiState.MouseWheelDelta; 
-    ImGuiState.MouseWheelDelta = 0;
+        io.MouseWheel = cast(f32)ImGuiState.MouseWheelDelta; 
 
-    io.KeyCtrl =  win32.is_key_down(win32.Key_Code.LCONTROL) || win32.is_key_down(win32.Key_Code.RCONTROL);
-    io.KeyShift = win32.is_key_down(win32.Key_Code.LSHIFT)   || win32.is_key_down(win32.Key_Code.RSHIFT);
-    io.KeyAlt =   win32.is_key_down(win32.Key_Code.LMENU)    || win32.is_key_down(win32.Key_Code.RMENU);
-    io.KeySuper = win32.is_key_down(win32.Key_Code.LWIN)     || win32.is_key_down(win32.Key_Code.RWIN);
+        /*test := (cast(u16)win32.GetAsyncKeyState(cast(i32)win32.Key_Code.LCONTROL) & 1<<15) != 0;
+        fmt.println(test);*/
 
-    for i in 0..<257 { //0..256 doesn't work tell bill
-        io.KeysDown[i] = win32.is_key_down(cast(win32.Key_Code)i);
+        io.KeyCtrl =  win32.is_key_down(win32.Key_Code.LCONTROL) || win32.is_key_down(win32.Key_Code.RCONTROL);
+        io.KeyShift = win32.is_key_down(win32.Key_Code.LSHIFT)   || win32.is_key_down(win32.Key_Code.RSHIFT);
+        io.KeyAlt =   win32.is_key_down(win32.Key_Code.LMENU)    || win32.is_key_down(win32.Key_Code.RMENU);
+        io.KeySuper = win32.is_key_down(win32.Key_Code.LWIN)     || win32.is_key_down(win32.Key_Code.RWIN);
+
+        for i in 0..<257 { //0..256 doesn't work tell bill
+            io.KeysDown[i] = win32.is_key_down(cast(win32.Key_Code)i);
+        }
+    } else {
+        io.MouseDown[0] = false;
+        io.MouseDown[1] = false;
+        io.KeyCtrl  = false;  
+        io.KeyShift = false; 
+        io.KeyAlt   = false;   
+        io.KeySuper = false;
+
+        for i in 0..<257 { //0..256 doesn't work tell bill
+            io.KeysDown[i] = false;
+        }
     }
-
+    
+    ImGuiState.MouseWheelDelta = 0;
     io.DeltaTime = cast(f32)deltaTime;
     imgui.NewFrame();
 }
@@ -482,92 +524,8 @@ ImGuiRender :: proc(data : ^imgui.DrawData) #cc_c {
 }
 
 OpenGLDebugCallback :: proc(source : gl.DebugSource, type : gl.DebugType, id : i32, severity : gl.DebugSeverity, length : i32, message : ^byte, userParam : rawptr) #cc_c {
-    match (source) {
-    case gl.DebugSource.Api :
-        fmt.print("[Source API");
-        break;
-
-    case gl.DebugSource.WindowSystem :
-        fmt.print("[Window System");
-        break;
-
-    case gl.DebugSource.ShaderCompiler :
-        fmt.print("[Shader Compiler");
-        break;
-
-    case gl.DebugSource.ThirdParty :
-        fmt.print("[3rd Party");
-        break;
-
-    case gl.DebugSource.Application :
-        fmt.print("[Application");
-        break;
-
-    case gl.DebugSource.Other :
-        fmt.print("[Other");
-        break;
-    }
-    fmt.print(" | ");
-    match (type) {
-    case gl.DebugType.Error :
-        fmt.print("Error");
-        break;
-
-    case gl.DebugType.DeprecatedBehavior :
-        fmt.print("Deptracted Behavior");
-        break;
-
-    case gl.DebugType.UndefinedBehavior :
-        fmt.print("Undefined Behavior");
-        break;
-
-    case gl.DebugType.Portability :
-        fmt.print("Portability");
-        break;
-
-    case gl.DebugType.Performance :
-        fmt.print("Performance");
-        break;
-
-    case gl.DebugType.Marker :
-        fmt.print("Marker");
-        break;
-
-    case gl.DebugType.PushGroup :
-        fmt.print("Push Group");
-        break;
-
-    case gl.DebugType.PopGroup :
-        fmt.print("Pop Group");
-        break;
-
-    case gl.DebugType.Other :
-        fmt.print("Other");
-        break;
-    }
-    fmt.print(" | ");
-    match (severity) {
-    case gl.DebugSeverity.High :
-        fmt.print("High]");
-        break;
-
-    case gl.DebugSeverity.Medium :
-        fmt.print("Medium]");
-        break;
-
-    case gl.DebugSeverity.Low :
-        fmt.print("Low]");
-        break;
-
-    case gl.DebugSeverity.Notification :
-        fmt.print("Notification]");
-        break;
-    }
-    fmt.print(" ");
-    fmt.print(strings.to_odin_string(message));
-    fmt.print("\n");
+    fmt.printf("[%v | %v | %v] %s", source, type, severity, strings.to_odin_string(message));
 }
-
 
 ProgramRunning : bool;
 
@@ -583,7 +541,7 @@ main :: proc() {
     gl.Enable(gl.Capabilities.DebugOutputSynchronous);
     gl.DebugMessageControl(gl.DebugSource.DontCare, gl.DebugType.DontCare, gl.DebugSeverity.Notification, 0, nil, false);
     
-    GetOpenGLInfo(^win32vars.Ogl);
+    GetOpenGLInfo(^win32vars);
 
     buf : [1024]byte;
     fmt.sprint(buf[:], "Jaze ", win32vars.Ogl.VersionString);
@@ -603,6 +561,7 @@ main :: proc() {
     ShowOpenGLInfo : bool = false;
     ShowTestWindow : bool = false;
 
+    wgl.SwapIntervalEXT(-1);
     for ProgramRunning {
         msg : win32.MSG;
         for win32.PeekMessageA(^msg, nil, 0, 0, win32.PM_REMOVE) == win32.TRUE {
@@ -629,6 +588,10 @@ main :: proc() {
             if imgui.MenuItem("Show Test Window", "", false, true) {
                 ShowTestWindow = !ShowTestWindow;
             }
+            imgui.Separator();
+            if imgui.MenuItem("Exit", "", false, true) {
+                ProgramRunning = false;
+            }
             imgui.EndMenu();
         }
         
@@ -636,22 +599,35 @@ main :: proc() {
 
         if ShowOpenGLInfo == true {
             imgui.Begin("OpenGL Info", ^ShowOpenGLInfo, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
-            imgui.Text("Versions:");
-            imgui.Indent(10.0);
-            imgui.Text("Highest Version: %d.%d", win32vars.Ogl.VersionMajorMax, win32vars.Ogl.VersionMinorMax);
-            imgui.Text("Current Version: %d.%d", win32vars.Ogl.VersionMajorCur, win32vars.Ogl.VersionMajorCur);
-            imgui.Unindent(10.0);
-            imgui.Separator();
-            imgui.Text("GLSL Version: %s", win32vars.Ogl.GLSLVersionString);
-            imgui.Separator();
-            if imgui.CollapsingHeader("Extensions", 0) {
-                imgui.Text("Number of extensions: %d", win32vars.Ogl.NumExtensions);
-                imgui.BeginChild("Extensions", imgui.Vec2{0, 0}, true, 0);
-                for ext in win32vars.Ogl.Extensions {
-                    imgui.Text(ext);
+                imgui.Text("Versions:");
+                imgui.Indent(20.0);
+                    imgui.Text("Highest: %d.%d", win32vars.Ogl.VersionMajorMax, win32vars.Ogl.VersionMinorMax);
+                    imgui.Text("Current: %d.%d", win32vars.Ogl.VersionMajorCur, win32vars.Ogl.VersionMajorCur);
+                    imgui.Text("GLSL:    %s", win32vars.Ogl.GLSLVersionString);
+                imgui.Unindent(20.0);
+                imgui.Separator();
+                    imgui.Text("Vendor:   %s", win32vars.Ogl.VendorString);
+                    imgui.Text("Render:   %s", win32vars.Ogl.RendererString);
+                    imgui.Text("CtxFlags: %d", win32vars.Ogl.ContextFlags);
+                imgui.Separator();
+                    imgui.Text("Number of extensions:     %d", win32vars.Ogl.NumExtensions);
+                    imgui.Text("Number of WGL extensions: %d", win32vars.Ogl.NumWglExtensions);
+                imgui.Separator();
+                if imgui.CollapsingHeader("Extensions", 0) {
+                    imgui.BeginChild("Extensions", imgui.Vec2{0, 0}, true, 0);
+                    for ext in win32vars.Ogl.Extensions {
+                        imgui.Text(ext);
+                    }
+                    imgui.EndChild();
                 }
-                imgui.EndChild();
-            }
+
+                if imgui.CollapsingHeader("WGL Extensions", 0) {
+                    imgui.BeginChild("Extensions", imgui.Vec2{0, 0}, true, 0);
+                    for ext in win32vars.Ogl.WglExtensions {
+                        imgui.Text(ext);
+                    }
+                    imgui.EndChild();
+                }
             imgui.End();
         }
         

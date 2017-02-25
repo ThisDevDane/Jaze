@@ -4,6 +4,126 @@
 		"selected_items":
 		[
 			[
+				"Debug",
+				"DebugSeverity"
+			],
+			[
+				"sev",
+				"severity"
+			],
+			[
+				"Vend",
+				"VendorString"
+			],
+			[
+				"Renderer",
+				"RendererString"
+			],
+			[
+				"Num",
+				"NumWglExtensions"
+			],
+			[
+				"Pro",
+				"ProgramRunning"
+			],
+			[
+				"Window",
+				"WindowHandle"
+			],
+			[
+				"SHow",
+				"ShowTestWindow"
+			],
+			[
+				"show",
+				"ShowOpenGLInfo"
+			],
+			[
+				"Show",
+				"ShowOpenGLInfo"
+			],
+			[
+				"GLSL",
+				"GLSLVersionString"
+			],
+			[
+				"Versi",
+				"VersionMajorMax"
+			],
+			[
+				"GetIn",
+				"GetIntegerNames"
+			],
+			[
+				"pritn",
+				"println"
+			],
+			[
+				"Mouse",
+				"MouseWheelDelta"
+			],
+			[
+				"Im",
+				"ImGuiState"
+			],
+			[
+				"Wind",
+				"WindowHandle"
+			],
+			[
+				"Version",
+				"VersionString"
+			],
+			[
+				"_getShad",
+				"_GetShaderInfoLog"
+			],
+			[
+				"GetSha",
+				"GetShaderValue"
+			],
+			[
+				"_get",
+				"_GetShaderiv"
+			],
+			[
+				"Draw",
+				"DrawElements"
+			],
+			[
+				"proc",
+				"procedure"
+			],
+			[
+				"Deb",
+				"DebugSource"
+			],
+			[
+				"DebugS",
+				"DebugSeverity"
+			],
+			[
+				"_De",
+				"_DebugMessageCallback"
+			],
+			[
+				"_Deb",
+				"_DebugMessageControl"
+			],
+			[
+				"deb",
+				"DebugType"
+			],
+			[
+				"Debyg",
+				"DebugSeverity"
+			],
+			[
+				"De",
+				"DebugMessageCallbackProc"
+			],
+			[
 				"Buffer",
 				"BufferDataUsage"
 			],
@@ -96,10 +216,6 @@
 				"win32ext"
 			],
 			[
-				"De",
-				"DescribePixelFormat"
-			],
-			[
 				"att",
 				"attribList"
 			],
@@ -134,10 +250,6 @@
 			[
 				"__",
 				"__SymInitialized"
-			],
-			[
-				"Pro",
-				"Procedure"
 			],
 			[
 				"f",
@@ -383,7 +495,52 @@
 			"file": "src/main.odin",
 			"settings":
 			{
-				"buffer_size": 15239,
+				"buffer_size": 27369,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/E/Odin/core/sys/windows.odin",
+			"settings":
+			{
+				"buffer_size": 15912,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/E/Odin/core/strings.odin",
+			"settings":
+			{
+				"buffer_size": 265,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/E/Odin/core/fmt.odin",
+			"settings":
+			{
+				"buffer_size": 25060,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/jaze_wgl.odin",
+			"settings":
+			{
+				"buffer_size": 4122,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/jaze_win32.odin",
+			"settings":
+			{
+				"buffer_size": 592,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -392,7 +549,7 @@
 			"file": "src/jaze_gl_enums.odin",
 			"settings":
 			{
-				"buffer_size": 20080,
+				"buffer_size": 22309,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -401,17 +558,43 @@
 			"file": "src/jaze_gl.odin",
 			"settings":
 			{
-				"buffer_size": 16682,
+				"buffer_size": 20159,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "src/jaze_util.odin",
+			"file": "/W/oToolkit/odimgui/src/imgui.odin",
 			"settings":
 			{
-				"buffer_size": 294,
+				"buffer_size": 126378,
 				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/E/Odin/core/sys/wgl.odin",
+			"settings":
+			{
+				"buffer_size": 4483,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/E/Odin/core/math.odin",
+			"settings":
+			{
+				"buffer_size": 9865,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/E/Odin/core/_preload.odin",
+			"settings":
+			{
+				"buffer_size": 16179,
 				"line_ending": "Windows"
 			}
 		}
@@ -472,9 +655,13 @@
 	"command_palette":
 	{
 		"height": 400.0,
-		"last_filter": "a",
+		"last_filter": "",
 		"selected_items":
 		[
+			[
+				"",
+				"Alignment: Align"
+			],
 			[
 				"a",
 				"Alignment: Align"
@@ -547,6 +734,8 @@
 		"height": 126.0,
 		"history":
 		[
+			"start",
+			"ls",
 			"import urllib.request,os,hashlib; h = 'df21e130d211cfc94d9b0905775a7c0f' + '1e3d39e33b79698005270310898eea76'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
 		]
 	},
@@ -563,10 +752,13 @@
 	[
 		"/W/Jaze",
 		"/W/Jaze/src",
+		"/E/Odin/core",
 		"/E/Odin/core/sys"
 	],
 	"file_history":
 	[
+		"/C/Users/fyouc/AppData/Local/Temp/7zO85E6.tmp/strings.odin",
+		"/W/Jaze/src/jaze_util.odin",
 		"/W/School/WindClicker/WindClicker/main.cpp",
 		"/W/oToolkit/odimgui/src/imgui.odin",
 		"/W/odimgui/imgui.odin",
@@ -629,6 +821,96 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"type_of",
+			"type_of_val",
+			"buffer_write_type",
+			"fprint_type",
+			"HIWORD",
+			"WS_",
+			"c_string",
+			"-1.0",
+			"ext",
+			"=",
+			"Main",
+			"U32",
+			"bool",
+			" imgui.NextColumn();",
+			"imgui.NextColumn();",
+			"Major",
+			"Max",
+			"%s",
+			"s",
+			"Max",
+			"dc",
+			"vars.",
+			"win32vars",
+			"Cur",
+			"dc",
+			":",
+			"\"g",
+			"0.0",
+			"/",
+			"=",
+			"}",
+			",",
+			"}",
+			",",
+			"140",
+			"ImguiRender",
+			"ImguiNewFrame",
+			"ImguiInit",
+			"PushStyleVarVec",
+			"f32",
+			"=",
+			"win32",
+			"VK_",
+			"ImGuiKey_",
+			"=",
+			"cast(u32)",
+			"u32",
+			":",
+			"ImguiRenderState",
+			"ImguiRenderState_",
+			"for",
+			"||",
+			" !=",
+			"win32.GetAsyncKeyState",
+			"GetAsyncKeyState",
+			"0x800",
+			"0x100",
+			"Key_Code",
+			"VK_",
+			"0x8000",
+			"GetAsyncKeyState",
+			"0x100",
+			"Key_code",
+			"0x1000",
+			"0x8000",
+			"VK_",
+			"GetAsyncKeyState",
+			"0x100",
+			"#f",
+			"Get",
+			"\"",
+			"\\n",
+			"\"",
+			"\\n",
+			"\"",
+			"\\n",
+			"n",
+			"\\n",
+			":",
+			"=",
+			"fmt.println(#file, #line, #procedure);",
+			"OutputDebugStringA",
+			"switch",
+			"#cc_c",
+			";\n",
+			"win32.HGLRC",
+			"dynamic",
+			"CreateContext",
+			"wglCreateContext",
+			"HGLRC",
 			"int",
 			"cast(int",
 			"cast(int)",
@@ -666,97 +948,7 @@
 			"Location",
 			"GetAt",
 			"vertexShader",
-			"Major",
-			"Clear",
-			"glClear",
-			");",
-			"wgl.AppendAttrib(^createAttr,",
-			");",
-			"wgl.AppendAttrib",
-			"\n#",
-			"int",
-			"#cc_c",
-			"#cc_c;",
-			"createAttr",
-			"attribs",
-			"fmt",
-			"WGL_CONTEXT_",
-			"cast(i32)",
-			"bool",
-			"(",
-			";",
-			"wgl",
-			"append(attribs, attr);",
-			"attr = ",
-			"attr := ",
-			"proc",
-			"Attribs",
-			"TYPE_",
-			":",
-			"0",
-			"GetString",
-			"=",
-			"GL_",
-			"#foreign",
-			":",
-			"#cc_c",
-			": p",
-			" #cc_c",
-			"::",
-			": p",
-			":",
-			"SYSTEMTIME",
-			"printf",
-			"DescribePixelFormat",
-			"WGL_DRAW_TO_WINDOW_ARB",
-			"DC",
-			"glDeleteBuffers",
-			"glBlendEquationSeparate",
-			"DrawElements",
-			"Scissor",
-			"BufferData",
-			"VertexAttribPointer",
-			"EnableVertexAttribArray",
-			"GenVertexArrays",
-			"BindVertexArray",
-			"glBindVertexArray",
-			"BlendEquation",
-			"CLIP_DISTANCE",
-			"CLIP_DISTANCE0",
-			"GL_BLEND_DST_ALPHA",
-			"BLEND_",
-			"BLEND_COLOR",
-			"BLEND_COL",
-			"BLEND",
-			"GL_ALIA",
-			"GetProcAddress",
-			"ShaderSource",
-			"GL_COMPUTE",
-			"u64",
-			"u32",
-			"u3264",
-			"i64",
-			"ULONG",
-			"s",
-			"Handle",
-			"otime",
-			"os.read",
-			"array",
-			"next",
-			"ShellExe",
-			"os.read",
-			"Read",
-			"ERROR",
-			"TODO",
-			"NOTE",
-			"fmt.println(\"Mode:\"",
-			"fmt",
-			"idx",
-			"handle != -1",
-			"buf",
-			"perm",
-			"ReadAllEntries",
-			"Handle"
+			"Major"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -764,6 +956,9 @@
 		"regex": false,
 		"replace_history":
 		[
+			"Bool\n",
+			";\n",
+			"win32wgl.HGLRC\n",
 			");\n",
 			"u32",
 			"i32",
@@ -775,13 +970,13 @@
 		"reverse": false,
 		"show_context": true,
 		"use_buffer2": true,
-		"whole_word": true,
+		"whole_word": false,
 		"wrap": true
 	},
 	"groups":
 	[
 		{
-			"selected": 3,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -790,109 +985,20 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 15239,
+						"buffer_size": 27369,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								13865,
-								13866
+								398,
+								398
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/User/odin-lang.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 5338.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "src/jaze_gl_enums.odin",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 20080,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								50,
-								50
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/User/odin-lang.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "src/jaze_gl.odin",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 16682,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								12408,
-								12408
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/User/odin-lang.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 7064.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "src/jaze_util.odin",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 294,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								278,
-								278
-							]
-						],
-						"settings":
-						{
+							"history_list_is_closing": true,
 							"syntax": "Packages/User/odin-lang.sublime-syntax",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
@@ -903,13 +1009,556 @@
 					},
 					"stack_index": 0,
 					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/E/Odin/core/sys/windows.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 15912,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								13632,
+								13632
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 6478.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "/E/Odin/core/strings.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 265,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								170,
+								170
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 15,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "/E/Odin/core/fmt.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 25060,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								22557,
+								22557
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 16224.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "src/jaze_wgl.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4122,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3920,
+								3920
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2312.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 18,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "src/jaze_win32.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 592,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								592,
+								592
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/User/odin-lang.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 17,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "src/jaze_gl_enums.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 22309,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1617,
+								1617
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 13,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "src/jaze_gl.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 20159,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								17236,
+								17236
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 7810.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 14,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "/W/oToolkit/odimgui/src/imgui.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 126378,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5201,
+								5201
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3141.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 16,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 8,
+			"sheets":
+			[
+				{
+					"buffer": 9,
+					"file": "/E/Odin/core/sys/wgl.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4483,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1517,
+								1517
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": -0.0,
+						"translation.y": 612.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "src/jaze_gl.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 20159,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								10878,
+								10878
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3580.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 10,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "src/jaze_gl_enums.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 22309,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								7725,
+								7725
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2065.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "/W/oToolkit/odimgui/src/imgui.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 126378,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								75067,
+								75067
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 10699.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/E/Odin/core/sys/windows.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 15912,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								529,
+								529
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 27.0,
+						"translation.y": 66.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "src/jaze_win32.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 592,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								592,
+								592
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/User/odin-lang.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "/E/Odin/core/math.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 9865,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								8906,
+								8906
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 5412.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 12,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "/E/Odin/core/fmt.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 25060,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								143,
+								143
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "/E/Odin/core/_preload.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 16179,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1355,
+								1355
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "src/jaze_wgl.odin",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4122,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3734,
+								3734
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/odin-lang.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2142.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
 				}
 			]
 		}
 	],
 	"incremental_find":
 	{
-		"height": 25.0
+		"height": 38.0
 	},
 	"input":
 	{
@@ -924,11 +1573,18 @@
 				0,
 				1,
 				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
 			]
 		],
 		"cols":
 		[
 			0.0,
+			0.5,
 			1.0
 		],
 		"rows":
@@ -937,14 +1593,14 @@
 			1.0
 		]
 	},
-	"menu_visible": true,
+	"menu_visible": false,
 	"output.9o://E:\\Golang-src\\src\\gogs\\dania\\website_server":
 	{
 		"height": 110.0
 	},
 	"output.exec":
 	{
-		"height": 88.0
+		"height": 144.0
 	},
 	"output.find_results":
 	{
@@ -970,7 +1626,7 @@
 	"project": "subl-proj.sublime-project",
 	"replace":
 	{
-		"height": 46.0
+		"height": 104.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -979,6 +1635,90 @@
 		"last_filter": "",
 		"selected_items":
 		[
+			[
+				"",
+				"core\\_preload.odin"
+			],
+			[
+				"fm",
+				"core\\fmt.odin"
+			],
+			[
+				"_pre",
+				"core\\_preload.odin"
+			],
+			[
+				"win",
+				"Jaze\\src\\jaze_win32.odin"
+			],
+			[
+				"img",
+				"odimgui\\src\\imgui.odin"
+			],
+			[
+				"enu",
+				"Jaze\\src\\jaze_gl_enums.odin"
+			],
+			[
+				"wgl",
+				"core\\sys\\wgl.odin"
+			],
+			[
+				"im",
+				"odimgui\\src\\imgui.odin"
+			],
+			[
+				"ma",
+				"Jaze\\src\\main.odin"
+			],
+			[
+				"wino",
+				"core\\sys\\windows.odin"
+			],
+			[
+				"fmt",
+				"core\\fmt.odin"
+			],
+			[
+				"gl",
+				"Jaze\\src\\jaze_gl.odin"
+			],
+			[
+				"en",
+				"Jaze\\src\\jaze_gl_enums.odin"
+			],
+			[
+				"win32",
+				"Jaze\\src\\jaze_win32.odin"
+			],
+			[
+				"main",
+				"Jaze\\src\\main.odin"
+			],
+			[
+				"wi",
+				"core\\sys\\windows.odin"
+			],
+			[
+				"mat",
+				"core\\math.odin"
+			],
+			[
+				"i",
+				"odimgui\\src\\imgui.odin"
+			],
+			[
+				"imgui",
+				"odimgui\\src\\imgui.odin"
+			],
+			[
+				"util",
+				"Jaze\\src\\jaze_util.odin"
+			],
+			[
+				"core/",
+				"core\\strings.odin"
+			]
 		],
 		"width": 0.0
 	},
@@ -993,13 +1733,21 @@
 	},
 	"select_symbol":
 	{
-		"height": 190.0,
-		"last_filter": "Draw",
+		"height": 42.0,
+		"last_filter": "",
 		"selected_items":
 		[
 			[
-				"Draw",
+				"DrawEl",
 				"DrawElements"
+			],
+			[
+				"Draw",
+				"DrawCallback"
+			],
+			[
+				"Create",
+				"CreateContext"
 			],
 			[
 				"Capa",
@@ -1014,8 +1762,8 @@
 	},
 	"show_minimap": true,
 	"show_open_files": false,
-	"show_tabs": true,
-	"side_bar_visible": true,
+	"show_tabs": false,
+	"side_bar_visible": false,
 	"side_bar_width": 150.0,
 	"status_bar_visible": true,
 	"template_settings":
