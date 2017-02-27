@@ -114,7 +114,7 @@ CreateOpenGLContext :: proc (vars : ^Win32Vars_, modern : bool) -> win32wgl.HGLR
             win32wgl.MakeCurrent(nil, nil);
             win32wgl.DeleteContext(oldCtx);
             win32.ReleaseDC(wndHandle, wndDc);
-            win32ext.DestroyWindow(wndHandle);
+            win32.DestroyWindow(wndHandle);
         }
         
         attribs : [dynamic]wgl.Attrib;
@@ -439,9 +439,6 @@ ImGuiNewFrame :: proc(deltaTime : f64) {
 
         io.MouseWheel = cast(f32)ImGuiState.MouseWheelDelta; 
 
-        /*test := (cast(u16)win32.GetAsyncKeyState(cast(i32)win32.Key_Code.LCONTROL) & 1<<15) != 0;
-        fmt.println(test);*/
-
         io.KeyCtrl =  win32.is_key_down(win32.Key_Code.LCONTROL) || win32.is_key_down(win32.Key_Code.RCONTROL);
         io.KeyShift = win32.is_key_down(win32.Key_Code.LSHIFT)   || win32.is_key_down(win32.Key_Code.RSHIFT);
         io.KeyAlt =   win32.is_key_down(win32.Key_Code.LMENU)    || win32.is_key_down(win32.Key_Code.RMENU);
@@ -458,7 +455,7 @@ ImGuiNewFrame :: proc(deltaTime : f64) {
         io.KeyAlt   = false;   
         io.KeySuper = false;
 
-        for i in 0..<257 { //0..256 doesn't work tell bill
+        for i in 0...256 { 
             io.KeysDown[i] = false;
         }
     }
@@ -527,9 +524,35 @@ OpenGLDebugCallback :: proc(source : gl.DebugSource, type : gl.DebugType, id : i
     fmt.printf("[%v | %v | %v] %s", source, type, severity, strings.to_odin_string(message));
 }
 
+GlobalWindowPosition : win32ext.WINDOWPLACEMENT;
+
+ToggleFullscreen :: proc(wnd : win32.HWND) {
+    Style : u32 = cast(u32)win32ext.GetWindowLongPtr(wnd, win32ext.GWL_STYLE);
+    if(Style & win32.WS_OVERLAPPEDWINDOW == win32.WS_OVERLAPPEDWINDOW) {
+        monitorInfo : win32ext.MONITORINFO;
+        monitorInfo.Size = size_of(win32ext.MONITORINFO);
+
+        win32ext.GetWindowPlacement(wnd, ^GlobalWindowPosition);
+        win32ext.GetMonitorInfo(win32ext.MonitorFromWindow(wnd, win32ext.MONITOR_DEFAULTTOPRIMARY), ^monitorInfo);
+        win32ext.SetWindowLongPtr(wnd, win32ext.GWL_STYLE, cast(i64)Style & ~win32.WS_OVERLAPPEDWINDOW);
+        win32ext.SetWindowPos(wnd, win32ext.HWND_TOP,
+                              monitorInfo.Monitor.left, monitorInfo.Monitor.top,
+                              monitorInfo.Monitor.right - monitorInfo.Monitor.left,
+                              monitorInfo.Monitor.bottom - monitorInfo.Monitor.top,
+                              win32ext.SWP_FRAMECHANGED | win32ext.SWP_NOOWNERZORDER);
+    } else {
+        win32ext.SetWindowLongPtr(wnd, win32ext.GWL_STYLE, cast(i64)(Style | win32.WS_OVERLAPPEDWINDOW));
+        win32ext.SetWindowPlacement(wnd, ^GlobalWindowPosition);
+        win32ext.SetWindowPos(wnd, nil, 0, 0, 0, 0,
+                              win32ext.SWP_NOMOVE | win32ext.SWP_NOSIZE | win32ext.SWP_NOZORDER |
+                              win32ext.SWP_NOOWNERZORDER | win32ext.SWP_FRAMECHANGED);
+    }       
+}
+
 ProgramRunning : bool;
 
 main :: proc() {
+    GlobalWindowPosition.Length = size_of(win32ext.WINDOWPLACEMENT);
     win32vars := Win32Vars_{};
     win32vars.AppHandle = win32.GetModuleHandleA(nil);
     win32vars.WindowHandle = CreateWindow(win32vars.AppHandle); 
@@ -565,10 +588,19 @@ main :: proc() {
     for ProgramRunning {
         msg : win32.MSG;
         for win32.PeekMessageA(^msg, nil, 0, 0, win32.PM_REMOVE) == win32.TRUE {
-            if msg.message == win32.WM_QUIT {
+            match msg.message {
+            case win32.WM_QUIT : {
                 ProgramRunning = false;
                 break;
             }
+
+            case win32ext.WM_SYSKEYDOWN : {
+                if cast(i32)msg.wparam == cast(i32)win32.Key_Code.RETURN {
+                    ToggleFullscreen(win32vars.WindowHandle);
+                }
+            }
+            }
+
             win32.TranslateMessage(^msg);
             win32.DispatchMessageA(^msg);
         }
@@ -584,6 +616,9 @@ main :: proc() {
         if imgui.BeginMenu("Misc", true) {
             if imgui.MenuItem("OpenGL Info", "", false, true) {
                 ShowOpenGLInfo = !ShowOpenGLInfo;
+            }
+            if imgui.MenuItem("Toggle Fullscreen", "Alt+Enter", false, true) {
+                ToggleFullscreen(win32vars.WindowHandle);
             }
             if imgui.MenuItem("Show Test Window", "", false, true) {
                 ShowTestWindow = !ShowTestWindow;
