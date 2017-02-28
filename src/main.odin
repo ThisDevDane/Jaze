@@ -4,7 +4,7 @@
 #import gl "jaze_gl.odin";
 #import wgl "jaze_wgl.odin";
 #import "fmt.odin";
-#import "../../oToolkit/odimgui/src/imgui.odin";
+#import "odimgui/src/imgui.odin";
 #import "strings.odin";
 
 OpenGLVars_ :: struct {
