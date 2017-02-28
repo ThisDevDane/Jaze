@@ -225,6 +225,12 @@ WindowProc :: proc(hwnd: win32.HWND,
         }
         break;
 
+        case WM_KEYDOWN : {
+            if cast(Key_Code)wparam == Key_Code.ESCAPE {
+                ProgramRunning = false;
+            }
+        }
+
         case WM_SIZE : {
             gl.Viewport(0, 0, cast(i32)win32ext.LOWORD(lparam), cast(i32)win32ext.HIWORD(lparam));
         }
@@ -502,6 +508,7 @@ ImGuiRender :: proc(data : ^imgui.DrawData) #cc_c {
     for n : i32 = 0; n < data.CmdListsCount; n += 1 {
         list := newList[n];
         idxBufferOffset : ^imgui.DrawIdx = nil;
+
         gl.BindBuffer(ImGuiState.VBOHandle);
         gl.BufferData(gl.BufferTargets.Array, cast(i32)(imgui.DrawList_GetVertexBufferSize(list) * size_of(imgui.DrawVert)), imgui.DrawList_GetVertexPtr(list, 0), gl.BufferDataUsage.StreamDraw);
 
@@ -624,7 +631,7 @@ main :: proc() {
                 ShowTestWindow = !ShowTestWindow;
             }
             imgui.Separator();
-            if imgui.MenuItem("Exit", "", false, true) {
+            if imgui.MenuItem("Exit", "Escape", false, true) {
                 ProgramRunning = false;
             }
             imgui.EndMenu();
@@ -633,6 +640,7 @@ main :: proc() {
         imgui.EndMainMenuBar();
 
         if ShowOpenGLInfo == true {
+            test : imgui.Vec2;
             imgui.Begin("OpenGL Info", ^ShowOpenGLInfo, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
                 imgui.Text("Versions:");
                 imgui.Indent(20.0);
@@ -645,8 +653,10 @@ main :: proc() {
                     imgui.Text("Render:   %s", win32vars.Ogl.RendererString);
                     imgui.Text("CtxFlags: %d", win32vars.Ogl.ContextFlags);
                 imgui.Separator();
-                    imgui.Text("Number of extensions:     %d", win32vars.Ogl.NumExtensions);
-                    imgui.Text("Number of WGL extensions: %d", win32vars.Ogl.NumWglExtensions);
+                    imgui.Text("Number of extensions:     %d", win32vars.Ogl.NumExtensions); 
+                    imgui.Button("View##Ext", imgui.Vec2{-1, -1});
+                    imgui.Text("Number of WGL extensions: %d", win32vars.Ogl.NumWglExtensions); 
+                    imgui.Button("View##Wgl", imgui.Vec2{-1, -1});
                 imgui.Separator();
                 if imgui.CollapsingHeader("Extensions", 0) {
                     imgui.BeginChild("Extensions", imgui.Vec2{0, 0}, true, 0);
@@ -661,6 +671,21 @@ main :: proc() {
                     for ext in win32vars.Ogl.WglExtensions {
                         imgui.Text(ext);
                     }
+                    imgui.EndChild();
+                }
+                imgui.Separator();
+                 if imgui.CollapsingHeader("Loaded Functions", 0) {
+                    imgui.BeginChild("Functions###FuncLoad", imgui.Vec2{0, 0}, true, 0);
+                    imgui.Columns(3, nil, false);
+                    for i in 0..<20 {
+                        imgui.Text("glClear()");
+                        imgui.NextColumn();
+                        imgui.Text("Loaded: Success");
+                        imgui.NextColumn();
+                        imgui.Text("@ 0x8463fd83");
+                        imgui.NextColumn();
+                    }
+                    imgui.Columns(1, nil, false);
                     imgui.EndChild();
                 }
             imgui.End();
