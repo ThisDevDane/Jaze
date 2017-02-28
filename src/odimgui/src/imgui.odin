@@ -551,7 +551,7 @@ BulletTextV                                             :: proc(CONST char* fmt,
 
 Button :: proc(label : string, size : Vec2) -> bool {
     fmt.println(size);
-    ImButton :: proc(label : c_string, size : Vec2) -> bool #cc_c #foreign cimgui "igButton";
+    ImButton :: proc(label : c_string, size : Vec2) -> bool #foreign cimgui "igButton";
     str := strings.new_c_string(label); defer free(str);
     return ImButton(str, size);
 }
