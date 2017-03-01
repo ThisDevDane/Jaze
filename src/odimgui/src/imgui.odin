@@ -705,9 +705,21 @@ MenuItemPtr :: proc(label : string, shortcut : string, selected : ^bool, enabled
 //MenuItemPtr                                             :: proc(label : c_string, shortcut : c_string, p_selected : ^bool, enabled : bool) -> bool                                                                                                                             #foreign cimgui "igMenuItemPtr";
 
 // Popup
-OpenPopup                                               :: proc(str_id : c_string)                                                                                                                                                                                             #foreign cimgui "igOpenPopup";
-BeginPopup                                              :: proc(str_id : c_string) -> bool                                                                                                                                                                                     #foreign cimgui "igBeginPopup";
-BeginPopupModal                                         :: proc(name : c_string, p_open : ^bool, extra_flags : GuiWindowFlags) -> bool                                                                                                                                         #foreign cimgui "igBeginPopupModal";
+OpenPopup :: proc(str_id : string) {
+    ImOpenPopup :: proc(str_id : c_string) #foreign cimgui "igOpenPopup";
+    str := strings.new_c_string(str_id); defer free(str);
+    ImOpenPopup(str);
+}
+BeginPopup :: proc(str_id : string) -> bool {
+    ImBeginPopup :: proc(str_id : c_string) -> bool #foreign cimgui "igBeginPopup";
+    str := strings.new_c_string(str_id); defer free(str);
+    return ImBeginPopup(str);
+}
+BeginPopupModal :: proc(name : string, open : ^bool, extra_flags : GuiWindowFlags) -> bool {
+    ImBeginPopupModal :: proc(name : c_string, p_open : ^bool, extra_flags : GuiWindowFlags) -> bool #foreign cimgui "igBeginPopupModal";
+    str := strings.new_c_string(name); defer free(str);
+    return ImBeginPopupModal(str, open, extra_flags);
+}
 BeginPopupContextItem                                   :: proc(str_id : c_string, mouse_button : i32) -> bool                                                                                                                                                                 #foreign cimgui "igBeginPopupContextItem";
 BeginPopupContextWindow                                 :: proc(also_over_items : bool, str_id : c_string, mouse_button : i32) -> bool                                                                                                                                         #foreign cimgui "igBeginPopupContextWindow";
 BeginPopupContextVoid                                   :: proc(str_id : c_string, mouse_button : i32) -> bool                                                                                                                                                                 #foreign cimgui "igBeginPopupContextVoid";

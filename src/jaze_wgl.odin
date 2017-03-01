@@ -1,6 +1,8 @@
 #import win32 "sys/windows.odin";
 #import win32wgl "sys/wgl.odin";
+#import gl "jaze_gl.odin";
 #import "fmt.odin";
+#import "strings.odin";
 
 to_c_string :: proc(s : string) -> ^byte {
     c := new_slice(byte, s.count+1);
@@ -163,6 +165,18 @@ LoadExtensions :: proc(GLContext : win32wgl.HGLRC, WindowDC : win32.HDC, list : 
 
         for val, key in list.Exts {
             set_proc_address(val, key);
+        }
+    }
+}
+
+GetInfo :: proc(vars : ^gl.OpenGLVars_t, dc : win32.HDC) {
+    wglExts := strings.to_odin_string(GetExtensionsStringARB(dc));
+    s := 0;
+    for r, i in wglExts {
+        if r == ' ' {
+            append(vars.WglExtensions, wglExts[s:i]);
+            vars.NumWglExtensions += 1;
+            s = i+1;
         }
     }
 }

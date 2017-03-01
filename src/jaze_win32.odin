@@ -3,8 +3,9 @@
 
 HMONITOR      :: win32.HANDLE;
 
-WM_MOUSEWHEEL :: 0x020A;
-WM_SYSKEYDOWN :: 0x0104;
+WM_MOUSEWHEEL        :: 0x020A;
+WM_SYSKEYDOWN        :: 0x0104;
+WM_WINDOWPOSCHANGED  :: 0x0047;
 
 GWL_STYLE     :: -16;
 
@@ -48,6 +49,8 @@ SetWindowPlacement :: proc(wnd : win32.HWND, wndpl : ^WINDOWPLACEMENT) -> win32.
 GetWindowLongPtr   :: proc(wnd : win32.HWND, index : i32) -> i64                                                                    #foreign user32 "GetWindowLongPtrA";
 SetWindowLongPtr   :: proc(wnd : win32.HWND, index : i32, new : i64) -> i64                                                         #foreign user32 "SetWindowLongPtrA";
 
+GetWindowText      :: proc(wnd : win32.HWND, str : ^byte, maxCount : i32) -> i32                                                    #foreign user32 "GetWindowTextA";
+
 HIWORD        :: proc(wParam : win32.WPARAM) -> u16 {
     return (cast(u16)(((cast(u32)(wParam)) >> 16) & 0xffff));
 }
@@ -61,4 +64,3 @@ LOWORD        :: proc(wParam : win32.WPARAM) -> u16 {
 LOWORD        :: proc(lParam : win32.LPARAM) -> u16 {
     return cast(u16)lParam;
 }
-

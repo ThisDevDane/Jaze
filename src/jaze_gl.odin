@@ -2,23 +2,8 @@
 #import win32 "sys/windows.odin";
 #import win32wgl "sys/wgl.odin";
 #import "fmt.odin";
+#import "strings.odin";
 #load "jaze_gl_enums.odin";
-
-to_c_string :: proc(s : string) -> ^byte {
-    c := new_slice(byte, s.count+1);
-    copy(c, cast([]byte)s);
-    c[s.count] = 0;
-    return c.data;
-}
-
-to_odin_string :: proc(c: ^byte) -> string {
-    s: string;
-    s.data = c;
-    for (c + s.count)^ != 0 {
-        s.count += 1;
-    }
-    return s;
-}
 
 TRUE  :: 1;
 FALSE :: 0;
@@ -31,6 +16,44 @@ VBO          :: u32;
 EBO          :: u32;
 Texture      :: u32;
 BufferObject :: u32;
+
+
+OpenGLVars_t :: struct {
+    Ctx               : win32wgl.HGLRC,
+
+    VersionMajorMax   : i32,
+    VersionMajorCur   : i32,
+    VersionMinorMax   : i32,
+    VersionMinorCur   : i32,
+    VersionString     : string,
+    GLSLVersionString : string,
+
+    VendorString      : string,
+    RendererString    : string,
+
+    ContextFlags      : i32,
+
+    NumExtensions     : i32,
+    Extensions        : [dynamic]string,
+    NumWglExtensions  : i32,
+    WglExtensions     : [dynamic]string,
+}
+
+DebugFunctionLoadStatus :: struct {
+    Name    : string,
+    Address : int,
+    Success : bool,
+    TypeInfo : ^Type_Info,
+}
+
+DebugInfo_t :: struct {
+    NumberOfFunctionsLoaded : i32,
+    NumberOfFunctionsLoadedSuccessed : i32,
+    Statuses : [dynamic]DebugFunctionLoadStatus,
+}
+
+DebugInfo : DebugInfo_t;
+
 
 DebugMessageCallbackProc :: #type proc(source : DebugSource, type : DebugType, id : i32, severity : DebugSeverity, length : i32, message : ^byte, userParam : rawptr) #cc_c;
 
@@ -101,7 +124,7 @@ UtilCreateAndCompileShader :: proc(type : ShaderTypes, source : string) -> (Shad
         _GetShaderInfoLog(cast(u32)shader, logSize, ^logSize, logBytes.data);
 
         fmt.println("------ Shader Error ------");
-        fmt.print(to_odin_string(logBytes.data)); 
+        fmt.print(strings.to_odin_string(logBytes.data)); 
         fmt.println("--------------------------");
         //DeleteShader(shader);
         return 0, false;
@@ -303,7 +326,7 @@ UniformMatrix4fv :: proc(loc : i32, values : []f32, transpose : bool) {
 
 GetUniformLocation :: proc(program : Program, name : string) -> i32{
     if _GetUniformLocation != nil {
-        str := to_c_string(name); defer free(str);
+        str := strings.new_c_string(name); defer free(str);
         res := _GetUniformLocation(cast(u32)program, str);
         return res;
     } else {
@@ -314,7 +337,7 @@ GetUniformLocation :: proc(program : Program, name : string) -> i32{
 
 GetAttribLocation :: proc(program : Program, name : string) -> i32 {
     if _GetAttribLocation != nil {
-        str := to_c_string(name); defer free(str);
+        str := strings.new_c_string(name); defer free(str);
         res := _GetAttribLocation(cast(u32)program, str);
         return res;
     } else {
@@ -416,7 +439,7 @@ GetShaderValue :: proc(shader : Shader, name : GetShaderNames) -> i32 {
 GetString :: proc(name : GetStringNames, index : u32) -> string {
     if _GetStringi != nil {
         res := _GetStringi(cast(i32)name, index);
-        return to_odin_string(res);
+        return strings.to_odin_string(res);
     } else {
         return "nil";
     }
@@ -424,7 +447,7 @@ GetString :: proc(name : GetStringNames, index : u32) -> string {
 
 GetString :: proc(name : GetStringNames) -> string {
     res := _GetString(cast(i32)name);
-    return to_odin_string(res);
+    return strings.to_odin_string(res);
 }
 
 GetInteger :: proc(name : GetIntegerNames) -> i32 {
@@ -498,10 +521,30 @@ CompileShader :: proc(obj : Shader) {
     }
 }
 
+GetInfo :: proc(vars : ^OpenGLVars_t) {
+    vars.VersionMajorCur = GetInteger(GetIntegerNames.MajorVersion);
+    vars.VersionMinorCur = GetInteger(GetIntegerNames.MinorVersion);
+
+    vars.ContextFlags = GetInteger(GetIntegerNames.ContextFlags);
+
+    vars.VersionString = GetString(GetStringNames.Version);
+    vars.GLSLVersionString = GetString(GetStringNames.ShadingLanguageVersion);
+
+    vars.VendorString = GetString(GetStringNames.Vendor);
+    vars.RendererString = GetString(GetStringNames.Renderer);
+
+    vars.NumExtensions = GetInteger(GetIntegerNames.NumExtensions);
+    reserve(vars.Extensions, vars.NumExtensions);
+    for i in 0..<vars.NumExtensions {
+        ext := GetString(GetStringNames.Extensions, cast(u32)i);
+        append(vars.Extensions, ext);
+    }
+}
+
 Init :: proc() {
     lib := win32.LoadLibraryA((cast(string)("opengl32.dll\x00")).data); defer win32.FreeLibrary(lib);
-    set_proc_address :: proc(h : win32.HMODULE, p: rawptr, name: string) #inline { 
-        txt := to_c_string(name); defer free(txt);
+    set_proc_address :: proc(h : win32.HMODULE, p: rawptr, name: string, info : ^Type_Info) #inline {
+        txt := strings.new_c_string(name); defer free(txt);
 
         res := win32wgl.GetProcAddress(txt);
         if res == nil {
@@ -509,51 +552,53 @@ Init :: proc() {
         }   
 
         (cast(^(proc() #cc_c))p)^ = res;
+
+        status := DebugFunctionLoadStatus{};
+        status.Name = name;
+        status.Address = cast(int)cast(rawptr)res;
+        status.Success = false;
+        status.TypeInfo = info;
+        DebugInfo.NumberOfFunctionsLoaded += 1;
+
+        if status.Address != 0 {
+            status.Success = true;
+            DebugInfo.NumberOfFunctionsLoadedSuccessed += 1;
+        }
+        append(DebugInfo.Statuses, status);
     }
 
-    set_proc_address(lib, ^_BlendEquation,           "glBlendEquation");
-    set_proc_address(lib, ^_BlendEquationSeparate,   "glBlendEquationSeparate");
-
-    set_proc_address(lib, ^_CompileShader,           "glCompileShader");
-    set_proc_address(lib, ^_CreateShader,            "glCreateShader");
-    set_proc_address(lib, ^_ShaderSource,            "glShaderSource");
-    set_proc_address(lib, ^_AttachShader,            "glAttachShader");
-    
-    set_proc_address(lib, ^_CreateProgram,           "glCreateProgram");
-    set_proc_address(lib, ^_LinkProgram,             "glLinkProgram");
-    set_proc_address(lib, ^_UseProgram,              "glUseProgram");
-
-    set_proc_address(lib, ^_ActiveTexture,           "glActiveTexture");
-
-    set_proc_address(lib, ^_Uniform1i,               "glUniform1i");
-    set_proc_address(lib, ^_Uniform2i,               "glUniform2i");
-    set_proc_address(lib, ^_Uniform3i,               "glUniform3i");
-    set_proc_address(lib, ^_Uniform4i,               "glUniform4i");
-
-    set_proc_address(lib, ^_Uniform1f,               "glUniform1f");
-    set_proc_address(lib, ^_Uniform2f,               "glUniform2f");
-    set_proc_address(lib, ^_Uniform3f,               "glUniform3f");
-    set_proc_address(lib, ^_Uniform4f,               "glUniform4f");
-
-    set_proc_address(lib, ^_UniformMatrix4fv,        "glUniformMatrix4fv");
-    set_proc_address(lib, ^_GetUniformLocation,      "glGetUniformLocation");
-    set_proc_address(lib, ^_GetAttribLocation,       "glGetAttribLocation");
-
-    set_proc_address(lib, ^_DrawElements,            "glDrawElements");
-
-    set_proc_address(lib, ^_BindVertexArray,         "glBindVertexArray");
-    set_proc_address(lib, ^_VertexAttribPointer,     "glVertexAttribPointer");
-    set_proc_address(lib, ^_EnableVertexAttribArray, "glEnableVertexAttribArray");
-    set_proc_address(lib, ^_GenVertexArrays,         "glGenVertexArrays");
-
-    set_proc_address(lib, ^_BufferData,              "glBufferData");
-    set_proc_address(lib, ^_BindBuffer,              "glBindBuffer");
-    set_proc_address(lib, ^_GenBuffers,              "glGenBuffers");
-
-    set_proc_address(lib, ^_DebugMessageControl,     "glDebugMessageControlARB");
-    set_proc_address(lib, ^_DebugMessageCallback,    "glDebugMessageCallbackARB");
-
-    set_proc_address(lib, ^_GetShaderiv,             "glGetShaderiv");
-    set_proc_address(lib, ^_GetShaderInfoLog,        "glGetShaderInfoLog");
-    set_proc_address(lib, ^_GetStringi,              "glGetStringi");
+    set_proc_address(lib, ^_DrawElements,            "glDrawElements", type_info_of_val(_DrawElements));
+    set_proc_address(lib, ^_BindVertexArray,         "glBindVertexArray", type_info_of_val(_BindVertexArray));
+    set_proc_address(lib, ^_VertexAttribPointer,     "glVertexAttribPointer", type_info_of_val(_VertexAttribPointer));
+    set_proc_address(lib, ^_EnableVertexAttribArray, "glEnableVertexAttribArray", type_info_of_val(_EnableVertexAttribArray));
+    set_proc_address(lib, ^_GenVertexArrays,         "glGenVertexArrays", type_info_of_val(_GenVertexArrays));
+    set_proc_address(lib, ^_BufferData,              "glBufferData", type_info_of_val(_BufferData));
+    set_proc_address(lib, ^_BindBuffer,              "glBindBuffer", type_info_of_val(_BindBuffer));
+    set_proc_address(lib, ^_GenBuffers,              "glGenBuffers", type_info_of_val(_GenBuffers));
+    set_proc_address(lib, ^_DebugMessageControl,     "glDebugMessageControlARB", type_info_of_val(_DebugMessageControl));
+    set_proc_address(lib, ^_DebugMessageCallback,    "glDebugMessageCallbackARB", type_info_of_val(_DebugMessageCallback));
+    set_proc_address(lib, ^_GetShaderiv,             "glGetShaderiv", type_info_of_val(_GetShaderiv));
+    set_proc_address(lib, ^_GetShaderInfoLog,        "glGetShaderInfoLog", type_info_of_val(_GetShaderInfoLog));
+    set_proc_address(lib, ^_GetStringi,              "glGetStringi", type_info_of_val(_GetStringi));
+    set_proc_address(lib, ^_BlendEquation,           "glBlendEquation", type_info_of_val(_BlendEquation));
+    set_proc_address(lib, ^_BlendEquationSeparate,   "glBlendEquationSeparate", type_info_of_val(_BlendEquationSeparate));
+    set_proc_address(lib, ^_CompileShader,           "glCompileShader", type_info_of_val(_CompileShader));
+    set_proc_address(lib, ^_CreateShader,            "glCreateShader", type_info_of_val(_CreateShader));
+    set_proc_address(lib, ^_ShaderSource,            "glShaderSource", type_info_of_val(_ShaderSource));
+    set_proc_address(lib, ^_AttachShader,            "glAttachShader", type_info_of_val(_AttachShader)); 
+    set_proc_address(lib, ^_CreateProgram,           "glCreateProgram", type_info_of_val(_CreateProgram));
+    set_proc_address(lib, ^_LinkProgram,             "glLinkProgram", type_info_of_val(_LinkProgram));
+    set_proc_address(lib, ^_UseProgram,              "glUseProgram", type_info_of_val(_UseProgram));
+    set_proc_address(lib, ^_ActiveTexture,           "glActiveTexture", type_info_of_val(_ActiveTexture));
+    set_proc_address(lib, ^_Uniform1i,               "glUniform1i", type_info_of_val(_Uniform1i));
+    set_proc_address(lib, ^_Uniform2i,               "glUniform2i", type_info_of_val(_Uniform2i));
+    set_proc_address(lib, ^_Uniform3i,               "glUniform3i", type_info_of_val(_Uniform3i));
+    set_proc_address(lib, ^_Uniform4i,               "glUniform4i", type_info_of_val(_Uniform4i));
+    set_proc_address(lib, ^_Uniform1f,               "glUniform1f", type_info_of_val(_Uniform1f));
+    set_proc_address(lib, ^_Uniform2f,               "glUniform2f", type_info_of_val(_Uniform2f));
+    set_proc_address(lib, ^_Uniform3f,               "glUniform3f", type_info_of_val(_Uniform3f));
+    set_proc_address(lib, ^_Uniform4f,               "glUniform4f", type_info_of_val(_Uniform4f));
+    set_proc_address(lib, ^_UniformMatrix4fv,        "glUniformMatrix4fv", type_info_of_val(_UniformMatrix4fv));
+    set_proc_address(lib, ^_GetUniformLocation,      "glGetUniformLocation", type_info_of_val(_GetUniformLocation));
+    set_proc_address(lib, ^_GetAttribLocation,       "glGetAttribLocation", type_info_of_val(_GetAttribLocation));
 }
