@@ -4,7 +4,7 @@ IF NOT EXIST build (
     mkdir build
 )
 
-ctime -begin jaze.ctm
+otime -begin jaze.otm
 odin build src\main.odin
 set ERRORLEV=%errorlevel%
 IF %ERRORLEVEL% EQU 0  (
@@ -12,10 +12,11 @@ IF %ERRORLEVEL% EQU 0  (
     echo Build Success
     goto END
 )
-ctime -end jaze.ctm %ERRORLEV%
+
 echo Build Failed
 
 :END
 del src\*.ll >nul
 del src\*.bc >nul
 del src\*.obj >nul
+otime -end jaze.otm %ERRORLEV%

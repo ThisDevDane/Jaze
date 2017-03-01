@@ -4,6 +4,58 @@
 		"selected_items":
 		[
 			[
+				"Vendor",
+				"VendorString"
+			],
+			[
+				"Wind",
+				"WindowSize"
+			],
+			[
+				"global",
+				"GlobalWin32VarsPtr"
+			],
+			[
+				"Globa",
+				"GlobalWin32VarsPtr"
+			],
+			[
+				"Global",
+				"GlobalDebugUIBools"
+			],
+			[
+				"Win32",
+				"Win32Vars_t"
+			],
+			[
+				"ImBeg",
+				"ImBeginPopupModal"
+			],
+			[
+				"WndP",
+				"WndProcStateChanges"
+			],
+			[
+				"Show",
+				"ShowWin32VarInfo"
+			],
+			[
+				"win32",
+				"win32vars"
+			],
+			[
+				"SetWindo",
+				"SetWindowTextA"
+			],
+			[
+				"GetWindow",
+				"GetWindowText"
+			],
+			[
+				"Deb",
+				"DebugInfo_t"
+			],
+			[
 				"Progra",
 				"ProgramRunning"
 			],
@@ -64,10 +116,6 @@
 				"ShowOpenGLInfo"
 			],
 			[
-				"Show",
-				"ShowOpenGLInfo"
-			],
-			[
 				"GLSL",
 				"GLSLVersionString"
 			],
@@ -92,10 +140,6 @@
 				"ImGuiState"
 			],
 			[
-				"Wind",
-				"WindowHandle"
-			],
-			[
 				"Version",
 				"VersionString"
 			],
@@ -118,10 +162,6 @@
 			[
 				"proc",
 				"procedure"
-			],
-			[
-				"Deb",
-				"DebugSource"
 			],
 			[
 				"DebugS",
@@ -234,10 +274,6 @@
 			[
 				"CONTEXT_",
 				"CONTEXT_FLAGS_ARB_VALUES"
-			],
-			[
-				"win32",
-				"win32ext"
 			],
 			[
 				"att",
@@ -478,34 +514,6 @@
 			[
 				"db",
 				"dbConn                         struct                                   ʈ"
-			],
-			[
-				"sele",
-				"SelectUsersStats               *sql.Stmt                                ν"
-			],
-			[
-				"t",
-				"TonightCount                   int                                      ν"
-			],
-			[
-				"king",
-				"kingEntry"
-			],
-			[
-				"MkDir",
-				"MkdirAll                       func(path string, perm os.FileMode) erro ƒ"
-			],
-			[
-				"Fata",
-				"Fatalln                        func(v ...interface{})                   ƒ"
-			],
-			[
-				"print",
-				"Println                        func(v ...interface{})                   ƒ"
-			],
-			[
-				"err",
-				"errLogger                      *log.Logger                              ν"
 			]
 		]
 	},
@@ -565,23 +573,27 @@
 	"command_palette":
 	{
 		"height": 400.0,
-		"last_filter": "ssc",
+		"last_filter": "",
 		"selected_items":
 		[
-			[
-				"ssc",
-				"Set Syntax: C"
-			],
 			[
 				"",
 				"Alignment: Align"
 			],
 			[
-				"a",
+				"al",
 				"Alignment: Align"
 			],
 			[
-				"al",
+				"ssod",
+				"Set Syntax: Odin"
+			],
+			[
+				"ssc",
+				"Set Syntax: C"
+			],
+			[
+				"a",
 				"Alignment: Align"
 			],
 			[
@@ -664,6 +676,7 @@
 	},
 	"file_history":
 	[
+		"/W/Jaze/build.bat",
 		"/W/oToolkit/odimgui/src/imgui.odin",
 		"/W/Jaze/src/jaze_gl.odin",
 		"/W/Jaze/src/jaze_gl_enums.odin",
@@ -713,7 +726,6 @@
 		"/E/Odin/core/utf8.odin",
 		"/W/Jaze/ctime.c",
 		"/W/Jaze/src/build.bat",
-		"/W/Jaze/build.bat",
 		"/E/Golang-src/src/gogs/dania/website_server/www/templates/leaderboardDataTemplate.html",
 		"/E/Golang-src/src/gogs/dania/website_server/.gitignore",
 		"/E/Golang-src/src/gogs/dania/website_server/main.go",
@@ -742,6 +754,59 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"ctime",
+			"GlobalDebugUIBools",
+			"win32ext",
+			"to_c_string",
+			"gl.",
+			"GlobalWin32VarsPtr",
+			"win32vars",
+			"Win32Vars",
+			"win32vars",
+			"Win32Vars",
+			"win32vars",
+			"RenderPass",
+			"imgui",
+			".",
+			"imgui",
+			"ImGui",
+			"imgui",
+			"ImGui",
+			"imgui",
+			"ImGui",
+			"imgui",
+			"ImGui",
+			"imgui",
+			"ImGui",
+			"imgui",
+			"ImGui",
+			"imgui",
+			"ImGui",
+			"imgui",
+			"ImGui",
+			"imgui",
+			"ImGui",
+			"state",
+			"i32",
+			";",
+			"msg",
+			" ::",
+			"ShowOpenGLInfo",
+			"ogl",
+			"ShowOpenGLInfo",
+			":",
+			"Ogl",
+			"win32vars",
+			"   ::",
+			";",
+			"\");\n",
+			"h",
+			"type",
+			"type_of",
+			"type",
+			"::",
+			":",
+			";",
 			"struct nk_color",
 			"imgui.Vec2{0.0, 0.0}",
 			"LogTo",
@@ -816,60 +881,7 @@
 			"win32.GetAsyncKeyState",
 			"GetAsyncKeyState",
 			"0x800",
-			"0x100",
-			"Key_Code",
-			"VK_",
-			"0x8000",
-			"GetAsyncKeyState",
-			"0x100",
-			"Key_code",
-			"0x1000",
-			"0x8000",
-			"VK_",
-			"GetAsyncKeyState",
-			"0x100",
-			"#f",
-			"Get",
-			"\"",
-			"\\n",
-			"\"",
-			"\\n",
-			"\"",
-			"\\n",
-			"n",
-			"\\n",
-			":",
-			"=",
-			"fmt.println(#file, #line, #procedure);",
-			"OutputDebugStringA",
-			"switch",
-			"#cc_c",
-			";\n",
-			"win32.HGLRC",
-			"dynamic",
-			"CreateContext",
-			"wglCreateContext",
-			"HGLRC",
-			"int",
-			"cast(int",
-			"cast(int)",
-			"n",
-			"fbHeight",
-			"fbWidth",
-			"int",
-			"fmt.println(#file, #line, #procedure);",
-			"||",
-			"(G",
-			"||",
-			"VK",
-			"// ",
-			":",
-			"i",
-			"f",
-			"Blend",
-			"x",
-			"uint",
-			"int"
+			"0x100"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -938,7 +950,7 @@
 	},
 	"output.exec":
 	{
-		"height": 141.0
+		"height": 110.0
 	},
 	"output.find_results":
 	{
@@ -973,32 +985,92 @@
 		"selected_items":
 		[
 			[
-				"img",
-				"odimgui\\src\\imgui.odin"
+				"bu",
+				"Jaze\\build.bat"
 			],
 			[
 				"",
-				"odimgui\\src\\imgui.odin"
+				"Jaze\\src\\jaze_debug_windows.odin"
+			],
+			[
+				"ji",
+				"Jaze\\src\\jaze_imgui.odin"
 			],
 			[
 				"gl",
 				"Jaze\\src\\jaze_gl.odin"
 			],
 			[
-				"imgui.odi",
+				"jaze",
+				"Jaze\\src\\jaze_wgl.odin"
+			],
+			[
+				"jaz",
+				"Jaze\\src\\jaze_win32.odin"
+			],
+			[
+				"_pre",
+				"core\\_preload.odin"
+			],
+			[
+				"demo",
+				"imgui\\imgui_demo.cpp"
+			],
+			[
+				"imgui",
 				"odimgui\\src\\imgui.odin"
+			],
+			[
+				"img",
+				"odimgui\\src\\imgui.odin"
+			],
+			[
+				"imgu",
+				"odimgui\\src\\imgui.odin"
+			],
+			[
+				"_",
+				"core\\_preload.odin"
+			],
+			[
+				"fmt",
+				"core\\fmt.odin"
+			],
+			[
+				"_o",
+				"core\\_preload.odin"
+			],
+			[
+				"win32",
+				"Jaze\\src\\jaze_win32.odin"
 			],
 			[
 				"main",
 				"Jaze\\src\\main.odin"
 			],
 			[
-				"imgui",
-				"imgui\\imgui.cpp"
+				"math",
+				"core\\math.odin"
 			],
 			[
-				"demo",
-				"imgui\\imgui_demo.cpp"
+				"win",
+				"Jaze\\src\\jaze_win32.odin"
+			],
+			[
+				"_p",
+				"core\\_preload.odin"
+			],
+			[
+				"types",
+				"core\\types.odin"
+			],
+			[
+				"_pr",
+				"core\\_preload.odin"
+			],
+			[
+				"imgui.odi",
+				"odimgui\\src\\imgui.odin"
 			],
 			[
 				"wgl",
@@ -1029,16 +1101,8 @@
 				"Jaze\\build\\imgui_log.txt"
 			],
 			[
-				"win",
-				"core\\sys\\windows.odin"
-			],
-			[
 				"im",
 				"odimgui\\src\\imgui.odin"
-			],
-			[
-				"win32",
-				"Jaze\\src\\jaze_win32.odin"
 			],
 			[
 				"win3",
@@ -1049,20 +1113,12 @@
 				"core\\fmt.odin"
 			],
 			[
-				"_pre",
-				"core\\_preload.odin"
-			],
-			[
 				"enu",
 				"Jaze\\src\\jaze_gl_enums.odin"
 			],
 			[
 				"wino",
 				"core\\sys\\windows.odin"
-			],
-			[
-				"fmt",
-				"core\\fmt.odin"
 			],
 			[
 				"en",
@@ -1131,7 +1187,7 @@
 	"show_minimap": true,
 	"show_open_files": false,
 	"show_tabs": false,
-	"side_bar_visible": true,
+	"side_bar_visible": false,
 	"side_bar_width": 150.0,
 	"status_bar_visible": true,
 	"template_settings":
