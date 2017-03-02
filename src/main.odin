@@ -177,7 +177,7 @@ WindowProc :: proc(hwnd: win32.HWND,
             result = 1;
         } 
 
-        case win32.WM_SIZE : {
+        case WM_SIZE : {
             gl.Viewport(0, 0, cast(i32)j32.LOWORD(lparam), cast(i32)j32.HIWORD(lparam));
             if GlobalWin32VarsPtr != nil {
                 GlobalWin32VarsPtr.WindowSize.x = cast(f32)j32.LOWORD(lparam);

@@ -676,6 +676,11 @@
 	},
 	"file_history":
 	[
+		"/C/Users/fyouc/AppData/Roaming/Sublime Text 3/Packages/User/odin.sublime-build",
+		"/W/imgui/stb_rect_pack.h",
+		"/E/Odin/core/_preload.odin",
+		"/W/Jaze/src/main.odin",
+		"/W/Jaze/src/jaze_debug_windows.odin",
 		"/W/Jaze/build.bat",
 		"/W/oToolkit/odimgui/src/imgui.odin",
 		"/W/Jaze/src/jaze_gl.odin",
@@ -687,9 +692,7 @@
 		"/E/Odin/core/sys/windows.odin",
 		"/W/imgui/imgui.cpp",
 		"/W/Jaze/build/imgui_log.txt",
-		"/W/Jaze/src/main.odin",
 		"/W/Jaze/subl-proj.sublime-project",
-		"/E/Odin/core/_preload.odin",
 		"/E/Odin/core/math.odin",
 		"/W/imgui/imgui_demo.cpp",
 		"/W/imgui/imgui_internal.h",
@@ -717,7 +720,6 @@
 		"/E/Odin/core/mem.odin",
 		"/W/otime/ctime.c",
 		"/W/otime/build/test",
-		"/C/Users/fyouc/AppData/Roaming/Sublime Text 3/Packages/User/odin.sublime-build",
 		"/C/Users/fyouc/AppData/Roaming/Sublime Text 3/Packages/User/buildbat.sublime-build",
 		"/W/otime/test.ctm",
 		"/W/otime/src/test.odin",
@@ -754,6 +756,10 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			";\n",
+			");",
+			"type_info_of_val",
+			"#line",
 			"ctime",
 			"GlobalDebugUIBools",
 			"win32ext",
@@ -877,11 +883,7 @@
 			"ImguiRenderState_",
 			"for",
 			"||",
-			" !=",
-			"win32.GetAsyncKeyState",
-			"GetAsyncKeyState",
-			"0x800",
-			"0x100"
+			" !="
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -950,7 +952,7 @@
 	},
 	"output.exec":
 	{
-		"height": 110.0
+		"height": 91.0
 	},
 	"output.find_results":
 	{
@@ -972,7 +974,7 @@
 	{
 		"height": 110.0
 	},
-	"pinned_build_system": "",
+	"pinned_build_system": "Packages/User/odin.sublime-build",
 	"replace":
 	{
 		"height": 104.0
@@ -984,6 +986,38 @@
 		"last_filter": "",
 		"selected_items":
 		[
+			[
+				"win32",
+				"Jaze\\src\\jaze_win32.odin"
+			],
+			[
+				"main",
+				"Jaze\\src\\main.odin"
+			],
+			[
+				"debug",
+				"Jaze\\src\\jaze_debug_windows.odin"
+			],
+			[
+				"_p",
+				"core\\_preload.odin"
+			],
+			[
+				"gl",
+				"Jaze\\src\\jaze_gl.odin"
+			],
+			[
+				"_pre",
+				"core\\_preload.odin"
+			],
+			[
+				"_re",
+				"imgui\\stb_rect_pack.h"
+			],
+			[
+				"debug_win",
+				"Jaze\\src\\jaze_debug_windows.odin"
+			],
 			[
 				"bu",
 				"Jaze\\build.bat"
@@ -997,20 +1031,12 @@
 				"Jaze\\src\\jaze_imgui.odin"
 			],
 			[
-				"gl",
-				"Jaze\\src\\jaze_gl.odin"
-			],
-			[
 				"jaze",
 				"Jaze\\src\\jaze_wgl.odin"
 			],
 			[
 				"jaz",
 				"Jaze\\src\\jaze_win32.odin"
-			],
-			[
-				"_pre",
-				"core\\_preload.odin"
 			],
 			[
 				"demo",
@@ -1041,24 +1067,12 @@
 				"core\\_preload.odin"
 			],
 			[
-				"win32",
-				"Jaze\\src\\jaze_win32.odin"
-			],
-			[
-				"main",
-				"Jaze\\src\\main.odin"
-			],
-			[
 				"math",
 				"core\\math.odin"
 			],
 			[
 				"win",
 				"Jaze\\src\\jaze_win32.odin"
-			],
-			[
-				"_p",
-				"core\\_preload.odin"
 			],
 			[
 				"types",

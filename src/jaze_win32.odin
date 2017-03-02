@@ -6,6 +6,7 @@ HMONITOR      :: win32.HANDLE;
 WM_MOUSEWHEEL        :: 0x020A;
 WM_SYSKEYDOWN        :: 0x0104;
 WM_WINDOWPOSCHANGED  :: 0x0047;
+WM_SETCURSOR         :: 0x0020;
 
 GWL_STYLE     :: -16;
 
