@@ -20,9 +20,9 @@ OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
             imgui.Text("CtxFlags: %d", vars.ContextFlags);
         imgui.Separator();
             imgui.Text("Number of extensions:       %d", vars.NumExtensions); 
-            //imgui.Button("View##Ext", imgui.Vec2{-1, -1});
+            imgui.Button("View##Ext", imgui.Vec2{-1, -1});
             imgui.Text("Number of WGL extensions:   %d", vars.NumWglExtensions); 
-            //imgui.Button("View##Wgl", imgui.Vec2{-1, -1});
+            imgui.Button("View##Wgl", imgui.Vec2{-1, -1});
             imgui.Text("Number of functions loaded: %d/%d", gl.DebugInfo.NumberOfFunctionsLoadedSuccessed ,gl.DebugInfo.NumberOfFunctionsLoaded); 
         imgui.Separator();
         if imgui.CollapsingHeader("Extensions", 0) {
