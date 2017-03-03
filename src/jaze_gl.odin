@@ -50,6 +50,7 @@ DebugInfo_t :: struct {
     NumberOfFunctionsLoaded : i32,
     NumberOfFunctionsLoadedSuccessed : i32,
     Statuses : [dynamic]DebugFunctionLoadStatus,
+    LoadedTextures : [dynamic]Texture,
 }
 
 DebugInfo : DebugInfo_t;

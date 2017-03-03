@@ -12,6 +12,7 @@
 #import jimgui "jaze_imgui.odin";
 
 ProgramRunning : bool;
+ShowDebugMenu : bool = false;
 GlobalWin32VarsPtr : ^Win32Vars_t;
 GlobalWindowPosition : j32.WINDOWPLACEMENT;
 
@@ -212,6 +213,18 @@ WindowProc :: proc(hwnd: win32.HWND,
                 PostQuitMessage(0);
                 result = 1;
             }
+
+            if cast(Key_Code)wparam == Key_Code.TAB {
+                style := imgui.GetStyle();
+                style.Alpha = 0.1;
+            } 
+        } 
+
+        case WM_KEYUP : {
+            if cast(Key_Code)wparam == Key_Code.TAB {
+                style := imgui.GetStyle();
+                style.Alpha = 1.0;
+            } 
         }
 
         default : {
@@ -337,17 +350,22 @@ main :: proc() {
         msg : win32.MSG;
         for win32.PeekMessageA(^msg, nil, 0, 0, win32.PM_REMOVE) == win32.TRUE {
             match msg.message {
+
             case win32.WM_QUIT : {
                 ProgramRunning = false;
-                break;
             }
 
             case j32.WM_SYSKEYDOWN : {
-                if cast(i32)msg.wparam == cast(i32)win32.Key_Code.RETURN {
+                if cast(win32.Key_Code)msg.wparam == win32.Key_Code.RETURN {
                     ToggleFullscreen(win32vars.WindowHandle);
+                }
+
+                if msg.wparam == 0xC0 {
+                    ShowDebugMenu = !ShowDebugMenu;
                 }
                 continue;
             }
+
             }
 
             win32.TranslateMessage(^msg);
@@ -358,11 +376,16 @@ main :: proc() {
         deltaTime : f64 = cast(f64)(newTime - oldTime);
         oldTime = newTime;
         deltaTime /= cast(f64)freq;
+        if ShowDebugMenu {
+            jimgui.BeginNewFrame(deltaTime);
+            RenderDebugUI(^win32vars);
+        }
 
-        jimgui.BeginNewFrame(deltaTime);
-        RenderDebugUI(^win32vars);
         gl.Clear(gl.ClearFlags.COLOR_BUFFER | gl.ClearFlags.DEPTH_BUFFER);
-        imgui.Render();
+        
+        if ShowDebugMenu {
+            imgui.Render();
+        }
         win32.SwapBuffers(win32vars.DeviceCtx);
     }
 }

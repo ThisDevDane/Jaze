@@ -59,7 +59,6 @@ Vec4 :: struct #ordered {
     w : f32,
 }
 
-
 DrawVert :: struct #ordered {
     pos : Vec2,
     uv  : Vec2,
@@ -74,11 +73,11 @@ DrawData :: struct #ordered {
     TotalIdxCount : i32,
 }
 
-Font :: struct #ordered {}      // Maybe this works?
-GuiStorage :: struct #ordered {} // Maybe this works?
-GuiContext :: struct #ordered {} // Maybe this works?
-FontAtlas :: struct #ordered {} // Maybe this works?
-DrawList :: struct #ordered {} // Maybe this works?
+Font :: struct #ordered {}
+GuiStorage :: struct #ordered {}
+GuiContext :: struct #ordered {}
+FontAtlas :: struct #ordered {}
+DrawList :: struct #ordered {}
 
 FontConfig :: struct #ordered {
     FontData                : rawptr,
@@ -391,9 +390,9 @@ Begin :: proc(name : string, open : ^bool, flags : GuiWindowFlags) -> bool{
 //Begin                                                   :: proc(name : c_string, p_open : ^bool, size_on_first_use : Vec2, bg_alpha : f32, flags : GuiWindowFlags) -> bool                                                                                                     #foreign cimgui "igBegin2";
 End                                                     :: proc()                                                                                                                                                                                                              #foreign cimgui "igEnd";
 BeginChild :: proc(str_id : string, size : Vec2, border : bool, extra_flags : GuiWindowFlags) -> bool {
-    ImBeginChild :: proc(str_id : c_string, size : Vec2, border : bool, extra_flags : GuiWindowFlags) -> bool #foreign cimgui "igBeginChild";
+    ImBeginChild :: proc(str_id : c_string, size : u64, border : bool, extra_flags : GuiWindowFlags) -> bool #foreign cimgui "igBeginChild";
     str := strings.new_c_string(str_id); defer free(str);
-    return ImBeginChild(str, size, border, extra_flags);
+    return ImBeginChild(str, transmute(u64)size, border, extra_flags);
 }
 
 //BeginChild                                              :: proc(str_id : c_string, size : Vec2, border : bool, extra_flags : GuiWindowFlags) -> bool                                                                                                                           #foreign cimgui "igBeginChild";
@@ -529,36 +528,34 @@ Text :: proc(fmt_: string, args: ...any) {
     igText(c_str);
 }
 /*
-Text                                                    :: proc(CONST char* fmt, ...)                                                                                                                                                                                          #foreign cimgui "igText"; 
-TextV                                                   :: proc(CONST char* fmt, va_list args)                                                                                                                                                                                 #foreign cimgui "igTextV";
 TextColored                                             :: proc(CONST struct ImVec4 col, CONST char* fmt, ...)                                                                                                                                                                 #foreign cimgui "igTextColored";
-TextColoredV                                            :: proc(CONST struct ImVec4 col, CONST char* fmt, va_list args)                                                                                                                                                        #foreign cimgui "igTextColoredV";
 TextDisabled                                            :: proc(CONST char* fmt, ...)                                                                                                                                                                                          #foreign cimgui "igTextDisabled";
-TextDisabledV                                           :: proc(CONST char* fmt, va_list args)                                                                                                                                                                                 #foreign cimgui "igTextDisabledV";
 TextWrapped                                             :: proc(CONST char* fmt, ...)                                                                                                                                                                                          #foreign cimgui "igTextWrapped";
-TextWrappedV                                            :: proc(CONST char* fmt, va_list args)                                                                                                                                                                                 #foreign cimgui "igTextWrappedV";
 */
 TextUnformatted                                         :: proc(text : c_string, text_end : c_string)                                                                                                                                                                          #foreign cimgui "igTextUnformatted";
 /*
 LabelText                                               :: proc(CONST char* label, CONST char* fmt, ...)                                                                                                                                                                       #foreign cimgui "igLabelText";
-LabelTextV                                              :: proc(CONST char* label, CONST char* fmt, va_list args)                                                                                                                                                              #foreign cimgui "igLabelTextV";
 */
 Bullet                                                  :: proc()                                                                                                                                                                                                              #foreign cimgui "igBullet";
 /*
 BulletText                                              :: proc(CONST char* fmt, ...)                                                                                                                                                                                          #foreign cimgui "igBulletText";
-BulletTextV                                             :: proc(CONST char* fmt, va_list args)                                                                                                                                                                                 #foreign cimgui "igBulletTextV";
 */
 
 Button :: proc(label : string, size : Vec2) -> bool {
-    fmt.println(size);
-    ImButton :: proc(label : c_string, size : Vec2) -> bool #foreign cimgui "igButton";
+    ImButton :: proc(label : c_string, size : u64) -> bool #foreign cimgui "igButton";
     str := strings.new_c_string(label); defer free(str);
-    return ImButton(str, size);
+    return ImButton(str, transmute(u64)size);
 }
 
 SmallButton                                             :: proc(label : c_string) -> bool                                                                                                                                                                                      #foreign cimgui "igSmallButton";
 InvisibleButton                                         :: proc(str_id : c_string, size : Vec2) -> bool                                                                                                                                                                        #foreign cimgui "igInvisibleButton";
-Image                                                   :: proc(user_texture_id : TextureID, size : Vec2, uv0 : Vec2, uv1 : Vec2, tint_col : Vec4, border_col : Vec4)                                                                                                          #foreign cimgui "igImage";
+Image :: proc(user_texture_id : TextureID, size : Vec2, uv0 : Vec2, uv1 : Vec2, tint_col : Vec4, border_col : Vec4) {
+    ImImage :: proc(user_texture_id : TextureID, size : u64, uv0 : u64, uv1 : u64, tint_col : Vec4, border_col : Vec4) #foreign cimgui "igImage";
+    fmt.println(user_texture_id, size, uv0, uv1, tint_col, border_col);
+    fmt.println(user_texture_id, transmute(u64)size, transmute(u64)uv0, transmute(u64)uv1, tint_col, border_col);
+    ImImage(user_texture_id, transmute(u64)size, transmute(u64)uv0, transmute(u64)uv1, tint_col, border_col);
+}
+
 ImageButton                                             :: proc(user_texture_id : TextureID, size : Vec2, uv0 : Vec2, uv1 : Vec2, frame_padding : i32, bg_col : Vec4, tint_col : Vec4) -> bool                                                                                 #foreign cimgui "igImageButton";
 Checkbox                                                :: proc(label : c_string, v : ^bool) -> bool                                                                                                                                                                           #foreign cimgui "igCheckbox";
 CheckboxFlags                                           :: proc(label : c_string, flags : ^u32, flags_value : u32) -> bool                                                                                                                                                   #foreign cimgui "igCheckboxFlags";

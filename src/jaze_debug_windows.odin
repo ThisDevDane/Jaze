@@ -4,7 +4,49 @@
 #import "main.odin";
 
 GlobalDebugWndBools : map[string]bool;
+CurrentViewTexture : gl.Texture;
 
+OpenGLExtensions :: proc(name : string, extensions : [dynamic]string, show : ^bool) {
+    imgui.Begin(name, show, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse); 
+    {
+        //imgui.BeginChild("Ext", imgui.Vec2{0, 0}, true, 0);
+        for ext in extensions {
+            imgui.Text(ext);
+        }
+        //imgui.EndChild();   
+    }   
+    imgui.End();
+}
+
+OpenGLTextureOverview :: proc(show : ^bool) {
+    imgui.Begin("Loaded Textures", show, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
+    {
+        for id in gl.DebugInfo.LoadedTextures {
+            imgui.PushIdInt(cast(i32)id);
+            imgui.Text("Texture %d:", id); imgui.SameLine(0, -1);
+            if imgui.Button("View", imgui.Vec2{0, 0}) {
+                CurrentViewTexture = id;
+                GlobalDebugWndBools["ViewGLTexture"] = true;
+            }
+            imgui.PopId();
+        }
+    }
+    imgui.End();
+
+    if GlobalDebugWndBools["ViewGLTexture"] == true {
+        b := GlobalDebugWndBools["ViewGLTexture"];
+        OpenGLTextureView(CurrentViewTexture, ^b);
+        GlobalDebugWndBools["ViewGLTexture"] = b;
+    }
+}
+
+OpenGLTextureView :: proc(textureId : gl.Texture, show : ^bool) {
+    imgui.Begin("Texture View", show, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
+    {
+        imgui.Image(cast(imgui.TextureID)cast(uint)1, imgui.Vec2{100, 100}, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0, 0, 0, 0});
+    }
+    imgui.End();
+}
 OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
     imgui.Begin("OpenGL Info", show, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
     {
@@ -19,27 +61,15 @@ OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
             imgui.Text("Render:   %s", vars.RendererString);
             imgui.Text("CtxFlags: %d", vars.ContextFlags);
         imgui.Separator();
-            imgui.Text("Number of extensions:       %d", vars.NumExtensions); 
-            imgui.Button("View##Ext", imgui.Vec2{-1, -1});
-            imgui.Text("Number of WGL extensions:   %d", vars.NumWglExtensions); 
-            imgui.Button("View##Wgl", imgui.Vec2{-1, -1});
-            imgui.Text("Number of functions loaded: %d/%d", gl.DebugInfo.NumberOfFunctionsLoadedSuccessed ,gl.DebugInfo.NumberOfFunctionsLoaded); 
-        imgui.Separator();
-        if imgui.CollapsingHeader("Extensions", 0) {
-            imgui.BeginChild("Extensions", imgui.Vec2{0, 0}, true, 0);
-            for ext in vars.Extensions {
-                imgui.Text(ext);
+            imgui.Text("Number of extensions:       %d", vars.NumExtensions); imgui.SameLine(0, -1);
+            if imgui.Button("View##Ext", imgui.Vec2{0, 0}) {
+                GlobalDebugWndBools["OpenGLShowExtensions"] = true;
             }
-            imgui.EndChild();
-        }
-
-        if imgui.CollapsingHeader("WGL Extensions", 0) {
-            imgui.BeginChild("Extensions", imgui.Vec2{0, 0}, true, 0);
-            for ext in vars.WglExtensions {
-                imgui.Text(ext);
+            imgui.Text("Number of WGL extensions:   %d", vars.NumWglExtensions); imgui.SameLine(0, -1); 
+            if imgui.Button("View##WGL", imgui.Vec2{0, 0}) {
+                GlobalDebugWndBools["OpenGLShowWGLExtensions"] = true;
             }
-            imgui.EndChild();
-        }
+            imgui.Text("Number of functions loaded: %d/%d", gl.DebugInfo.NumberOfFunctionsLoadedSuccessed, gl.DebugInfo.NumberOfFunctionsLoaded); 
         imgui.Separator();
         if imgui.CollapsingHeader("Loaded Functions", 0) {
             imgui.BeginChild("Functions###FuncLoad", imgui.Vec2{0, 0}, true, 0);
@@ -80,8 +110,31 @@ OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
             imgui.Columns(1, nil, false);
             imgui.EndChild();
         }
+
+        imgui.Text("Number of loaded textures: %d", gl.DebugInfo.LoadedTextures.count); imgui.SameLine(0, -1);
+        if imgui.Button("View##Texture", imgui.Vec2{0, 0}) {
+            GlobalDebugWndBools["ShowGLTextureOverview"] = true;
+        }
     }
     imgui.End();
+
+    if GlobalDebugWndBools["OpenGLShowExtensions"] == true {
+        b := GlobalDebugWndBools["OpenGLShowExtensions"];
+        OpenGLExtensions("Extensions##Ext", vars.Extensions, ^b);
+        GlobalDebugWndBools["OpenGLShowExtensions"] = b;
+    }
+
+    if GlobalDebugWndBools["OpenGLShowWGLExtensions"] == true {
+        b := GlobalDebugWndBools["OpenGLShowWGLExtensions"];
+        OpenGLExtensions("WGL Extensions", vars.WglExtensions, ^b);
+        GlobalDebugWndBools["OpenGLShowWGLExtensions"] = b;
+    }
+
+    if GlobalDebugWndBools["ShowGLTextureOverview"] == true {
+        b := GlobalDebugWndBools["ShowGLTextureOverview"];
+        OpenGLTextureOverview(^b);
+        GlobalDebugWndBools["ShowGLTextureOverview"] = b;
+    }
 }
 
 Win32VarsInfo :: proc(vars : ^main.Win32Vars_t, show : ^bool) {
