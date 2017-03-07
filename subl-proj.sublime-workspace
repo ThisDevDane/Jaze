@@ -987,12 +987,16 @@
 		"selected_items":
 		[
 			[
-				"imgui",
-				"odimgui\\src\\imgui.odin"
+				"main",
+				"Jaze\\src\\main.odin"
 			],
 			[
 				"",
-				"Jaze\\src\\jaze_imgui.odin"
+				"Jaze\\build.bat"
+			],
+			[
+				"imgui",
+				"odimgui\\src\\imgui.odin"
 			],
 			[
 				"j32",
@@ -1024,10 +1028,6 @@
 			],
 			[
 				"mai",
-				"Jaze\\src\\main.odin"
-			],
-			[
-				"main",
 				"Jaze\\src\\main.odin"
 			],
 			[
