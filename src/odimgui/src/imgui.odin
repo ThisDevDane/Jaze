@@ -515,13 +515,13 @@ GetIdPtr                                                :: proc(ptr_id : rawptr)
 // Widgets
 
 // Bill says this might work as a workaround
-Text :: proc(fmt_: string, args: ...any) {
+Text :: proc(fmt_: string, args: ..any) {
     // NOTE: This procedure would have a C-style vararg parameters but
     // it will be ignored as Odin doesn't support them
     igText :: proc(fmt: ^byte) #cc_c #foreign cimgui "igText"; 
 
     buf: [1024]byte;
-    s := fmt.sprintf(buf[:], fmt_, ...args);
+    s := fmt.sprintf(buf[..0], fmt_, ..args);
     assert(s.count < buf.count);
     c_str := ^buf[0];
 

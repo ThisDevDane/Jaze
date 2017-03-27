@@ -10,6 +10,7 @@
 #import wgl "jaze_wgl.odin";
 #import debugWnd "jaze_debug_windows.odin";
 #import jimgui "jaze_imgui.odin";
+#import xinput "jaze_xinput.odin";
 
 ProgramRunning : bool;
 ShowDebugMenu : bool = false;
@@ -17,17 +18,17 @@ GlobalWin32VarsPtr : ^Win32Vars_t;
 GlobalWindowPosition : j32.WINDOWPLACEMENT;
 
 Win32Vars_t :: struct {
-    AppHandle    : win32.HINSTANCE,
-    WindowHandle : win32.HWND,
+    AppHandle    : win32.Hinstance,
+    WindowHandle : win32.Hwnd,
     WindowSize   : math.Vec2,
-    DeviceCtx    : win32.HDC,
+    DeviceCtx    : win32.Hdc,
     Ogl          : gl.OpenGLVars_t,
 }
 
-CreateWindow :: proc (instance : win32.HINSTANCE, ) -> win32.HWND {
+CreateWindow :: proc (instance : win32.Hinstance, ) -> win32.Hwnd {
     using win32;
-    wndClass : WNDCLASSEXA;
-    wndClass.size = size_of(WNDCLASSEXA);
+    wndClass : WndClassExA;
+    wndClass.size = size_of(WndClassExA);
     wndClass.style = CS_OWNDC|CS_HREDRAW|CS_VREDRAW;
     wndClass.wnd_proc = WindowProc;
     wndClass.instance = instance;
@@ -38,7 +39,7 @@ CreateWindow :: proc (instance : win32.HINSTANCE, ) -> win32.HWND {
     }
 
     windowStyle : u32 = WS_OVERLAPPEDWINDOW|WS_VISIBLE;
-    clientRect := RECT{0,0,1280,720};
+    clientRect := Rect{0,0,1280,720};
     AdjustWindowRect(^clientRect, windowStyle, 0);
 
     windowHandle := CreateWindowExA(0,
@@ -62,7 +63,7 @@ CreateWindow :: proc (instance : win32.HINSTANCE, ) -> win32.HWND {
 }
 
 
-CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.HGLRC
+CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.Hglrc
 {
     if !modern {
         pfd := win32.PIXELFORMATDESCRIPTOR {};
@@ -155,12 +156,12 @@ CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.HGL
     }
 }
 
-WindowProc :: proc(hwnd: win32.HWND, 
+WindowProc :: proc(hwnd: win32.Hwnd, 
                    msg: u32, 
-                   wparam: win32.WPARAM, 
-                   lparam: win32.LPARAM) -> win32.LRESULT #cc_c {
+                   wparam: win32.Wparam, 
+                   lparam: win32.Lparam) -> win32.Lresult #cc_c {
     using win32;
-    result : LRESULT = 0;
+    result : Lresult = 0;
     match(msg) {
         case WM_DESTROY : {
             PostQuitMessage(0);
@@ -239,7 +240,7 @@ OpenGLDebugCallback :: proc(source : gl.DebugSource, type : gl.DebugType, id : i
     fmt.printf("[%v | %v | %v] %s", source, type, severity, strings.to_odin_string(message));
 }
 
-ToggleFullscreen :: proc(wnd : win32.HWND) {
+ToggleFullscreen :: proc(wnd : win32.Hwnd) {
     Style : u32 = cast(u32)j32.GetWindowLongPtr(wnd, j32.GWL_STYLE);
     if(Style & win32.WS_OVERLAPPEDWINDOW == win32.WS_OVERLAPPEDWINDOW) {
         monitorInfo : j32.MONITORINFO;
@@ -327,8 +328,8 @@ main :: proc() {
     wgl.GetInfo(^win32vars.Ogl, win32vars.DeviceCtx);
 
     buf : [1024]byte;
-    fmt.sprint(buf[:], "Jaze ", win32vars.Ogl.VersionString);
-    win32.SetWindowTextA(win32vars.WindowHandle, buf[:].data);
+    fmt.sprint(buf[..], "Jaze ", win32vars.Ogl.VersionString);
+    win32.SetWindowTextA(win32vars.WindowHandle, buf[..].data);
 
     col : f32 = 56.0 / 255.0;
     gl.ClearColor(col, col, col, 1.0);
@@ -346,8 +347,10 @@ main :: proc() {
     debugWnd.GlobalDebugWndBools["ShowTestWindow"] = false;
 
     wgl.SwapIntervalEXT(-1);
+
+    xinput.Init();
     for ProgramRunning {
-        msg : win32.MSG;
+        msg : win32.Msg;
         for win32.PeekMessageA(^msg, nil, 0, 0, win32.PM_REMOVE) == win32.TRUE {
             match msg.message {
 

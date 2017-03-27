@@ -139,10 +139,10 @@ PrepareAttribArray :: proc(attribList : [dynamic]Attrib) -> [dynamic]i32 {
     return array;
 }
 
-CreateContextAttribsARB : proc(hdc : win32.HDC, shareContext : win32wgl.HGLRC, attribList : ^i32) -> win32wgl.HGLRC #cc_c;
-ChoosePixelFormatARB : proc(hdc : win32.HDC, piAttribIList : ^i32, pfAttribFList : ^f32, nMaxFormats : u32, piFormats : ^i32, nNumFormats : ^u32) -> win32.BOOL #cc_c;
+CreateContextAttribsARB : proc(hdc : win32.Hdc, shareContext : win32wgl.Hglrc, attribList : ^i32) -> win32wgl.Hglrc #cc_c;
+ChoosePixelFormatARB : proc(hdc : win32.Hdc, piAttribIList : ^i32, pfAttribFList : ^f32, nMaxFormats : u32, piFormats : ^i32, nNumFormats : ^u32) -> win32.Bool #cc_c;
 SwapIntervalEXT : proc(interval : i32) -> bool #cc_c;
-GetExtensionsStringARB : proc(win32.HDC) -> ^byte #cc_c;
+GetExtensionsStringARB : proc(win32.Hdc) -> ^byte #cc_c;
 
 TryGetExtensionList :: struct {
     Exts : map[string]rawptr,
@@ -152,7 +152,7 @@ TryGetExtension :: proc(list : ^TryGetExtensionList, p : rawptr, name : string) 
     list.Exts[name] = p;
 }
 
-LoadExtensions :: proc(GLContext : win32wgl.HGLRC, WindowDC : win32.HDC, list : TryGetExtensionList) {
+LoadExtensions :: proc(GLContext : win32wgl.Hglrc, WindowDC : win32.Hdc, list : TryGetExtensionList) {
      if win32wgl.MakeCurrent(WindowDC, GLContext) == win32.TRUE {
         defer win32wgl.MakeCurrent(nil, nil);
 
@@ -169,12 +169,12 @@ LoadExtensions :: proc(GLContext : win32wgl.HGLRC, WindowDC : win32.HDC, list : 
     }
 }
 
-GetInfo :: proc(vars : ^gl.OpenGLVars_t, dc : win32.HDC) {
+GetInfo :: proc(vars : ^gl.OpenGLVars_t, dc : win32.Hdc) {
     wglExts := strings.to_odin_string(GetExtensionsStringARB(dc));
     s := 0;
     for r, i in wglExts {
         if r == ' ' {
-            append(vars.WglExtensions, wglExts[s:i]);
+            append(vars.WglExtensions, wglExts[s..i]);
             vars.NumWglExtensions += 1;
             s = i+1;
         }

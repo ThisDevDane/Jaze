@@ -17,9 +17,8 @@ EBO          :: u32;
 Texture      :: u32;
 BufferObject :: u32;
 
-
 OpenGLVars_t :: struct {
-    Ctx               : win32wgl.HGLRC,
+    Ctx               : win32wgl.Hglrc,
 
     VersionMajorMax   : i32,
     VersionMajorCur   : i32,
@@ -54,7 +53,6 @@ DebugInfo_t :: struct {
 }
 
 DebugInfo : DebugInfo_t;
-
 
 DebugMessageCallbackProc :: #type proc(source : DebugSource, type : DebugType, id : i32, severity : DebugSeverity, length : i32, message : ^byte, userParam : rawptr) #cc_c;
 
@@ -487,7 +485,7 @@ CreateProgram :: proc() -> Program {
 ShaderSource :: proc(obj : Shader, str : string) {
     array : [1]string;
     array[0] = str;
-    ShaderSource(obj, array[:]);
+    ShaderSource(obj, array[..]);
 }
 
 ShaderSource :: proc(obj : Shader, strs : []string) {
@@ -536,7 +534,7 @@ GetInfo :: proc(vars : ^OpenGLVars_t) {
 
     vars.NumExtensions = GetInteger(GetIntegerNames.NumExtensions);
     reserve(vars.Extensions, vars.NumExtensions);
-    for i in 0..<vars.NumExtensions {
+    for i in 0..vars.NumExtensions {
         ext := GetString(GetStringNames.Extensions, cast(u32)i);
         append(vars.Extensions, ext);
     }
@@ -544,7 +542,7 @@ GetInfo :: proc(vars : ^OpenGLVars_t) {
 
 Init :: proc() {
     lib := win32.LoadLibraryA((cast(string)("opengl32.dll\x00")).data); defer win32.FreeLibrary(lib);
-    set_proc_address :: proc(h : win32.HMODULE, p: rawptr, name: string, info : ^Type_Info) #inline {
+    set_proc_address :: proc(h : win32.Hmodule, p: rawptr, name: string, info : ^Type_Info) #inline {
         txt := strings.new_c_string(name); defer free(txt);
 
         res := win32wgl.GetProcAddress(txt);

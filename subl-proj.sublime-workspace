@@ -4,6 +4,30 @@
 		"selected_items":
 		[
 			[
+				"Game",
+				"GamepadState"
+			],
+			[
+				"Key",
+				"KeyStrokeFlags"
+			],
+			[
+				"ga",
+				"GamepadState"
+			],
+			[
+				"capa",
+				"CapabilitieFlags"
+			],
+			[
+				"Batter",
+				"BatteryType"
+			],
+			[
+				"Battery",
+				"GetBatteryInformation"
+			],
+			[
 				"texu",
 				"textureId"
 			],
@@ -490,30 +514,6 @@
 			[
 				"mi",
 				"MillisecondsElapsed"
-			],
-			[
-				"timi",
-				"timing_file_entry"
-			],
-			[
-				"GRAP",
-				"GRAPH_HEIGHT"
-			],
-			[
-				"En",
-				"Entries"
-			],
-			[
-				"entri",
-				"EntriesSize"
-			],
-			[
-				"entr",
-				"timing_entry_array"
-			],
-			[
-				"S",
-				"SystemTime"
 			]
 		]
 	},
@@ -581,6 +581,10 @@
 				"Alignment: Align"
 			],
 			[
+				"a",
+				"Alignment: Align"
+			],
+			[
 				"al",
 				"Alignment: Align"
 			],
@@ -591,10 +595,6 @@
 			[
 				"ssc",
 				"Set Syntax: C"
-			],
-			[
-				"a",
-				"Alignment: Align"
 			],
 			[
 				"previ",
@@ -756,6 +756,31 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"=",
+			"0x",
+			"0",
+			"#define ",
+			": p",
+			":",
+			"=",
+			":",
+			"c_cc",
+			"win32.HWND",
+			"win32.Hwnd",
+			"win32.Hglrc",
+			"win32wgl.HGLRC",
+			"win32.HDC",
+			"win32.HWND",
+			"win32.BOOL",
+			"win32.RECT",
+			"win32.POINT",
+			"..<",
+			"[:]",
+			"WNDCLASSEXA",
+			"win32.HDC",
+			"win32.HWND",
+			"win32.HINSTANCE",
+			"::",
 			"0",
 			"-",
 			"-1",
@@ -858,32 +883,7 @@
 			"fprint_type",
 			"HIWORD",
 			"WS_",
-			"c_string",
-			"-1.0",
-			"ext",
-			"=",
-			"Main",
-			"U32",
-			"bool",
-			" imgui.NextColumn();",
-			"imgui.NextColumn();",
-			"Major",
-			"Max",
-			"%s",
-			"s",
-			"Max",
-			"dc",
-			"vars.",
-			"win32vars",
-			"Cur",
-			"dc",
-			":",
-			"\"g",
-			"0.0",
-			"/",
-			"=",
-			"}",
-			","
+			"c_string"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -891,6 +891,20 @@
 		"regex": false,
 		"replace_history":
 		[
+			"win32.Hwnd",
+			"win32wgl.Hglrc",
+			"win32.Hglrc",
+			"win32.Hdc",
+			"win32.Hwnd",
+			"win32.Bool",
+			"win32.Rect",
+			"win32.Point",
+			"..",
+			"[..]",
+			"WndClassExA",
+			"win32.Hdc",
+			"win32.Hwnd",
+			"win32.Hinstance",
 			"Bool\n",
 			";\n",
 			"win32wgl.HGLRC\n",
@@ -977,7 +991,7 @@
 	"pinned_build_system": "Packages/User/odin.sublime-build",
 	"replace":
 	{
-		"height": 104.0
+		"height": 72.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -987,24 +1001,44 @@
 		"selected_items":
 		[
 			[
-				"main",
-				"Jaze\\src\\main.odin"
+				"gl",
+				"Jaze\\src\\jaze_gl.odin"
 			],
 			[
-				"",
-				"Jaze\\build.bat"
+				"main",
+				"Jaze\\src\\main.odin"
 			],
 			[
 				"imgui",
 				"odimgui\\src\\imgui.odin"
 			],
 			[
-				"j32",
-				"Jaze\\src\\jaze_win32.odin"
+				"debug",
+				"Jaze\\src\\jaze_debug_windows.odin"
 			],
 			[
-				"gl",
+				"jaze",
 				"Jaze\\src\\jaze_gl.odin"
+			],
+			[
+				"",
+				"odimgui\\src\\imgui.odin"
+			],
+			[
+				"imgui.od",
+				"odimgui\\src\\imgui.odin"
+			],
+			[
+				"wgl",
+				"core\\sys\\wgl.odin"
+			],
+			[
+				"windo",
+				"core\\sys\\windows.odin"
+			],
+			[
+				"j32",
+				"Jaze\\src\\jaze_win32.odin"
 			],
 			[
 				"deb",
@@ -1031,10 +1065,6 @@
 				"Jaze\\src\\main.odin"
 			],
 			[
-				"debug",
-				"Jaze\\src\\jaze_debug_windows.odin"
-			],
-			[
 				"win32",
 				"Jaze\\src\\jaze_win32.odin"
 			],
@@ -1057,10 +1087,6 @@
 			[
 				"bu",
 				"Jaze\\build.bat"
-			],
-			[
-				"jaze",
-				"Jaze\\src\\jaze_wgl.odin"
 			],
 			[
 				"jaz",
@@ -1101,10 +1127,6 @@
 			[
 				"imgui.odi",
 				"odimgui\\src\\imgui.odin"
-			],
-			[
-				"wgl",
-				"imgui\\examples\\opengl3_example\\imgui_impl_glfw_gl3.cpp"
 			],
 			[
 				"ma",

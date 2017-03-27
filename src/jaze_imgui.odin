@@ -87,7 +87,7 @@ SetStyle :: proc() {
     style.Colors[GuiCol.ModalWindowDarkening] = Vec4{51.0  / 255.0, 51.0  / 255.0, 51.0  / 255.0, 90.0 / 255.0};
 }
 
-Init :: proc(windowHandle : win32.HWND) {
+Init :: proc(windowHandle : win32.Hwnd) {
     io := GetIO();
     io.ImeWindowHandle = windowHandle;
     io.RenderDrawListsFn = RenderProc;
@@ -190,15 +190,15 @@ Init :: proc(windowHandle : win32.HWND) {
 
 BeginNewFrame :: proc(deltaTime : f64) {
     io := GetIO();
-    rect : win32.RECT;
-    win32.GetClientRect(cast(win32.HWND)io.ImeWindowHandle, ^rect);
+    rect : win32.Rect;
+    win32.GetClientRect(cast(win32.Hwnd)io.ImeWindowHandle, ^rect);
     io.DisplaySize.x = cast(f32)rect.right;
     io.DisplaySize.y = cast(f32)rect.bottom;
 
-    if win32.GetActiveWindow() == cast(win32.HWND)io.ImeWindowHandle {
-        pos : win32.POINT;
+    if win32.GetActiveWindow() == cast(win32.Hwnd)io.ImeWindowHandle {
+        pos : win32.Point;
         win32.GetCursorPos(^pos);
-        win32.ScreenToClient(cast(win32.HWND)io.ImeWindowHandle, ^pos);
+        win32.ScreenToClient(cast(win32.Hwnd)io.ImeWindowHandle, ^pos);
         io.MousePos.x = cast(f32)pos.x;
         io.MousePos.y = cast(f32)pos.y;
         io.MouseDown[0] = win32.is_key_down(win32.Key_Code.LBUTTON);
@@ -211,7 +211,7 @@ BeginNewFrame :: proc(deltaTime : f64) {
         io.KeyAlt =   win32.is_key_down(win32.Key_Code.LMENU)    || win32.is_key_down(win32.Key_Code.RMENU);
         io.KeySuper = win32.is_key_down(win32.Key_Code.LWIN)     || win32.is_key_down(win32.Key_Code.RWIN);
 
-        for i in 0..<257 {
+        for i in 0..257 {
             io.KeysDown[i] = win32.is_key_down(cast(win32.Key_Code)i);
         }
     } else {
@@ -222,7 +222,7 @@ BeginNewFrame :: proc(deltaTime : f64) {
         io.KeyAlt   = false;   
         io.KeySuper = false;
 
-        for i in 0...256 { 
+        for i in 0..256 { 
             io.KeysDown[i] = false;
         }
     }
@@ -234,8 +234,8 @@ BeginNewFrame :: proc(deltaTime : f64) {
  
 RenderProc :: proc(data : ^DrawData) #cc_c {
     io := GetIO();
-    rect : win32.RECT;
-    win32.GetClientRect(cast(win32.HWND)io.ImeWindowHandle, ^rect);
+    rect : win32.Rect;
+    win32.GetClientRect(cast(win32.Hwnd)io.ImeWindowHandle, ^rect);
     io.DisplaySize.x = cast(f32)rect.right;
     io.DisplaySize.y = cast(f32)rect.bottom;
     width := cast(i32)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
