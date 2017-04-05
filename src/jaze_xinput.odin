@@ -5,7 +5,11 @@
 LEFT_THUMB_DEADZONE  :: 7849;
 RIGHT_THUMB_DEADZONE :: 8689;
 TRIGGER_THRESHOLD    :: 30;
+USER_MAX_COUNT       :: 4;
 
+Error :: u32;
+Success : Error : 0;
+NotConnected : Error : 1167;
 
 BatteryInformation :: struct #ordered {
     Type  : BatteryType,
@@ -15,7 +19,7 @@ BatteryInformation :: struct #ordered {
 Capabilities :: struct #ordered {
     Type      : byte,
     SubType   : ControllerType,
-    Flags     : CapabilitieFlags,
+    Flags     : CapabilitiesFlags,
     Gamepad   : GamepadState,
     Vibration : VibrationState,
 }
@@ -143,7 +147,7 @@ ControllerType :: enum byte {
     ArcadePad        = 0x13,
 }
 
-CapabilitieFlags :: enum u16 {
+CapabilitiesFlags :: enum u16 {
     Voice            = 0x0004,
     FFB              = 0x0001,
     Wireless         = 0x0002,
@@ -151,14 +155,44 @@ CapabilitieFlags :: enum u16 {
     NoNavigations    = 0x0010,
 }
 
+User :: enum u32 {
+    Player1 = 0,
+    Player2,
+    Player3,
+    Player4,
+}
+
 _Enable                : proc(enable : win32.Bool) #cc_c;
 _GetBatteryInformation : proc(userIndex : u32, devType : DeviceType, out : ^BatteryInformation) -> u32#cc_c;
 _GetCapabilities       : proc(userIndex : u32, type : u32, out : ^Capabilities) -> u32 #cc_c;
 _GetKeystroke          : proc(userIndex : u32, reserved : u32, out : ^KeyStroke) -> u32 #cc_c;
-_GetState              : proc(userIndex : u32, state : ^State) #cc_c;
-_SetState              : proc(userIndex : u32, state : VibrationState) #cc_c;
+_GetState              : proc(userIndex : u32, state : ^State) -> u32 #cc_c;
+_SetState              : proc(userIndex : u32, state : VibrationState) -> u32 #cc_c;
 
 //TODO: Make Odin friendly functions that need it
+
+Enable :: proc(enable : bool) {
+    if _Enable != nil {
+        _Enable(cast(win32.Bool)enable);
+    } else {
+        //TODO: Logging        
+    }
+}
+
+GetCapabilities :: proc(user : User) -> (Capabilities, Error) {
+    return GetCapabilities(user, false);
+}
+
+GetCapabilities :: proc(user : User, onlyGamepads : bool)  -> (Capabilities, Error) {
+    if _GetCapabilities != nil {
+        res : Capabilities;
+        err := _GetCapabilities(cast(u32)user, cast(u32)onlyGamepads, ^res);
+        return res, cast(Error)err;
+    } else {
+        //TODO: Logging        
+    }
+    return Capabilities{}, NotConnected;
+}
 
 XInputVersion :: enum {
     NotLoaded,
@@ -176,18 +210,17 @@ DebugFunctionLoadStatus :: struct {
 }
 
 DebugInfo_t :: struct {
+    LibAddress : int,
     NumberOfFunctionsLoaded : i32,
     NumberOfFunctionsLoadedSuccessed : i32,
     Statuses : [dynamic]DebugFunctionLoadStatus,
 }
 
-DebugInfo : DebugInfo_t;
+xDebugInfo : DebugInfo_t;
 
 Version := XInputVersion.NotLoaded;
 
 Init :: proc() -> bool {
-    fmt.println("TEST"); 
-    //TODO: Load Functions
     lib := win32.LoadLibraryA((cast(string)("xinput1_4.dll\x00")).data); defer win32.FreeLibrary(lib);
     using XInputVersion;
     Version = Version1_4;
@@ -207,30 +240,33 @@ Init :: proc() -> bool {
         return false;
     }
 
+    xDebugInfo.LibAddress = cast(int)lib;
+
     set_proc_address :: proc(h : win32.Hmodule, p: rawptr, name: string) #inline {
         txt := strings.new_c_string(name); defer free(txt);
-        res := win32.GetProcAddress(h, txt);
+        res: = win32.GetProcAddress(h, txt);
         (cast(^(proc() #cc_c))p)^ = res;
 
         status := DebugFunctionLoadStatus{};
         status.Name = name;
         status.Address = cast(int)cast(rawptr)res;
         status.Success = false;
-        DebugInfo.NumberOfFunctionsLoaded += 1;
+        //status.TypeInfo = info;
+        xDebugInfo.NumberOfFunctionsLoaded += 1;
 
         if status.Address != 0 {
             status.Success = true;
-            DebugInfo.NumberOfFunctionsLoadedSuccessed += 1;
+            xDebugInfo.NumberOfFunctionsLoadedSuccessed += 1;
         }
-        append(DebugInfo.Statuses, status);
+        append(xDebugInfo.Statuses, status);
     }
 
-    set_proc_address(lib, ^_Enable,                "Enable");
-    set_proc_address(lib, ^_GetBatteryInformation, "GetBatteryInformation");
-    set_proc_address(lib, ^_GetCapabilities,       "GetCapabilities");
-    set_proc_address(lib, ^_GetKeystroke,          "GetKeystroke");
-    set_proc_address(lib, ^_GetState,              "GetState");
-    set_proc_address(lib, ^_SetState,              "SetState");
+    set_proc_address(lib, ^_Enable,                "XInputEnable");
+    set_proc_address(lib, ^_GetBatteryInformation, "XInputGetBatteryInformation");
+    set_proc_address(lib, ^_GetCapabilities,       "XInputGetCapabilities");
+    set_proc_address(lib, ^_GetKeystroke,          "XInputGetKeystroke");
+    set_proc_address(lib, ^_GetState,              "XInputGetState");
+    set_proc_address(lib, ^_SetState,              "XInputSetState");
 
     return true;
 }

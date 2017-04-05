@@ -340,6 +340,7 @@ main :: proc() {
     wgl.SwapIntervalEXT(-1);
 
     xinput.Init();
+    xinput.Enable(true);
     for ProgramRunning {
         msg : win32.Msg;
         for win32.PeekMessageA(^msg, nil, 0, 0, win32.PM_REMOVE) == win32.TRUE {
@@ -386,6 +387,7 @@ main :: proc() {
         deltaTime : f64 = cast(f64)(newTime - oldTime);
         oldTime = newTime;
         deltaTime /= cast(f64)freq;
+
         if ShowDebugMenu {
             jimgui.BeginNewFrame(deltaTime);
             RenderDebugUI(^win32vars);

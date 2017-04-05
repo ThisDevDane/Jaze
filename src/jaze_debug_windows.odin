@@ -57,6 +57,7 @@ OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
             imgui.Text("Current: %d.%d", vars.VersionMajorCur, vars.VersionMajorCur);
             imgui.Text("GLSL:    %s", vars.GLSLVersionString);
         imgui.Unindent(20.0);
+        imgui.Text("Lib Address 0x%x", gl.DebugInfo.LibAddress);
         imgui.Separator();
             imgui.Text("Vendor:   %s", vars.VendorString);
             imgui.Text("Render:   %s", vars.RendererString);
@@ -153,6 +154,45 @@ ShowXinputWindow :: proc(show : ^bool) {
     imgui.Begin("XInput", show, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
     {
         imgui.Text("Version: %s", xinput.Version);
+        imgui.Text("Lib Address: 0x%x", cast(int)xinput.xDebugInfo.LibAddress);
+        imgui.Text("Number of functions loaded: %d/%d", xinput.xDebugInfo.NumberOfFunctionsLoadedSuccessed, xinput.xDebugInfo.NumberOfFunctionsLoaded); 
+        if imgui.CollapsingHeader("Loaded Functions", 0) {
+            imgui.BeginChild("Functions", imgui.Vec2{0, 0}, true, 0);
+            imgui.Columns(2, nil, false);
+            for status in xinput.xDebugInfo.Statuses {
+                imgui.Text(status.Name);
+                imgui.NextColumn();
+                imgui.Text("Loaded: %t @ 0x%x", status.Success, status.Address);
+                imgui.NextColumn();
+
+            }
+            imgui.Columns(1, nil, false);
+            imgui.EndChild();
+        }
+
+        for i in 0..4 { //I WANT TO DO THIS Pl0x for(user in xinput.Users) 
+            cap, err := xinput.GetCapabilities(cast(xinput.User)i);
+            imgui.Text("Gamepad %d(%s):", i+1, err == xinput.Success ? "Connected" : "Not Connected");
+            imgui.Text("Capabilites:");
+            imgui.Indent(20.0);
+                if err == xinput.Success {
+                    imgui.Text("Subtype %s", cap.SubType);
+                    imgui.Text("Flags:");
+                    imgui.Indent(10.0);
+                        imgui.Text("Voice:         %t", cap.Flags & xinput.CapabilitiesFlags.Voice == xinput.CapabilitiesFlags.Voice);
+                        imgui.Text("FFB:           %t", cap.Flags & xinput.CapabilitiesFlags.FFB == xinput.CapabilitiesFlags.FFB);
+                        imgui.Text("Wireless:      %t", cap.Flags & xinput.CapabilitiesFlags.Wireless == xinput.CapabilitiesFlags.Wireless);
+                        imgui.Text("PMD:           %t", cap.Flags & xinput.CapabilitiesFlags.PMD == xinput.CapabilitiesFlags.PMD);
+                        imgui.Text("NoNavigations: %t", cap.Flags & xinput.CapabilitiesFlags.NoNavigations == xinput.CapabilitiesFlags.NoNavigations);
+                    imgui.Unindent(10.0);    
+                }
+            imgui.Unindent(20.0);
+            imgui.Text("Battery Information:");
+            imgui.Indent(20.0);
+                imgui.Text("Battery Type:  %s", "N/A");
+                imgui.Text("Battery Level: %s", "N/A");
+            imgui.Unindent(20.0);
+        }
     }
     imgui.End();
 }

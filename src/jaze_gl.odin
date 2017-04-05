@@ -58,6 +58,7 @@ DebugFunctionLoadStatus :: struct {
 }
 
 DebugInfo_t :: struct {
+    LibAddress : int,
     NumberOfFunctionsLoaded : i32,
     NumberOfFunctionsLoadedSuccessed : i32,
     Statuses : [dynamic]DebugFunctionLoadStatus,
@@ -562,6 +563,7 @@ GetInfo :: proc(vars : ^OpenGLVars_t) {
 
 Init :: proc() {
     lib := win32.LoadLibraryA((cast(string)("opengl32.dll\x00")).data); defer win32.FreeLibrary(lib);
+    DebugInfo.LibAddress = cast(int)lib;
     set_proc_address :: proc(h : win32.Hmodule, p: rawptr, name: string, info : ^Type_Info) #inline {
         txt := strings.new_c_string(name); defer free(txt);
 
