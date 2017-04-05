@@ -137,7 +137,7 @@ ControllerType :: enum byte {
     FlightStick      = 0x04,
     DancePad         = 0x05,
     Guitar           = 0x06,
-    GuitarAlt        = 0x7,
+    GuitarAlt        = 0x07,
     Bass             = 0x0B,
     DrumKit          = 0x08,
     ArcadePad        = 0x13,
