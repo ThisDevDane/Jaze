@@ -756,6 +756,8 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"TEST",
+			"Key_Code",
 			"=",
 			"0x",
 			"0",
@@ -881,9 +883,7 @@
 			"type_of_val",
 			"buffer_write_type",
 			"fprint_type",
-			"HIWORD",
-			"WS_",
-			"c_string"
+			"HIWORD"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -1001,12 +1001,20 @@
 		"selected_items":
 		[
 			[
-				"gl",
-				"Jaze\\src\\jaze_gl.odin"
+				"",
+				"Jaze\\jaze.otm"
+			],
+			[
+				"ma",
+				"Jaze\\src\\main.odin"
 			],
 			[
 				"main",
 				"Jaze\\src\\main.odin"
+			],
+			[
+				"gl",
+				"Jaze\\src\\jaze_gl.odin"
 			],
 			[
 				"imgui",
@@ -1019,10 +1027,6 @@
 			[
 				"jaze",
 				"Jaze\\src\\jaze_gl.odin"
-			],
-			[
-				"",
-				"odimgui\\src\\imgui.odin"
 			],
 			[
 				"imgui.od",
@@ -1127,10 +1131,6 @@
 			[
 				"imgui.odi",
 				"odimgui\\src\\imgui.odin"
-			],
-			[
-				"ma",
-				"Jaze\\src\\main.odin"
 			],
 			[
 				"dem",
@@ -1239,7 +1239,7 @@
 	"show_minimap": true,
 	"show_open_files": false,
 	"show_tabs": false,
-	"side_bar_visible": false,
+	"side_bar_visible": true,
 	"side_bar_width": 150.0,
 	"status_bar_visible": true,
 	"template_settings":

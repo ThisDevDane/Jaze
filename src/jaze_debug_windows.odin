@@ -1,5 +1,6 @@
 #import "fmt.odin";
 #import gl "jaze_gl.odin";
+#import xinput "jaze_xinput.odin";
 #import "odimgui/src/imgui.odin";
 #import "main.odin";
 
@@ -144,6 +145,14 @@ Win32VarsInfo :: proc(vars : ^main.Win32Vars_t, show : ^bool) {
         imgui.Text("Window Handle:         0x%X", cast(int)vars.WindowHandle);
         imgui.Text("Window Size:           {%.3f, %.3f}", vars.WindowSize.x, vars.WindowSize.y);
         imgui.Text("Device Context Handle: 0x%X", cast(int)vars.DeviceCtx);
+    }
+    imgui.End();
+}
+
+ShowXinputWindow :: proc(show : ^bool) {
+    imgui.Begin("XInput", show, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
+    {
+        imgui.Text("Version: %s", xinput.Version);
     }
     imgui.End();
 }

@@ -9,13 +9,25 @@ TRUE  :: 1;
 FALSE :: 0;
 
 // Types
-Shader       :: u32;
-Program      :: u32;
 VAO          :: u32;
 VBO          :: u32;
 EBO          :: u32;
-Texture      :: u32;
 BufferObject :: u32;
+Texture      :: u32;
+
+Shader :: struct {
+    ID            : u32,
+    Source        : string,
+    CompileStatus : bool,
+}
+
+Program :: struct {
+    ID         : u32,
+    Vertex     : Shader,
+    Fragment   : Shader,
+    Uniforms   : map[string]i32,
+    Attributes : map[string]i32,
+}
 
 OpenGLVars_t :: struct {
     Ctx               : win32wgl.Hglrc,
@@ -116,19 +128,21 @@ UtilCreateAndCompileShader :: proc(type : ShaderTypes, source : string) -> (Shad
     ShaderSource(shader, source);
     CompileShader(shader);
 
-    success :=  GetShaderValue(shader, GetShaderNames.CompileStatus);
+    success := GetShaderValue(shader, GetShaderNames.CompileStatus);
     if success == 0 {
         logSize := GetShaderValue(shader, GetShaderNames.InfoLogLength);
         logBytes := new_slice(byte, logSize);
-        _GetShaderInfoLog(cast(u32)shader, logSize, ^logSize, logBytes.data);
+        _GetShaderInfoLog(shader.ID, logSize, ^logSize, logBytes.data);
 
         fmt.println("------ Shader Error ------");
         fmt.print(strings.to_odin_string(logBytes.data)); 
         fmt.println("--------------------------");
-        //DeleteShader(shader);
-        return 0, false;
+        //DeleteShader(shader.ID);
+        shader.CompileStatus = false;
+        return shader, false;
     }
 
+    shader.CompileStatus = true;
     return shader, true;
 }
 
@@ -326,7 +340,7 @@ UniformMatrix4fv :: proc(loc : i32, values : []f32, transpose : bool) {
 GetUniformLocation :: proc(program : Program, name : string) -> i32{
     if _GetUniformLocation != nil {
         str := strings.new_c_string(name); defer free(str);
-        res := _GetUniformLocation(cast(u32)program, str);
+        res := _GetUniformLocation(cast(u32)program.ID, str);
         return res;
     } else {
         //Todo: logging
@@ -337,7 +351,7 @@ GetUniformLocation :: proc(program : Program, name : string) -> i32{
 GetAttribLocation :: proc(program : Program, name : string) -> i32 {
     if _GetAttribLocation != nil {
         str := strings.new_c_string(name); defer free(str);
-        res := _GetAttribLocation(cast(u32)program, str);
+        res := _GetAttribLocation(cast(u32)program.ID, str);
         return res;
     } else {
         //Todo: logging
@@ -355,7 +369,7 @@ DrawElements :: proc(mode : DrawModes, count : i32, type : DrawElementsType, ind
 
 UseProgram :: proc(program : Program) {
     if _UseProgram != nil {
-        _UseProgram(cast(u32)program);
+        _UseProgram(program.ID);
     } else {
         //Todo: logging
     }
@@ -363,7 +377,7 @@ UseProgram :: proc(program : Program) {
 
 LinkProgram :: proc(program : Program) {
     if _LinkProgram != nil {
-        _LinkProgram(cast(u32)program);
+        _LinkProgram(program.ID);
     } else {
         //Todo: logging
     }
@@ -426,7 +440,7 @@ BlendFunc :: proc(sfactor : BlendFactors, dfactor : BlendFactors) {
 GetShaderValue :: proc(shader : Shader, name : GetShaderNames) -> i32 {
     if _GetShaderiv != nil {
         res : i32;
-        _GetShaderiv(cast(u32)shader, cast(i32)name, ^res);
+        _GetShaderiv(shader.ID, cast(i32)name, ^res);
         return res;
     } else {
 
@@ -463,9 +477,9 @@ Disable  :: proc(cap : Capabilities) {
     _Disable(cast(i32)cap);
 }
 
-AttachShader :: proc(program : Program, obj : Shader) {
+AttachShader :: proc(program : Program, shader : Shader) {
     if _AttachShader != nil {
-        _AttachShader(cast(u32)program, cast(u32)obj);
+        _AttachShader(program.ID, shader.ID);
     } else {
         //Todo: logging
     }
@@ -473,13 +487,16 @@ AttachShader :: proc(program : Program, obj : Shader) {
 
 CreateProgram :: proc() -> Program {
     if _CreateProgram != nil {
-        res := _CreateProgram();
-        return cast(Program)res;
+        id := _CreateProgram();
+        res : Program;
+        res.ID = id;
+
+        return res;
     } else {
         //Todo: logging
     }
 
-    return 0;
+    return Program{};
 }
 
 ShaderSource :: proc(obj : Shader, str : string) {
@@ -496,7 +513,8 @@ ShaderSource :: proc(obj : Shader, strs : []string) {
             newStrs[i] = s.data;
             lengths[i] = cast(i32)s.count;
         }
-        _ShaderSource(cast(u32)obj, cast(u32)strs.count, newStrs.data, lengths.data);
+        _ShaderSource(obj.ID, cast(u32)strs.count, newStrs.data, lengths.data);
+        obj.Source = strs[0];
     } else {
         //Todo: logging
     }
@@ -504,17 +522,19 @@ ShaderSource :: proc(obj : Shader, strs : []string) {
 
 CreateShader :: proc(type : ShaderTypes) -> Shader {
     if _CreateShader != nil {
-        res := _CreateShader(cast(i32)type);
-        return cast(Shader)res;
+        id := _CreateShader(cast(i32)type);
+        res : Shader;
+        res.ID = id;
+        return res;
     } else {
         //Todo: logging
-        return 0;
+        return Shader{};
     }
 }
 
 CompileShader :: proc(obj : Shader) {
     if _CompileShader != nil {
-        _CompileShader(cast(u32)obj);
+        _CompileShader(obj.ID);
     } else {
         //Todo: logging
     }

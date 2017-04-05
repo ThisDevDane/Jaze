@@ -9,14 +9,6 @@ State_t :: struct {
 
     //Render
     MainProgram      : gl.Program,
-    VertexShader     : gl.Shader,
-    FragmentShader   : gl.Shader,
-
-    AttribLocTex     : i32,
-    AttribLocProjMtx : i32,
-    AttribLocPos     : i32,
-    AttribLocUV      : i32,
-    AttribLocColor   : i32,
 
     VBOHandle        : gl.VBO,
     EBOHandle        : gl.EBO,
@@ -138,19 +130,26 @@ Init :: proc(windowHandle : win32.Hwnd) {
            Out_Color = Frag_Color * texture( Texture, Frag_UV.st);
         }`;
 
-    State.MainProgram       = gl.CreateProgram();
-    State.VertexShader, _   = gl.UtilCreateAndCompileShader(gl.ShaderTypes.Vertex, vertexShaderString);
-    State.FragmentShader, _ = gl.UtilCreateAndCompileShader(gl.ShaderTypes.Fragment, fragmentShaderString);
+
+    State.MainProgram    = gl.CreateProgram();
+    vertexShader,   ok1 := gl.UtilCreateAndCompileShader(gl.ShaderTypes.Vertex, vertexShaderString);
+    fragmentShader, ok2 := gl.UtilCreateAndCompileShader(gl.ShaderTypes.Fragment, fragmentShaderString);
    
-    gl.CompileShader(State.FragmentShader);
-    gl.AttachShader(State.MainProgram, State.VertexShader);
-    gl.AttachShader(State.MainProgram, State.FragmentShader);
+    if !ok1 || !ok2 {
+        panic("FUUUCK");
+    }
+
+    gl.AttachShader(State.MainProgram, vertexShader);
+    State.MainProgram.Vertex = vertexShader;
+    gl.AttachShader(State.MainProgram, fragmentShader);
+    State.MainProgram.Fragment = fragmentShader;
     gl.LinkProgram(State.MainProgram);
-    State.AttribLocTex     = gl.GetUniformLocation(State.MainProgram, "Texture");    
-    State.AttribLocProjMtx = gl.GetUniformLocation(State.MainProgram, "ProjMtx");
-    State.AttribLocPos     = gl.GetAttribLocation(State.MainProgram, "Position");    
-    State.AttribLocUV      = gl.GetAttribLocation(State.MainProgram, "UV");     
-    State.AttribLocColor   = gl.GetAttribLocation(State.MainProgram, "Color");  
+    State.MainProgram.Uniforms["Texture"] = gl.GetUniformLocation(State.MainProgram, "Texture");    
+    State.MainProgram.Uniforms["ProjMtx"] = gl.GetUniformLocation(State.MainProgram, "ProjMtx");
+
+    State.MainProgram.Attributes["Position"] = gl.GetAttribLocation(State.MainProgram, "Position");    
+    State.MainProgram.Attributes["UV"]       = gl.GetAttribLocation(State.MainProgram, "UV");    
+    State.MainProgram.Attributes["Color"]    = gl.GetAttribLocation(State.MainProgram, "Color");    
 
     State.VBOHandle = cast(gl.VBO)gl.GenBuffer();
     State.EBOHandle = cast(gl.EBO)gl.GenBuffer();
@@ -160,14 +159,13 @@ Init :: proc(windowHandle : win32.Hwnd) {
     gl.BindBuffer(State.EBOHandle);
     gl.BindVertexArray(State.VAOHandle);
 
+    gl.EnableVertexAttribArray(cast(u32)State.MainProgram.Attributes["Position"]);
+    gl.EnableVertexAttribArray(cast(u32)State.MainProgram.Attributes["UV"]);
+    gl.EnableVertexAttribArray(cast(u32)State.MainProgram.Attributes["Color"]);
 
-    gl.EnableVertexAttribArray(cast(u32)State.AttribLocPos);
-    gl.EnableVertexAttribArray(cast(u32)State.AttribLocUV);
-    gl.EnableVertexAttribArray(cast(u32)State.AttribLocColor);
-
-    gl.VertexAttribPointer(cast(u32)State.AttribLocPos,   2, gl.VertexAttribDataType.Float, false, size_of(DrawVert), cast(rawptr)cast(int)offset_of(DrawVert, pos));
-    gl.VertexAttribPointer(cast(u32)State.AttribLocUV,    2, gl.VertexAttribDataType.Float, false, size_of(DrawVert), cast(rawptr)cast(int)offset_of(DrawVert, uv));
-    gl.VertexAttribPointer(cast(u32)State.AttribLocColor, 4, gl.VertexAttribDataType.UByte, true,  size_of(DrawVert), cast(rawptr)cast(int)offset_of(DrawVert, col));
+    gl.VertexAttribPointer(cast(u32)State.MainProgram.Attributes["Position"],   2, gl.VertexAttribDataType.Float, false, size_of(DrawVert), cast(rawptr)cast(int)offset_of(DrawVert, pos));
+    gl.VertexAttribPointer(cast(u32)State.MainProgram.Attributes["UV"],         2, gl.VertexAttribDataType.Float, false, size_of(DrawVert), cast(rawptr)cast(int)offset_of(DrawVert, uv));
+    gl.VertexAttribPointer(cast(u32)State.MainProgram.Attributes["Color"],      4, gl.VertexAttribDataType.UByte, true,  size_of(DrawVert), cast(rawptr)cast(int)offset_of(DrawVert, col));
     
     //CreateFont
     pixels : ^byte;
@@ -265,8 +263,8 @@ RenderProc :: proc(data : ^DrawData) #cc_c {
     };
 
     gl.UseProgram(State.MainProgram);
-    gl.Uniform(cast(i32)State.AttribLocTex, cast(i32)0);
-    gl._UniformMatrix4fv(cast(i32)State.AttribLocProjMtx, 1, 0, ^ortho_projection[0][0]);
+    gl.Uniform(State.MainProgram.Uniforms["Texture"], cast(i32)0);
+    gl._UniformMatrix4fv(State.MainProgram.Uniforms["ProjMtx"], 1, 0, ^ortho_projection[0][0]);
     gl.BindVertexArray(State.VAOHandle);
 
     newList := slice_ptr(data.CmdLists, data.CmdListsCount);

@@ -209,25 +209,6 @@ WindowProc :: proc(hwnd: win32.Hwnd,
         }
         break;
 
-        case WM_KEYDOWN : {
-            if cast(Key_Code)wparam == Key_Code.ESCAPE {
-                PostQuitMessage(0);
-                result = 1;
-            }
-
-            if cast(Key_Code)wparam == Key_Code.TAB {
-                style := imgui.GetStyle();
-                style.Alpha = 0.1;
-            } 
-        } 
-
-        case WM_KEYUP : {
-            if cast(Key_Code)wparam == Key_Code.TAB {
-                style := imgui.GetStyle();
-                style.Alpha = 1.0;
-            } 
-        }
-
         default : {
             result = DefWindowProcA(hwnd, msg, wparam, lparam);
         }
@@ -274,6 +255,10 @@ RenderDebugUI :: proc(vars : ^Win32Vars_t) {
             debugWnd.GlobalDebugWndBools["ShowWin32VarInfo"] = !debugWnd.GlobalDebugWndBools["ShowWin32VarInfo"];
         }
 
+        if imgui.MenuItem("Show XInput Info", "", false, true) {
+            debugWnd.GlobalDebugWndBools["ShowXinputInfo"] = !debugWnd.GlobalDebugWndBools["ShowXinputInfo"];
+        }
+
         if imgui.MenuItem("Show Test Window", "", false, true) {
             debugWnd.GlobalDebugWndBools["ShowTestWindow"] = !debugWnd.GlobalDebugWndBools["ShowTestWindow"];
         }
@@ -302,6 +287,12 @@ RenderDebugUI :: proc(vars : ^Win32Vars_t) {
         debugWnd.GlobalDebugWndBools["ShowWin32VarInfo"] = b;
     }
     
+    if debugWnd.GlobalDebugWndBools["ShowXinputInfo"] {
+        b := debugWnd.GlobalDebugWndBools["ShowXinputInfo"];
+        debugWnd.ShowXinputWindow(^b);
+        debugWnd.GlobalDebugWndBools["ShowXinputInfo"] = b;
+    }
+
     if debugWnd.GlobalDebugWndBools["ShowTestWindow"] {
         b := debugWnd.GlobalDebugWndBools["ShowTestWindow"];
         imgui.ShowTestWindow(^b);
@@ -353,22 +344,38 @@ main :: proc() {
         msg : win32.Msg;
         for win32.PeekMessageA(^msg, nil, 0, 0, win32.PM_REMOVE) == win32.TRUE {
             match msg.message {
-
-            case win32.WM_QUIT : {
-                ProgramRunning = false;
-            }
-
-            case j32.WM_SYSKEYDOWN : {
-                if cast(win32.Key_Code)msg.wparam == win32.Key_Code.RETURN {
-                    ToggleFullscreen(win32vars.WindowHandle);
+                case win32.WM_QUIT : {
+                    ProgramRunning = false;
                 }
 
-                if msg.wparam == 0xC0 {
-                    ShowDebugMenu = !ShowDebugMenu;
-                }
-                continue;
-            }
+                case j32.WM_SYSKEYDOWN : {
+                    if cast(win32.Key_Code)msg.wparam == win32.Key_Code.RETURN {
+                        ToggleFullscreen(win32vars.WindowHandle);
+                    }
 
+                    if msg.wparam == 0xC0 {
+                        ShowDebugMenu = !ShowDebugMenu;
+                    }
+                    continue;
+                }
+
+                case win32.WM_KEYDOWN : {
+                    if cast(win32.Key_Code)msg.wparam == win32.Key_Code.ESCAPE {
+                        win32.PostQuitMessage(0);
+                    }
+
+                    if cast(win32.Key_Code)msg.wparam == win32.Key_Code.TAB {
+                        style := imgui.GetStyle();
+                        style.Alpha = 0.1;
+                    } 
+                } 
+
+                case win32.WM_KEYUP : {
+                    if cast(win32.Key_Code)msg.wparam == win32.Key_Code.TAB {
+                        style := imgui.GetStyle();
+                        style.Alpha = 1.0;
+                    } 
+                }
             }
 
             win32.TranslateMessage(^msg);

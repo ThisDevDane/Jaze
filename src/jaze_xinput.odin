@@ -1,5 +1,6 @@
 #import win32 "sys/windows.odin";
 #import "fmt.odin";
+#import "strings.odin";
 
 LEFT_THUMB_DEADZONE  :: 7849;
 RIGHT_THUMB_DEADZONE :: 8689;
@@ -159,7 +160,77 @@ _SetState              : proc(userIndex : u32, state : VibrationState) #cc_c;
 
 //TODO: Make Odin friendly functions that need it
 
-Init :: proc() {
+XInputVersion :: enum {
+    NotLoaded,
+    Version1_4,
+    Version1_3,
+    Version9_1_0,
+    Error
+}
+
+DebugFunctionLoadStatus :: struct {
+    Name    : string,
+    Address : int,
+    Success : bool,
+    TypeInfo : ^Type_Info,
+}
+
+DebugInfo_t :: struct {
+    NumberOfFunctionsLoaded : i32,
+    NumberOfFunctionsLoadedSuccessed : i32,
+    Statuses : [dynamic]DebugFunctionLoadStatus,
+}
+
+DebugInfo : DebugInfo_t;
+
+Version := XInputVersion.NotLoaded;
+
+Init :: proc() -> bool {
     fmt.println("TEST"); 
     //TODO: Load Functions
+    lib := win32.LoadLibraryA((cast(string)("xinput1_4.dll\x00")).data); defer win32.FreeLibrary(lib);
+    using XInputVersion;
+    Version = Version1_4;
+    if lib == nil {
+        lib = win32.LoadLibraryA((cast(string)("xinput1_3.dll\x00")).data);
+        Version = Version1_3;
+    }
+
+    if lib == nil {
+        lib := win32.LoadLibraryA((cast(string)("xinput9_1_0.dll\x00")).data);
+        Version = Version9_1_0;
+    }
+
+    if lib == nil {
+        Version = Error;
+        //TODO: Logging
+        return false;
+    }
+
+    set_proc_address :: proc(h : win32.Hmodule, p: rawptr, name: string) #inline {
+        txt := strings.new_c_string(name); defer free(txt);
+        res := win32.GetProcAddress(h, txt);
+        (cast(^(proc() #cc_c))p)^ = res;
+
+        status := DebugFunctionLoadStatus{};
+        status.Name = name;
+        status.Address = cast(int)cast(rawptr)res;
+        status.Success = false;
+        DebugInfo.NumberOfFunctionsLoaded += 1;
+
+        if status.Address != 0 {
+            status.Success = true;
+            DebugInfo.NumberOfFunctionsLoadedSuccessed += 1;
+        }
+        append(DebugInfo.Statuses, status);
+    }
+
+    set_proc_address(lib, ^_Enable,                "Enable");
+    set_proc_address(lib, ^_GetBatteryInformation, "GetBatteryInformation");
+    set_proc_address(lib, ^_GetCapabilities,       "GetCapabilities");
+    set_proc_address(lib, ^_GetKeystroke,          "GetKeystroke");
+    set_proc_address(lib, ^_GetState,              "GetState");
+    set_proc_address(lib, ^_SetState,              "SetState");
+
+    return true;
 }
