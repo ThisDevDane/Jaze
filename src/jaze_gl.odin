@@ -132,11 +132,11 @@ UtilCreateAndCompileShader :: proc(type : ShaderTypes, source : string) -> (Shad
     success := GetShaderValue(shader, GetShaderNames.CompileStatus);
     if success == 0 {
         logSize := GetShaderValue(shader, GetShaderNames.InfoLogLength);
-        logBytes := new_slice(byte, logSize);
-        _GetShaderInfoLog(shader.ID, logSize, ^logSize, logBytes.data);
+        logBytes := make([]byte, logSize);
+        _GetShaderInfoLog(shader.ID, logSize, ^logSize, ^logBytes[0]);
 
         fmt.println("------ Shader Error ------");
-        fmt.print(strings.to_odin_string(logBytes.data)); 
+        fmt.print(strings.to_odin_string(^logBytes[0])); 
         fmt.println("--------------------------");
         //DeleteShader(shader.ID);
         shader.CompileStatus = false;
@@ -191,8 +191,8 @@ GenBuffer :: proc() -> BufferObject {
 
 GenBuffers :: proc(n : i32) -> []BufferObject {
     if _GenBuffers != nil {
-        res := new_slice(BufferObject, n);
-        _GenBuffers(n, cast(^u32)res.data);
+        res := make([]BufferObject, n);
+        _GenBuffers(n, cast(^u32)^res[0]);
         return res;
     } else {
         //Todo: logging
@@ -231,8 +231,8 @@ GenVertexArray :: proc() -> VAO {
 
 GenVertexArrays :: proc(count : i32) -> []VAO {
     if _GenVertexArrays != nil {
-        res := new_slice(VAO, count);
-        _GenVertexArrays(count, cast(^u32)res.data);
+        res := make([]VAO, count);
+        _GenVertexArrays(count, cast(^u32)^res[0]);
         return res;
     } else {
         //Todo: logging
@@ -332,7 +332,7 @@ Uniform :: proc(loc: i32, v0, v1, v2, v3: f32) {
 
 UniformMatrix4fv :: proc(loc : i32, values : []f32, transpose : bool) {
     if _UniformMatrix4fv != nil {
-        _UniformMatrix4fv(loc, cast(u32)values.count, cast(i32)transpose, values.data);
+        _UniformMatrix4fv(loc, cast(u32)len(values), cast(i32)transpose, ^values[0]);
     } else {
         //Todo: logging
     }
@@ -414,8 +414,8 @@ GenTexture :: proc() -> Texture {
 }
 
 GenTextures :: proc(count : i32) -> []Texture {
-    res := new_slice(Texture, count);
-    _GenTextures(count, cast(^u32)res.data);
+    res := make([]Texture, count);
+    _GenTextures(count, cast(^u32)^res[0]);
     return res;
 }
 
@@ -508,13 +508,13 @@ ShaderSource :: proc(obj : Shader, str : string) {
 
 ShaderSource :: proc(obj : Shader, strs : []string) {
     if _ShaderSource != nil {
-        newStrs := new_slice(^byte, strs.count); defer free(newStrs);
-        lengths := new_slice(i32, strs.count); defer free(lengths);
+        newStrs := make([]^byte, len(strs)); defer free(newStrs);
+        lengths := make([]i32, len(strs)); defer free(lengths);
         for s, i in strs {
-            newStrs[i] = s.data;
-            lengths[i] = cast(i32)s.count;
+            newStrs[i] = ^(cast([]byte)s)[0];
+            lengths[i] = cast(i32)len(s);
         }
-        _ShaderSource(obj.ID, cast(u32)strs.count, newStrs.data, lengths.data);
+        _ShaderSource(obj.ID, cast(u32)len(strs), ^newStrs[0], ^lengths[0]);
         obj.Source = strs[0];
     } else {
         //Todo: logging
@@ -561,8 +561,11 @@ GetInfo :: proc(vars : ^OpenGLVars_t) {
     }
 }
 
+
+
 Init :: proc() {
-    lib := win32.LoadLibraryA((cast(string)("opengl32.dll\x00")).data); defer win32.FreeLibrary(lib);
+    libString := "opengl32.dll\x00";
+    lib := win32.LoadLibraryA(^libString[0]); defer win32.FreeLibrary(lib);
     DebugInfo.LibAddress = cast(int)lib;
     set_proc_address :: proc(h : win32.Hmodule, p: rawptr, name: string, info : ^Type_Info) #inline {
         txt := strings.new_c_string(name); defer free(txt);

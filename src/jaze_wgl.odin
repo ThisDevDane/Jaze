@@ -4,13 +4,6 @@
 #import "fmt.odin";
 #import "strings.odin";
 
-to_c_string :: proc(s : string) -> ^byte {
-    c := new_slice(byte, s.count+1);
-    copy(c, cast([]byte)s);
-    c[s.count] = 0;
-    return c.data;
-}
-
 Attrib :: struct {
     type  : i32,
     value : i32,
@@ -157,7 +150,7 @@ LoadExtensions :: proc(GLContext : win32wgl.Hglrc, WindowDC : win32.Hdc, list : 
         defer win32wgl.MakeCurrent(nil, nil);
 
         set_proc_address :: proc(p: rawptr, name : string) #inline { 
-            txt := to_c_string(name); defer free(txt);
+            txt := strings.new_c_string(name); defer free(txt);
             res := win32wgl.GetProcAddress(txt);
             assert(res != nil);
             (cast(^(proc() #cc_c))p)^ = res;

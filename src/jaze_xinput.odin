@@ -1,6 +1,7 @@
 #import win32 "sys/windows.odin";
 #import "fmt.odin";
 #import "strings.odin";
+//#foreign_system_library xlib "xinput.lib";
 
 LEFT_THUMB_DEADZONE  :: 7849;
 RIGHT_THUMB_DEADZONE :: 8689;
@@ -171,6 +172,9 @@ _SetState              : proc(userIndex : u32, state : VibrationState) -> u32 #c
 
 //TODO: Make Odin friendly functions that need it
 
+/*xEnable :: proc(enable : win32.Bool) #foreign xlib "XInputEnable";
+xGetCapabilities :: proc(userIndex : u32, type : u32, out : ^Capabilities) -> u32 #foreign xlib "XInputGetCapabilities";
+*/
 Enable :: proc(enable : bool) {
     if _Enable != nil {
         _Enable(cast(win32.Bool)enable);
@@ -185,13 +189,26 @@ GetCapabilities :: proc(user : User) -> (Capabilities, Error) {
 
 GetCapabilities :: proc(user : User, onlyGamepads : bool)  -> (Capabilities, Error) {
     if _GetCapabilities != nil {
-        res : Capabilities;
+        res := Capabilities{};
+        _u := cast(u32)user;
         err := _GetCapabilities(cast(u32)user, cast(u32)onlyGamepads, ^res);
         return res, cast(Error)err;
     } else {
         //TODO: Logging        
     }
     return Capabilities{}, NotConnected;
+}
+
+GetState :: proc(user : User) -> (State, Error) {
+     if _GetState != nil {
+        res := State{};
+        err := _GetState(cast(u32)user, ^res);
+        return res, cast(Error)err;
+    } else {
+        //TODO: Logging        
+    }
+
+    return State{}, NotConnected;
 }
 
 XInputVersion :: enum {
@@ -216,23 +233,29 @@ DebugInfo_t :: struct {
     Statuses : [dynamic]DebugFunctionLoadStatus,
 }
 
-xDebugInfo : DebugInfo_t;
+DebugInfo : DebugInfo_t;
 
 Version := XInputVersion.NotLoaded;
 
 Init :: proc() -> bool {
-    lib := win32.LoadLibraryA((cast(string)("xinput1_4.dll\x00")).data); defer win32.FreeLibrary(lib);
+    lib1_4   := "xinput1_4.dll\x00";
+    lib1_3   := "xinput1_3.dll\x00";
+    lib9_1_0 := "xinput9_1_0.dll\x00";
+
+    lib := win32.LoadLibraryA(^lib1_4[0]);
     using XInputVersion;
     Version = Version1_4;
     if lib == nil {
-        lib = win32.LoadLibraryA((cast(string)("xinput1_3.dll\x00")).data);
+        lib = win32.LoadLibraryA(^lib1_3[0]);
         Version = Version1_3;
     }
 
     if lib == nil {
-        lib := win32.LoadLibraryA((cast(string)("xinput9_1_0.dll\x00")).data);
+        lib := win32.LoadLibraryA(^lib9_1_0[0]);
         Version = Version9_1_0;
     }
+
+
 
     if lib == nil {
         Version = Error;
@@ -240,7 +263,7 @@ Init :: proc() -> bool {
         return false;
     }
 
-    xDebugInfo.LibAddress = cast(int)lib;
+    DebugInfo.LibAddress = cast(int)lib;
 
     set_proc_address :: proc(h : win32.Hmodule, p: rawptr, name: string) #inline {
         txt := strings.new_c_string(name); defer free(txt);
@@ -252,21 +275,21 @@ Init :: proc() -> bool {
         status.Address = cast(int)cast(rawptr)res;
         status.Success = false;
         //status.TypeInfo = info;
-        xDebugInfo.NumberOfFunctionsLoaded += 1;
+        DebugInfo.NumberOfFunctionsLoaded++;
 
         if status.Address != 0 {
             status.Success = true;
-            xDebugInfo.NumberOfFunctionsLoadedSuccessed += 1;
+            DebugInfo.NumberOfFunctionsLoadedSuccessed++;
         }
-        append(xDebugInfo.Statuses, status);
+        append(DebugInfo.Statuses, status);
     }
 
-    set_proc_address(lib, ^_Enable,                "XInputEnable");
+    set_proc_address(lib, ^_Enable,                "XInputEnable"               );
     set_proc_address(lib, ^_GetBatteryInformation, "XInputGetBatteryInformation");
-    set_proc_address(lib, ^_GetCapabilities,       "XInputGetCapabilities");
-    set_proc_address(lib, ^_GetKeystroke,          "XInputGetKeystroke");
-    set_proc_address(lib, ^_GetState,              "XInputGetState");
-    set_proc_address(lib, ^_SetState,              "XInputSetState");
+    set_proc_address(lib, ^_GetCapabilities,       "XInputGetCapabilities"      );
+    set_proc_address(lib, ^_GetKeystroke,          "XInputGetKeystroke"         );
+    set_proc_address(lib, ^_GetState,              "XInputGetState"             );
+    set_proc_address(lib, ^_SetState,              "XInputSetState"             );
 
     return true;
 }

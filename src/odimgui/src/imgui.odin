@@ -9,13 +9,6 @@ GuiID     :: u32;
 
 c_string  :: ^byte; // Just for clarity
 
-to_c_string :: proc(s: string) -> []byte {
-    c := new_slice(byte, s.count+1);
-    copy(c, cast([]byte)s);
-    c[s.count] = 0;
-    return c;
-}                                                          
-
 GuiTextEditCallbackData :: struct #ordered {
     EventFlag      : GuiInputTextFlags,
     Flags          : GuiInputTextFlags,
@@ -522,7 +515,7 @@ Text :: proc(fmt_: string, args: ..any) {
 
     buf: [1024]byte;
     s := fmt.sprintf(buf[..0], fmt_, ..args);
-    assert(s.count < buf.count);
+    assert(len(s) < len(buf));
     c_str := ^buf[0];
 
     igText(c_str);

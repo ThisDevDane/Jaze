@@ -128,7 +128,7 @@ CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.Hgl
 
         format : i32;
         formats : u32;
-        success := wgl.ChoosePixelFormatARB(vars.DeviceCtx, attribArray.data, nil, 1, ^format, ^formats);
+        success := wgl.ChoosePixelFormatARB(vars.DeviceCtx, ^attribArray[0], nil, 1, ^format, ^formats);
 
         if (success == win32.TRUE) && (formats == 0) {
             panic("Couldn't find suitable pixel format");
@@ -148,7 +148,7 @@ CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.Hgl
                            wgl.CONTEXT_PROFILE_MASK_ARB(wgl.CONTEXT_PROFILE_MASK_ARB_VALUES.CORE_PROFILE_BIT_ARB));
         attribArray = wgl.PrepareAttribArray(createAttr);
         
-        ctx := wgl.CreateContextAttribsARB(vars.DeviceCtx, nil, attribArray.data);
+        ctx := wgl.CreateContextAttribsARB(vars.DeviceCtx, nil, ^attribArray[0]);
         assert(ctx != nil);
         win32wgl.MakeCurrent(vars.DeviceCtx, ctx);
 
@@ -255,8 +255,14 @@ RenderDebugUI :: proc(vars : ^Win32Vars_t) {
             debugWnd.GlobalDebugWndBools["ShowWin32VarInfo"] = !debugWnd.GlobalDebugWndBools["ShowWin32VarInfo"];
         }
 
-        if imgui.MenuItem("Show XInput Info", "", false, true) {
-            debugWnd.GlobalDebugWndBools["ShowXinputInfo"] = !debugWnd.GlobalDebugWndBools["ShowXinputInfo"];
+        if imgui.BeginMenu("XInput", true) {
+            if imgui.MenuItem("Info", "", false, true) {
+                debugWnd.GlobalDebugWndBools["ShowXinputInfo"] = !debugWnd.GlobalDebugWndBools["ShowXinputInfo"];
+            }
+            if imgui.MenuItem("State", "", false, true) {
+                debugWnd.GlobalDebugWndBools["ShowXinputState"] = !debugWnd.GlobalDebugWndBools["ShowXinputState"];
+            }
+            imgui.EndMenu();
         }
 
         if imgui.MenuItem("Show Test Window", "", false, true) {
@@ -289,8 +295,14 @@ RenderDebugUI :: proc(vars : ^Win32Vars_t) {
     
     if debugWnd.GlobalDebugWndBools["ShowXinputInfo"] {
         b := debugWnd.GlobalDebugWndBools["ShowXinputInfo"];
-        debugWnd.ShowXinputWindow(^b);
+        debugWnd.ShowXinputInfoWindow(^b);
         debugWnd.GlobalDebugWndBools["ShowXinputInfo"] = b;
+    }
+
+    if debugWnd.GlobalDebugWndBools["ShowXinputState"] {
+        b := debugWnd.GlobalDebugWndBools["ShowXinputState"];
+        debugWnd.ShowXinputStateWindow(^b);
+        debugWnd.GlobalDebugWndBools["ShowXinputState"] = b;
     }
 
     if debugWnd.GlobalDebugWndBools["ShowTestWindow"] {
@@ -320,7 +332,7 @@ main :: proc() {
 
     buf : [1024]byte;
     fmt.sprint(buf[..], "Jaze ", win32vars.Ogl.VersionString);
-    win32.SetWindowTextA(win32vars.WindowHandle, buf[..].data);
+    win32.SetWindowTextA(win32vars.WindowHandle, ^buf[..][0]);
 
     col : f32 = 56.0 / 255.0;
     gl.ClearColor(col, col, col, 1.0);

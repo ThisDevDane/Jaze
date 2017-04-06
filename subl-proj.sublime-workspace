@@ -4,6 +4,34 @@
 		"selected_items":
 		[
 			[
+				"cap",
+				"GetCapabilities"
+			],
+			[
+				"text",
+				"Text"
+			],
+			[
+				"Lib",
+				"LibAddress"
+			],
+			[
+				"debug",
+				"xDebugInfo"
+			],
+			[
+				"No",
+				"NotConnected"
+			],
+			[
+				"Version",
+				"Version1_4"
+			],
+			[
+				"XIn",
+				"xinput1_4"
+			],
+			[
 				"Game",
 				"GamepadState"
 			],
@@ -29,10 +57,6 @@
 			],
 			[
 				"texu",
-				"textureId"
-			],
-			[
-				"text",
 				"textureId"
 			],
 			[
@@ -194,10 +218,6 @@
 			[
 				"Im",
 				"ImGuiState"
-			],
-			[
-				"Version",
-				"VersionString"
 			],
 			[
 				"_getShad",
@@ -476,10 +496,6 @@
 				"lastDayIndex"
 			],
 			[
-				"No",
-				"NoErrors"
-			],
-			[
 				"time",
 				"timing_file_entry_flag"
 			],
@@ -498,22 +514,6 @@
 			[
 				"stat",
 				"stat_group"
-			],
-			[
-				"Gra",
-				"GRAPH_WIDTH"
-			],
-			[
-				"gr",
-				"GRAPH_HEIGHT"
-			],
-			[
-				"Mi",
-				"MillisecondsElapsed"
-			],
-			[
-				"mi",
-				"MillisecondsElapsed"
 			]
 		]
 	},
@@ -756,6 +756,28 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"Voice",
+			"%t",
+			"CapabilitieFlags",
+			"fmt.println(#file, #line, #procedure);",
+			"    fmt.println(lib); ",
+			"0x000",
+			"nil",
+			"DebugInfo",
+			"Capabilities, Error",
+			"errno",
+			"Errno",
+			"Error",
+			"DeviceType",
+			"=",
+			"Uniforms",
+			"=",
+			":",
+			"AttribLocPos",
+			":",
+			"=",
+			",",
+			"obj",
 			"TEST",
 			"Key_Code",
 			"=",
@@ -861,29 +883,7 @@
 			"::",
 			":",
 			";",
-			"struct nk_color",
-			"imgui.Vec2{0.0, 0.0}",
-			"LogTo",
-			"mgui",
-			"true",
-			"#f",
-			"F",
-			"f",
-			"#f",
-			" SWP_",
-			"monitor",
-			"0x",
-			"#define ",
-			"rcMonitor",
-			"MonitorInfo",
-			"Window",
-			"WINDOW",
-			"Window",
-			"type_of",
-			"type_of_val",
-			"buffer_write_type",
-			"fprint_type",
-			"HIWORD"
+			"struct nk_color"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -966,7 +966,7 @@
 	},
 	"output.exec":
 	{
-		"height": 84.0
+		"height": 79.0
 	},
 	"output.find_results":
 	{
@@ -1001,28 +1001,64 @@
 		"selected_items":
 		[
 			[
-				"",
-				"Jaze\\jaze.otm"
-			],
-			[
-				"ma",
-				"Jaze\\src\\main.odin"
+				"xin",
+				"Jaze\\src\\jaze_xinput.odin"
 			],
 			[
 				"main",
 				"Jaze\\src\\main.odin"
 			],
 			[
+				"debugw",
+				"Jaze\\src\\jaze_debug_windows.odin"
+			],
+			[
 				"gl",
 				"Jaze\\src\\jaze_gl.odin"
 			],
 			[
-				"imgui",
-				"odimgui\\src\\imgui.odin"
+				"wind",
+				"core\\sys\\windows.odin"
 			],
 			[
 				"debug",
 				"Jaze\\src\\jaze_debug_windows.odin"
+			],
+			[
+				"win",
+				"core\\sys\\windows.odin"
+			],
+			[
+				"mai",
+				"Jaze\\src\\main.odin"
+			],
+			[
+				"deb",
+				"Jaze\\src\\jaze_debug_windows.odin"
+			],
+			[
+				"",
+				"Jaze\\src\\jaze_gl.odin"
+			],
+			[
+				"en",
+				"Jaze\\src\\jaze_gl_enums.odin"
+			],
+			[
+				"jaze_gl",
+				"Jaze\\src\\jaze_gl_enums.odin"
+			],
+			[
+				"jazegl",
+				"Jaze\\src\\jaze_gl.odin"
+			],
+			[
+				"ma",
+				"Jaze\\src\\main.odin"
+			],
+			[
+				"imgui",
+				"odimgui\\src\\imgui.odin"
 			],
 			[
 				"jaze",
@@ -1045,10 +1081,6 @@
 				"Jaze\\src\\jaze_win32.odin"
 			],
 			[
-				"deb",
-				"Jaze\\src\\jaze_debug_windows.odin"
-			],
-			[
 				"ji",
 				"Jaze\\src\\jaze_imgui.odin"
 			],
@@ -1059,14 +1091,6 @@
 			[
 				"imgu",
 				"odimgui\\src\\imgui.odin"
-			],
-			[
-				"wind",
-				"core\\sys\\windows.odin"
-			],
-			[
-				"mai",
-				"Jaze\\src\\main.odin"
 			],
 			[
 				"win32",
@@ -1115,10 +1139,6 @@
 			[
 				"math",
 				"core\\math.odin"
-			],
-			[
-				"win",
-				"Jaze\\src\\jaze_win32.odin"
 			],
 			[
 				"types",
@@ -1171,10 +1191,6 @@
 			[
 				"wino",
 				"core\\sys\\windows.odin"
-			],
-			[
-				"en",
-				"Jaze\\src\\jaze_gl_enums.odin"
 			],
 			[
 				"wi",
@@ -1231,7 +1247,7 @@
 				"Capabilities"
 			]
 		],
-		"width": 400.0
+		"width": 504.0
 	},
 	"settings":
 	{
