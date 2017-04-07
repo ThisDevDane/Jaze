@@ -400,6 +400,14 @@ main :: proc() {
         oldTime = newTime;
         deltaTime /= cast(f64)freq;
 
+        { // Render Fun
+            vertices := []f32 {
+                 0.0,  0.5,
+                 0.5, -0.5,
+                -0.5, -0.5, 
+            };
+        }
+
         if ShowDebugMenu {
             jimgui.BeginNewFrame(deltaTime);
             RenderDebugUI(^win32vars);

@@ -203,7 +203,7 @@ ShowXinputInfoWindow :: proc(show : ^bool) {
 ShowXinputStateWindow :: proc(show : ^bool) {
     imgui.Begin("XInput State", show, StdWindowFlags);
     {
-        for i in 0..4 { //I WANT TO DO THIS Pl0x for(user in xinput.Users) 
+        for i in 0..4 {
             state, err := xinput.GetState(cast(xinput.User)i);
             imgui.Text("Gamepad %d(%s):", i+1, err == xinput.Success ? "Connected" : "Not Connected");
             if err == xinput.Success {
