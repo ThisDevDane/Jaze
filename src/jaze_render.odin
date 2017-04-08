@@ -3,9 +3,7 @@
 #import glUtil "jaze_gl_util.odin";
 
 mainProgram : gl.Program; 
-vbo : gl.VBO;
 vao : gl.VAO;
-ebo : gl.EBO;
 
 Draw :: proc() { 
     gl.UseProgram(mainProgram);
@@ -49,7 +47,7 @@ Init :: proc() {
 
     vao = gl.GenVertexArray();
     gl.BindVertexArray(vao);
-    vbo = gl.GenVBO();
+    vbo := gl.GenVBO();
     gl.BindBuffer(vbo);
 
     vertices : [9]f32;

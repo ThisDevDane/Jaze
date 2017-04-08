@@ -1,10 +1,10 @@
 #import win32 "sys/windows.odin" when ODIN_OS == "windows";
 #import win32wgl "sys/wgl.odin" when ODIN_OS == "windows";
 #import "fmt.odin";
-#import "odimgui/src/imgui.odin";
 #import "strings.odin";
 #import "math.odin";
 
+#import "odimgui/src/imgui.odin";
 #import j32 "jaze_win32.odin";
 #import gl "jaze_gl.odin";
 #import wgl "jaze_wgl.odin";
