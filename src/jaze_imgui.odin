@@ -1,7 +1,8 @@
-#import gl "jaze_gl.odin";
 #load "odimgui/src/imgui.odin";
 #import win32 "sys/windows.odin";
 #import "fmt.odin";
+#import gl "jaze_gl.odin";
+#import glUtil "jaze_gl_util.odin";
 
 State_t :: struct {
     //Misc
@@ -132,8 +133,8 @@ Init :: proc(windowHandle : win32.Hwnd) {
 
 
     State.MainProgram    = gl.CreateProgram();
-    vertexShader,   ok1 := gl.UtilCreateAndCompileShader(gl.ShaderTypes.Vertex, vertexShaderString);
-    fragmentShader, ok2 := gl.UtilCreateAndCompileShader(gl.ShaderTypes.Fragment, fragmentShaderString);
+    vertexShader,   ok1 := glUtil.CreateAndCompileShader(gl.ShaderTypes.Vertex, vertexShaderString);
+    fragmentShader, ok2 := glUtil.CreateAndCompileShader(gl.ShaderTypes.Fragment, fragmentShaderString);
    
     if !ok1 || !ok2 {
         panic("FUUUCK");
@@ -286,6 +287,8 @@ RenderProc :: proc(data : ^DrawData) #cc_c {
             idxBufferOffset += cmd.ElemCount;
         }
     }
+
+    //TODO: Restore state
 
     gl.Scissor(0, 0, width, height);
 }

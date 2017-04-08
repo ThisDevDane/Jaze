@@ -4,32 +4,28 @@
 		"selected_items":
 		[
 			[
-				"cap",
-				"GetCapabilities"
+				"ver",
+				"vertices"
 			],
 			[
-				"text",
-				"Text"
+				"_bin",
+				"_BindFragDataLocation"
 			],
 			[
-				"Lib",
-				"LibAddress"
+				"_Bind",
+				"_BindFragDataLocation"
 			],
 			[
-				"debug",
-				"xDebugInfo"
+				"_Draw",
+				"_DrawArrays"
 			],
 			[
-				"No",
-				"NotConnected"
+				"main",
+				"mainProgram"
 			],
 			[
-				"Version",
-				"Version1_4"
-			],
-			[
-				"XIn",
-				"xinput1_4"
+				"vec",
+				"vertices"
 			],
 			[
 				"Game",
@@ -57,6 +53,10 @@
 			],
 			[
 				"texu",
+				"textureId"
+			],
+			[
+				"text",
 				"textureId"
 			],
 			[
@@ -220,6 +220,10 @@
 				"ImGuiState"
 			],
 			[
+				"Version",
+				"VersionString"
+			],
+			[
 				"_getShad",
 				"_GetShaderInfoLog"
 			],
@@ -314,10 +318,6 @@
 			[
 				"ImGU",
 				"ImguiRenderState"
-			],
-			[
-				"ver",
-				"VertexShader"
 			],
 			[
 				"Shader",
@@ -496,6 +496,10 @@
 				"lastDayIndex"
 			],
 			[
+				"No",
+				"NoErrors"
+			],
+			[
 				"time",
 				"timing_file_entry_flag"
 			],
@@ -510,10 +514,6 @@
 			[
 				"mill",
 				"MillisecondDifference"
-			],
-			[
-				"stat",
-				"stat_group"
 			]
 		]
 	},
@@ -572,10 +572,18 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 400.0,
-		"last_filter": "",
+		"height": 301.0,
+		"last_filter": "ss od",
 		"selected_items":
 		[
+			[
+				"ss od",
+				"Set Syntax: Odin"
+			],
+			[
+				"ss o",
+				"Set Syntax: Odin"
+			],
 			[
 				"",
 				"Alignment: Align"
@@ -627,10 +635,6 @@
 			[
 				"remove",
 				"Package Control: Remove Channel"
-			],
-			[
-				"ss od",
-				"Set Syntax: Odin"
 			],
 			[
 				"ss go",
@@ -756,30 +760,10 @@
 		"case_sensitive": false,
 		"find_history":
 		[
-			"Voice",
-			"%t",
-			"CapabilitieFlags",
-			"fmt.println(#file, #line, #procedure);",
-			"    fmt.println(lib); ",
-			"0x000",
-			"nil",
-			"DebugInfo",
-			"Capabilities, Error",
-			"errno",
-			"Errno",
-			"Error",
-			"DeviceType",
-			"=",
-			"Uniforms",
-			"=",
-			":",
-			"AttribLocPos",
-			":",
-			"=",
-			",",
-			"obj",
-			"TEST",
-			"Key_Code",
+			"Enable",
+			"f",
+			"VBO",
+			"f",
 			"=",
 			"0x",
 			"0",
@@ -883,7 +867,27 @@
 			"::",
 			":",
 			";",
-			"struct nk_color"
+			"struct nk_color",
+			"imgui.Vec2{0.0, 0.0}",
+			"LogTo",
+			"mgui",
+			"true",
+			"#f",
+			"F",
+			"f",
+			"#f",
+			" SWP_",
+			"monitor",
+			"0x",
+			"#define ",
+			"rcMonitor",
+			"MonitorInfo",
+			"Window",
+			"WINDOW",
+			"Window",
+			"type_of",
+			"type_of_val",
+			"buffer_write_type"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -924,7 +928,7 @@
 	},
 	"incremental_find":
 	{
-		"height": 38.0
+		"height": 24.0
 	},
 	"input":
 	{
@@ -966,7 +970,7 @@
 	},
 	"output.exec":
 	{
-		"height": 79.0
+		"height": 84.0
 	},
 	"output.find_results":
 	{
@@ -988,10 +992,10 @@
 	{
 		"height": 110.0
 	},
-	"pinned_build_system": "Packages/User/odin.sublime-build",
+	"pinned_build_system": "Packages/User/Odin.sublime-build",
 	"replace":
 	{
-		"height": 72.0
+		"height": 44.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -1001,64 +1005,68 @@
 		"selected_items":
 		[
 			[
-				"xin",
-				"Jaze\\src\\jaze_xinput.odin"
+				"ren",
+				"Jaze\\src\\jaze_render.odin"
+			],
+			[
+				"ut",
+				"Jaze\\src\\jaze_gl_util.odin"
+			],
+			[
+				"re",
+				"Jaze\\src\\jaze_render.odin"
+			],
+			[
+				"",
+				"Jaze\\src\\jaze_gl_enums.odin"
+			],
+			[
+				"jim",
+				"Jaze\\src\\jaze_imgui.odin"
+			],
+			[
+				"jgl",
+				"Jaze\\src\\jaze_gl.odin"
+			],
+			[
+				"gl",
+				"Jaze\\src\\jaze_gl_enums.odin"
 			],
 			[
 				"main",
 				"Jaze\\src\\main.odin"
 			],
 			[
-				"debugw",
-				"Jaze\\src\\jaze_debug_windows.odin"
+				"j",
+				"Jaze\\src\\jaze_imgui.odin"
 			],
 			[
-				"gl",
-				"Jaze\\src\\jaze_gl.odin"
+				"imgui",
+				"Jaze\\src\\jaze_imgui.odin"
 			],
 			[
-				"wind",
-				"core\\sys\\windows.odin"
+				"render",
+				"Jaze\\src\\jaze_render.odin"
 			],
 			[
-				"debug",
-				"Jaze\\src\\jaze_debug_windows.odin"
-			],
-			[
-				"win",
-				"core\\sys\\windows.odin"
-			],
-			[
-				"mai",
-				"Jaze\\src\\main.odin"
+				"util",
+				"Jaze\\src\\jaze_gl_util.odin"
 			],
 			[
 				"deb",
 				"Jaze\\src\\jaze_debug_windows.odin"
 			],
 			[
-				"",
-				"Jaze\\src\\jaze_gl.odin"
+				"jimg",
+				"Jaze\\src\\jaze_imgui.odin"
 			],
 			[
-				"en",
-				"Jaze\\src\\jaze_gl_enums.odin"
-			],
-			[
-				"jaze_gl",
-				"Jaze\\src\\jaze_gl_enums.odin"
-			],
-			[
-				"jazegl",
-				"Jaze\\src\\jaze_gl.odin"
-			],
-			[
-				"ma",
-				"Jaze\\src\\main.odin"
-			],
-			[
-				"imgui",
+				"omig",
 				"odimgui\\src\\imgui.odin"
+			],
+			[
+				"debug",
+				"Jaze\\src\\jaze_debug_windows.odin"
 			],
 			[
 				"jaze",
@@ -1091,6 +1099,14 @@
 			[
 				"imgu",
 				"odimgui\\src\\imgui.odin"
+			],
+			[
+				"wind",
+				"core\\sys\\windows.odin"
+			],
+			[
+				"mai",
+				"Jaze\\src\\main.odin"
 			],
 			[
 				"win32",
@@ -1141,6 +1157,10 @@
 				"core\\math.odin"
 			],
 			[
+				"win",
+				"Jaze\\src\\jaze_win32.odin"
+			],
+			[
 				"types",
 				"core\\types.odin"
 			],
@@ -1151,6 +1171,10 @@
 			[
 				"imgui.odi",
 				"odimgui\\src\\imgui.odin"
+			],
+			[
+				"ma",
+				"Jaze\\src\\main.odin"
 			],
 			[
 				"dem",
@@ -1193,6 +1217,10 @@
 				"core\\sys\\windows.odin"
 			],
 			[
+				"en",
+				"Jaze\\src\\jaze_gl_enums.odin"
+			],
+			[
 				"wi",
 				"core\\sys\\windows.odin"
 			],
@@ -1203,10 +1231,6 @@
 			[
 				"i",
 				"odimgui\\src\\imgui.odin"
-			],
-			[
-				"util",
-				"Jaze\\src\\jaze_util.odin"
 			],
 			[
 				"core/",
@@ -1247,7 +1271,7 @@
 				"Capabilities"
 			]
 		],
-		"width": 504.0
+		"width": 400.0
 	},
 	"settings":
 	{
@@ -1256,7 +1280,7 @@
 	"show_open_files": false,
 	"show_tabs": false,
 	"side_bar_visible": true,
-	"side_bar_width": 150.0,
+	"side_bar_width": 200.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{
