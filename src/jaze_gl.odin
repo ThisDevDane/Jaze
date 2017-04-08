@@ -90,6 +90,7 @@ DebugMessageCallbackProc :: #type proc(source : DebugSource, type : DebugType, i
     _GetUniformLocation      : proc(program: u32, name: ^byte) -> i32                                                   #cc_c;
     _GetAttribLocation       : proc(program: u32, name: ^byte) -> i32                                                   #cc_c;
     _DrawElements            : proc(mode: i32, count: i32, type_: i32, indices: rawptr)                                 #cc_c;
+    _DrawArrays              : proc(mode: i32, first : i32, count : i32)                                                #cc_c;
     _UseProgram              : proc(program: u32)                                                                       #cc_c;
     _LinkProgram             : proc(program: u32)                                                                       #cc_c;
     _ActiveTexture           : proc(texture: i32)                                                                       #cc_c;
@@ -105,6 +106,7 @@ DebugMessageCallbackProc :: #type proc(source : DebugSource, type : DebugType, i
     _GetShaderiv             : proc(shader : u32, pname : i32, params : ^i32)                                           #cc_c;
     _GetShaderInfoLog        : proc(shader : u32, maxLength : i32, length : ^i32, infoLog : ^byte)                      #cc_c;
     _GetStringi              : proc(name : i32, index : u32) -> ^byte                                                   #cc_c;
+    _BindFragDataLocation    : proc(program : u32, colorNumber : u32, name : ^byte)                                     #cc_c;
 
     // Foreign Function Declarations
     Viewport       :: proc(x : i32, y : i32, width : i32, height : i32)                                                  #foreign lib "glViewport";
@@ -122,30 +124,6 @@ DebugMessageCallbackProc :: #type proc(source : DebugSource, type : DebugType, i
     _Clear         :: proc(mask: i32)                                                                                    #foreign lib "glClear";
 
 // Utility
-
-UtilCreateAndCompileShader :: proc(type : ShaderTypes, source : string) -> (Shader, bool) {
-    shader : Shader;
-    shader = CreateShader(type);
-    ShaderSource(shader, source);
-    CompileShader(shader);
-
-    success := GetShaderValue(shader, GetShaderNames.CompileStatus);
-    if success == 0 {
-        logSize := GetShaderValue(shader, GetShaderNames.InfoLogLength);
-        logBytes := make([]byte, logSize);
-        _GetShaderInfoLog(shader.ID, logSize, ^logSize, ^logBytes[0]);
-
-        fmt.println("------ Shader Error ------");
-        fmt.print(strings.to_odin_string(^logBytes[0])); 
-        fmt.println("--------------------------");
-        //DeleteShader(shader.ID);
-        shader.CompileStatus = false;
-        return shader, false;
-    }
-
-    shader.CompileStatus = true;
-    return shader, true;
-}
 
 // API
 
@@ -176,6 +154,11 @@ BufferData :: proc(target : BufferTargets, size : i32, data : rawptr, usage : Bu
     } else {
         //Todo: logging
     }     
+}
+
+GenVBO :: proc() -> VBO {
+    bo := GenBuffer();
+    return cast(VBO)bo;
 }
 
 GenBuffer :: proc() -> BufferObject {
@@ -217,6 +200,15 @@ BindBuffer :: proc(ebo : EBO) {
      
 }
 
+BindFragDataLocation :: proc(program : Program, colorNumber : u32, name : string) {
+    if _BindFragDataLocation != nil {
+        c := strings.new_c_string(name); defer free(name);
+        _BindFragDataLocation(program.ID, colorNumber, c);
+    } else {
+        // TODO: Logging        
+    }
+}
+
 GenVertexArray :: proc() -> VAO {
     if _GenVertexArrays != nil {
         res : VAO;
@@ -246,6 +238,7 @@ EnableVertexAttribArray :: proc(index : u32) {
         _EnableVertexAttribArray(index);
     } else {
         //Todo: logging
+        fmt.println(#procedure, "failed!");
     }       
 }
 
@@ -254,6 +247,7 @@ VertexAttribPointer :: proc(index : u32, size : i32, type : VertexAttribDataType
         _VertexAttribPointer(index, size, cast(i32)type, normalized, stride, pointer);
     } else {
         //Todo: logging
+        fmt.println(#procedure, "failed!");
     }       
 }
 
@@ -363,6 +357,14 @@ GetAttribLocation :: proc(program : Program, name : string) -> i32 {
 DrawElements :: proc(mode : DrawModes, count : i32, type : DrawElementsType, indices : rawptr) {
     if _DrawElements != nil {
         _DrawElements(cast(i32)mode, count, cast(i32)type, indices);
+    } else {
+        //Todo: logging
+    }    
+}
+
+DrawArrays :: proc(mode : DrawModes, first : i32, count : i32) {
+    if _DrawArrays != nil {
+        _DrawArrays(cast(i32)mode, first, count);
     } else {
         //Todo: logging
     }    
@@ -592,6 +594,7 @@ Init :: proc() {
     }
 
     set_proc_address(lib, ^_DrawElements,            "glDrawElements",            type_info_of_val(_DrawElements)           );
+    set_proc_address(lib, ^_DrawArrays,              "glDrawArrays",              type_info_of_val(_DrawArrays)             );
     set_proc_address(lib, ^_BindVertexArray,         "glBindVertexArray",         type_info_of_val(_BindVertexArray)        );
     set_proc_address(lib, ^_VertexAttribPointer,     "glVertexAttribPointer",     type_info_of_val(_VertexAttribPointer)    );
     set_proc_address(lib, ^_EnableVertexAttribArray, "glEnableVertexAttribArray", type_info_of_val(_EnableVertexAttribArray));

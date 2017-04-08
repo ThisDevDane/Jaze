@@ -11,6 +11,7 @@
 #import debugWnd "jaze_debug_windows.odin";
 #import jimgui "jaze_imgui.odin";
 #import xinput "jaze_xinput.odin";
+#import render "jaze_render.odin";
 
 ProgramRunning : bool;
 ShowDebugMenu : bool = false;
@@ -218,7 +219,7 @@ WindowProc :: proc(hwnd: win32.Hwnd,
 }
 
 OpenGLDebugCallback :: proc(source : gl.DebugSource, type : gl.DebugType, id : i32, severity : gl.DebugSeverity, length : i32, message : ^byte, userParam : rawptr) #cc_c {
-    fmt.printf("[%v | %v | %v] %s", source, type, severity, strings.to_odin_string(message));
+    fmt.printf("[%v | %v | %v] %s \n", source, type, severity, strings.to_odin_string(message));
 }
 
 ToggleFullscreen :: proc(wnd : win32.Hwnd) {
@@ -353,6 +354,7 @@ main :: proc() {
 
     xinput.Init();
     xinput.Enable(true);
+    render.Init();
     for ProgramRunning {
         msg : win32.Msg;
         for win32.PeekMessageA(^msg, nil, 0, 0, win32.PM_REMOVE) == win32.TRUE {
@@ -400,21 +402,14 @@ main :: proc() {
         oldTime = newTime;
         deltaTime /= cast(f64)freq;
 
-        { // Render Fun
-            vertices := []f32 {
-                 0.0,  0.5,
-                 0.5, -0.5,
-                -0.5, -0.5, 
-            };
-        }
-
         if ShowDebugMenu {
             jimgui.BeginNewFrame(deltaTime);
             RenderDebugUI(^win32vars);
         }
 
-        gl.Clear(gl.ClearFlags.COLOR_BUFFER | gl.ClearFlags.DEPTH_BUFFER);
-        
+        gl.Clear(gl.ClearFlags.COLOR_BUFFER/* | gl.ClearFlags.DEPTH_BUFFER*/);
+
+        render.Draw();        
         if ShowDebugMenu {
             imgui.Render();
         }
