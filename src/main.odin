@@ -268,6 +268,11 @@ RenderDebugUI :: proc(vars : ^Win32Vars_t) {
             imgui.EndMenu();
         }
 
+        if imgui.MenuItem("Time Data", "", false, true) {
+            debugWnd.GlobalDebugWndBools["ShowTimeData"] = !debugWnd.GlobalDebugWndBools["ShowTimeData"];
+        }
+
+
         if imgui.MenuItem("Show Test Window", "", false, true) {
             debugWnd.GlobalDebugWndBools["ShowTestWindow"] = !debugWnd.GlobalDebugWndBools["ShowTestWindow"];
         }
@@ -313,6 +318,12 @@ RenderDebugUI :: proc(vars : ^Win32Vars_t) {
         imgui.ShowTestWindow(^b);
         debugWnd.GlobalDebugWndBools["ShowTestWindow"] = b;
     }
+
+    if debugWnd.GlobalDebugWndBools["ShowTimeData"] {
+        b := debugWnd.GlobalDebugWndBools["ShowTimeData"];
+        debugWnd.ShowTimeDataWindow(^b);
+        debugWnd.GlobalDebugWndBools["ShowTimeData"] = b;
+    }
 }
 
 main :: proc() {
@@ -350,7 +361,7 @@ when defines.DEBUG {
     debugWnd.GlobalDebugWndBools["ShowWin32VarInfo"] = false;
     debugWnd.GlobalDebugWndBools["ShowTestWindow"] = false;
 }
-    wgl.SwapIntervalEXT(0);
+    wgl.SwapIntervalEXT(-1);
 
     xinput.Init();
     xinput.Enable(true);

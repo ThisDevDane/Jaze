@@ -3,6 +3,7 @@
 #import xinput "jaze_xinput.odin";
 #import "odimgui/src/imgui.odin";
 #import "main.odin";
+#import time "jaze_time.odin";
 
 StdWindowFlags :: imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse;
 
@@ -250,6 +251,22 @@ ShowXinputStateWindow :: proc(show : ^bool) {
                 imgui.Unindent(10.0);
             }
         }
+    }
+    imgui.End();
+}
+
+ShowTimeDataWindow :: proc(show : ^bool) {
+    imgui.Begin("Time Data", show, StdWindowFlags);
+    {
+        data := time.GetTimeData();
+        imgui.Text("Time Scale:               %f", data.TimeScale);
+        imgui.Text("Unscaled DeltaTime:       %.10f", data.DeltaTime);
+        imgui.Text("DeltaTime:                %.10f", data.DeltaTime * data.TimeScale);
+        imgui.Text("Time Since Start:         %f", data.TimeSinceStart);
+        imgui.Text("Frame Count Since Start:  %d", data.FrameCountSinceStart);
+        imgui.NewLine();
+        imgui.Text("pfFreq: %d", data.pfFreq);
+        imgui.Text("pfOld:  %d", data.pfOld);
     }
     imgui.End();
 }

@@ -1,6 +1,6 @@
 #import win32 "sys/windows.odin";
 
-Time_t :: struct {
+TimeData :: struct {
     TimeScale : f64,
     DeltaTime : f64,
     TimeSinceStart : f64,
@@ -10,7 +10,7 @@ Time_t :: struct {
     pfOld : i64,
 } 
 
-_Time := Time_t{};
+_Time := TimeData{};
 
 Init :: proc() {
     win32.QueryPerformanceFrequency(^_Time.pfFreq);
@@ -51,4 +51,8 @@ SetTimeScale :: proc(scale : f64) {
 
 GetTimeScale :: proc() -> f64 {
     return _Time.TimeScale;
+}
+
+GetTimeData :: proc() -> TimeData {
+    return _Time;
 }
