@@ -1,6 +1,8 @@
 #import "fmt.odin";
+#import "math.odin";
 #import gl "jaze_gl.odin";
 #import glUtil "jaze_gl_util.odin";
+#import time "jaze_time.odin";
 
 mainProgram : gl.Program; 
 vao : gl.VAO;
@@ -8,6 +10,10 @@ vao : gl.VAO;
 Draw :: proc() { 
     gl.UseProgram(mainProgram);
     gl.BindVertexArray(vao);
+    r : f32 = cast(f32)math.sin(time.GetTimeSinceStart()+1);
+    g : f32 = cast(f32)math.sin(time.GetTimeSinceStart()+2);
+    b : f32 = cast(f32)math.sin(time.GetTimeSinceStart()+3);
+    gl.Uniform(mainProgram.Uniforms["Color"], r, g, b, 1.0);
     gl.DrawArrays(gl.DrawModes.Triangles, 0, 3);
 }
 
@@ -27,8 +33,10 @@ Init :: proc() {
 
         out vec4 OutColor;
 
+        uniform vec4 Color;
+
         void main() {
-            OutColor = vec4(0.0, 1.0, 1.0, 1.0);
+            OutColor = Color;
         }
     `;
 
@@ -63,6 +71,7 @@ Init :: proc() {
 
     gl.BufferData(gl.BufferTargets.Array, size_of_val(vertices), ^vertices[0], gl.BufferDataUsage.StaticDraw);
 
+    mainProgram.Uniforms["Color"] = gl.GetUniformLocation(mainProgram, "Color");
     mainProgram.Attributes["Position"] = gl.GetAttribLocation(mainProgram, "Position");
     gl.VertexAttribPointer(cast(u32)mainProgram.Attributes["Position"], 3, gl.VertexAttribDataType.Float, false, 3 * size_of(f32), nil);
     gl.EnableVertexAttribArray(cast(u32)mainProgram.Attributes["Position"]);
