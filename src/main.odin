@@ -4,6 +4,7 @@
 #import "strings.odin";
 #import "math.odin";
 
+#import defines "jaze_defines.odin";
 #import "odimgui/src/imgui.odin";
 #import j32 "jaze_win32.odin";
 #import gl "jaze_gl.odin";
@@ -12,6 +13,7 @@
 #import jimgui "jaze_imgui.odin";
 #import xinput "jaze_xinput.odin";
 #import render "jaze_render.odin";
+#import time "jaze_time.odin";
 
 ProgramRunning : bool;
 ShowDebugMenu : bool = false;
@@ -331,9 +333,9 @@ main :: proc() {
     gl.GetInfo(^win32vars.Ogl);
     wgl.GetInfo(^win32vars.Ogl, win32vars.DeviceCtx);
 
-    buf : [1024]byte;
-    fmt.sprint(buf[..], "Jaze ", win32vars.Ogl.VersionString);
-    win32.SetWindowTextA(win32vars.WindowHandle, ^buf[..][0]);
+    TitleBuf : [1024]byte;
+    fmt.sprint(TitleBuf[..0], "Jaze ", win32vars.Ogl.VersionString);
+    win32.SetWindowTextA(win32vars.WindowHandle, ^TitleBuf[0]);
 
     col : f32 = 56.0 / 255.0;
     gl.ClearColor(col, col, col, 1.0);
@@ -341,16 +343,14 @@ main :: proc() {
 
     ProgramRunning = true;
 
-    freq : i64;
-    win32.QueryPerformanceFrequency(^freq);
-    oldTime : i64;
-    win32.QueryPerformanceCounter(^oldTime);
+    time.Init();
 
+when defines.DEBUG {
     debugWnd.GlobalDebugWndBools["ShowOpenGLInfo"] = false;
     debugWnd.GlobalDebugWndBools["ShowWin32VarInfo"] = false;
     debugWnd.GlobalDebugWndBools["ShowTestWindow"] = false;
-
-    wgl.SwapIntervalEXT(-1);
+}
+    wgl.SwapIntervalEXT(0);
 
     xinput.Init();
     xinput.Enable(true);
@@ -396,23 +396,29 @@ main :: proc() {
             win32.TranslateMessage(^msg);
             win32.DispatchMessageA(^msg);
         }
-        newTime : i64;
-        win32.QueryPerformanceCounter(^newTime);
-        deltaTime : f64 = cast(f64)(newTime - oldTime);
-        oldTime = newTime;
-        deltaTime /= cast(f64)freq;
 
+        time.Update();
+
+        fmt.sprintf(TitleBuf[..0], "Jaze %s | dt: %.5f sdt: %.5f ss: %.1f", win32vars.Ogl.VersionString, time.GetUnscaledDeltaTime(), time.GetDeltaTime(), time.GetTimeSinceStart());
+        win32.SetWindowTextA(win32vars.WindowHandle, ^TitleBuf[0]);
+
+    when defines.DEBUG {
         if ShowDebugMenu {
-            jimgui.BeginNewFrame(deltaTime);
+            jimgui.BeginNewFrame(time.GetUnscaledDeltaTime());
             RenderDebugUI(^win32vars);
         }
+    }
 
         gl.Clear(gl.ClearFlags.COLOR_BUFFER/* | gl.ClearFlags.DEPTH_BUFFER*/);
 
         render.Draw();        
+
+    when defines.DEBUG {
         if ShowDebugMenu {
             imgui.Render();
         }
+    }
+
         win32.SwapBuffers(win32vars.DeviceCtx);
     }
 }
