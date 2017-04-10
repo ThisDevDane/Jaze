@@ -1,6 +1,8 @@
 #foreign_system_library user32 "User32.lib";
+#foreign_system_library kernel32 "Kernel32.lib";
 #import win32 "sys/windows.odin";
 
+// User32
 HMONITOR      :: win32.Handle;
 
 WM_MOUSEWHEEL        :: 0x020A;
@@ -21,7 +23,6 @@ SWP_NOOWNERZORDER :: 0x0200;
 SWP_NOZORDER      :: 0x0004;
 SWP_NOSIZE        :: 0x0001;
 SWP_NOMOVE        :: 0x0002;
-
 
 MONITORINFO :: struct #ordered {
     Size : u32,
@@ -65,3 +66,27 @@ LOWORD             :: proc(wParam : win32.Wparam) -> u16 {
 LOWORD             :: proc(lParam : win32.Lparam) -> u16 {
     return cast(u16)lParam;
 }
+
+//Kernel32
+MAX_PATH :: 0x00000104;
+ 
+INVALID_FILE_ATTRIBUTES  :: -1;
+FILE_ATTRIBUTE_DIRECTORY :: 0x10;
+
+FindData :: struct #ordered {
+  FileAttributes    : u32,
+  CreationTime      : win32.Filetime,
+  LastAccessTime    : win32.Filetime,
+  LastWriteTime     : win32.Filetime,
+  FileSizeHigh      : u32,
+  FileSizeLow       : u32,
+  Reserved0         : u32,
+  Reserved1         : u32,
+  FileName          : [MAX_PATH]byte,
+  AlternateFileName : [14]byte,
+}
+
+GetFileAttributes :: proc(filename : ^byte) -> u32                             #foreign kernel32 "GetFileAttributesA";
+FindFirstFile     :: proc(filename : ^byte, data : ^FindData) -> win32.Handle  #foreign kernel32 "FindFirstFileA";
+FindNextFile      :: proc(file : win32.Handle, data : ^FindData) -> win32.Bool #foreign kernel32 "FindNextFileA";
+FindClose         :: proc(file : win32.Handle) -> win32.Bool                   #foreign kernel32 "FindClose";

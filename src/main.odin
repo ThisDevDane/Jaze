@@ -14,6 +14,7 @@
 #import xinput "jaze_xinput.odin";
 #import render "jaze_render.odin";
 #import time "jaze_time.odin";
+#import catalog "jaze_catalog.odin";
 
 ProgramRunning : bool;
 ShowDebugMenu : bool = false;
@@ -366,6 +367,10 @@ when defines.DEBUG {
     xinput.Init();
     xinput.Enable(true);
     render.Init();
+    shaderCat, _  := catalog.CreateNew("data/shaders/", ".frag,.vert");
+    textureCat, _ := catalog.CreateNew("data/textures/", ".pn");
+    soundCat, _   := catalog.CreateNew("data/sounds/", ".ogg");
+
     for ProgramRunning {
         msg : win32.Msg;
         for win32.PeekMessageA(^msg, nil, 0, 0, win32.PM_REMOVE) == win32.TRUE {

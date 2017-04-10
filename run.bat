@@ -1,2 +1,3 @@
-cd run_tree
+pushd run_tree
 ..\build\main.exe
+popd
