@@ -87,7 +87,7 @@ CreateNew :: proc(identifier : string, path : string, acceptedExtensions : strin
             for j32.FindNextFile(fileH, ^data) == win32.TRUE {
                 str := strings.to_odin_string(^data.FileName[0]);
                 for ext in res.AcceptedExtensions {
-                    fmt.printf("Accepted: %s == %s : %s\n", _GetFileExtension(str), );
+                    fmt.printf("Accepted: %s == %s : %s\n", _GetFileExtension(str), ext, _GetFileExtension(str) == ext ? "yes" : "no");
                 }
             }
         } else {
