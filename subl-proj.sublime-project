@@ -8,10 +8,7 @@
 			"path": ".\\src\\odimgui"
 		},
 		{
-			"path": "E:\\Odin\\core"
+			"path": "..\\Odin"
 		},
-		{
-			"path": "W:\\imgui"
-		}
 	]
 }
