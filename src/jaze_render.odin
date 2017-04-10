@@ -1,5 +1,7 @@
 #import "fmt.odin";
 #import "math.odin";
+#import "os.odin";
+#import "strings.odin";
 #import gl "jaze_gl.odin";
 #import glUtil "jaze_gl_util.odin";
 #import time "jaze_time.odin";
@@ -18,27 +20,16 @@ Draw :: proc() {
 }
 
 Init :: proc() {
-    vertex := `
-        #version 330
+    vertex_bytes, _ := os.read_entire_file("data/shaders/test.vert");
+    frag_bytes, _    := os.read_entire_file("data/shaders/test.frag");
 
-        in vec3 Position;
+    defer {
+        free(vertex_bytes);
+        free(frag_bytes);
+    }
 
-        void main() {
-            gl_Position = vec4(Position, 1.0);
-        }
-    `;
-
-    frag := `
-        #version 330
-
-        out vec4 OutColor;
-
-        uniform vec4 Color;
-
-        void main() {
-            OutColor = Color;
-        }
-    `;
+    vertex : string = strings.to_odin_string(^vertex_bytes[0]);
+    frag : string   = strings.to_odin_string(^frag_bytes[0]);
 
     VertexShader, _ := glUtil.CreateAndCompileShader(gl.ShaderTypes.Vertex, vertex);
     FragShader, _ := glUtil.CreateAndCompileShader(gl.ShaderTypes.Fragment, frag);
