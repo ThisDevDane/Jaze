@@ -273,6 +273,9 @@ RenderDebugUI :: proc(vars : ^Win32Vars_t) {
             debugWnd.GlobalDebugWndBools["ShowTimeData"] = !debugWnd.GlobalDebugWndBools["ShowTimeData"];
         }
 
+        if imgui.MenuItem("Catalogs", "", false, true) {
+            debugWnd.GlobalDebugWndBools["ShowCatalogWindow"] = !debugWnd.GlobalDebugWndBools["ShowCatalogWindow"];
+        }
 
         if imgui.MenuItem("Show Test Window", "", false, true) {
             debugWnd.GlobalDebugWndBools["ShowTestWindow"] = !debugWnd.GlobalDebugWndBools["ShowTestWindow"];
@@ -313,17 +316,23 @@ RenderDebugUI :: proc(vars : ^Win32Vars_t) {
         debugWnd.ShowXinputStateWindow(^b);
         debugWnd.GlobalDebugWndBools["ShowXinputState"] = b;
     }
+    
+    if debugWnd.GlobalDebugWndBools["ShowTimeData"] {
+        b := debugWnd.GlobalDebugWndBools["ShowTimeData"];
+        debugWnd.ShowTimeDataWindow(^b);
+        debugWnd.GlobalDebugWndBools["ShowTimeData"] = b;
+    }
+
+    if debugWnd.GlobalDebugWndBools["ShowCatalogWindow"] {
+        b := debugWnd.GlobalDebugWndBools["ShowCatalogWindow"];
+        debugWnd.ShowCatalogWindow(^b);
+        debugWnd.GlobalDebugWndBools["ShowCatalogWindow"] = b;
+    }
 
     if debugWnd.GlobalDebugWndBools["ShowTestWindow"] {
         b := debugWnd.GlobalDebugWndBools["ShowTestWindow"];
         imgui.ShowTestWindow(^b);
         debugWnd.GlobalDebugWndBools["ShowTestWindow"] = b;
-    }
-
-    if debugWnd.GlobalDebugWndBools["ShowTimeData"] {
-        b := debugWnd.GlobalDebugWndBools["ShowTimeData"];
-        debugWnd.ShowTimeDataWindow(^b);
-        debugWnd.GlobalDebugWndBools["ShowTimeData"] = b;
     }
 }
 
@@ -367,9 +376,12 @@ when defines.DEBUG {
     xinput.Init();
     xinput.Enable(true);
     render.Init();
-    shaderCat, _  := catalog.CreateNew("data/shaders/", ".frag,.vert");
-    textureCat, _ := catalog.CreateNew("data/textures/", ".pn");
+
     soundCat, _   := catalog.CreateNew("data/sounds/", ".ogg");
+    shaderCat, _  := catalog.CreateNew("data/shaders/", ".fs,.vs");
+    textureCat, _ := catalog.CreateNew("data/textures/", ".png");
+
+    fmt.println(shaderCat^);
 
     for ProgramRunning {
         msg : win32.Msg;

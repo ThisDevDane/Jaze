@@ -4,6 +4,7 @@
 #import "odimgui/src/imgui.odin";
 #import "main.odin";
 #import time "jaze_time.odin";
+#import catalog "jaze_catalog.odin";
 
 StdWindowFlags :: imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse;
 
@@ -267,6 +268,37 @@ ShowTimeDataWindow :: proc(show : ^bool) {
         imgui.NewLine();
         imgui.Text("pfFreq: %d", data.pfFreq);
         imgui.Text("pfOld:  %d", data.pfOld);
+    }
+    imgui.End();
+}
+
+ChosenCatalog : i32;
+ShowCatalogWindow :: proc(show : ^bool) {
+    imgui.Begin("Catalogs", show, StdWindowFlags);
+    {
+        imgui.Combo("Catalog", ^ChosenCatalog, catalog.DebugInfo.CatalogNames[..], -1);
+        imgui.Separator();
+        cat := catalog.DebugInfo.Catalogs[ChosenCatalog];
+        imgui.Text("Folder Path: %s", cat.Path);
+        imgui.Text("Number of files: %d[%d][%d]", len(cat.Items), cat.FilesInFolder, cat.test);
+        imgui.Text("Accepted Extensions: ");
+        imgui.Indent(10.0);
+        for ext in cat.AcceptedExtensions {
+            imgui.Text(ext);
+        }
+        imgui.Unindent(10.0);
+        imgui.Separator();
+        imgui.BeginChild("Files", imgui.Vec2{0, 0}, true, 0);
+        for val in cat.Items {
+            imgui.Text(val.Name);
+            if(imgui.IsItemHovered()) {
+                imgui.BeginTooltip();
+                imgui.Text(val.Path);
+                imgui.EndTooltip();
+            }
+        }
+        imgui.EndChild();
+
     }
     imgui.End();
 }

@@ -20,8 +20,8 @@ Draw :: proc() {
 }
 
 Init :: proc() {
-    vertex_bytes, _ := os.read_entire_file("data/shaders/test.vert");
-    frag_bytes, _    := os.read_entire_file("data/shaders/test.frag");
+    vertex_bytes, _ := os.read_entire_file("data/shaders/test_vert.vs");
+    frag_bytes, _    := os.read_entire_file("data/shaders/test_frag.fs");
 
     defer {
         free(vertex_bytes);

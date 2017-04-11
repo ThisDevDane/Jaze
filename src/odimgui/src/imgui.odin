@@ -554,7 +554,17 @@ Checkbox                                                :: proc(label : c_string
 CheckboxFlags                                           :: proc(label : c_string, flags : ^u32, flags_value : u32) -> bool                                                                                                                                                   #foreign cimgui "igCheckboxFlags";
 RadioButtonBool                                         :: proc(label : c_string, active : bool) -> bool                                                                                                                                                                       #foreign cimgui "igRadioButtonBool";
 RadioButton                                             :: proc(label : c_string, v : ^i32, v_button : i32) -> bool                                                                                                                                                            #foreign cimgui "igRadioButton";
-Combo                                                   :: proc(label : c_string, current_item : ^i32, items : ^^byte, items_count : i32, height_in_items : i32) -> bool                                                                                                       #foreign cimgui "igCombo";
+Combo :: proc(label : string, current_item : ^i32, items : []string, height_in_items : i32) -> bool {
+     ImCombo :: proc(label : c_string, current_item : ^i32, items : ^^byte, items_count : i32, height_in_items : i32) -> bool #foreign cimgui "igCombo";
+     str := strings.new_c_string(label); defer free(str);
+
+     data := make([]^byte, len(items)); defer free(data);
+     for item, idx in items {
+        data[idx] = strings.new_c_string(item);
+     }
+
+     return ImCombo(str, current_item, ^data[0], cast(i32)len(items), height_in_items); 
+}
 Combo2                                                  :: proc(label : c_string, current_item : ^i32, items_separated_by_zeros : c_string, height_in_items : i32) -> bool                                                                                                     #foreign cimgui "igCombo2";
 Combo3                                                  :: proc(label : c_string, current_item : ^i32, items_getter : proc(data : rawptr, idx : i32, out_text : ^^byte) -> bool #cc_c, data : rawptr, items_count : i32, height_in_items : i32) -> bool                        #foreign cimgui "igCombo3";
 ColorButton                                             :: proc(col : Vec4, small_height : bool, outline_border : bool) -> bool                                                                                                                                                #foreign cimgui "igColorButton";
