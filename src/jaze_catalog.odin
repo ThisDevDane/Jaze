@@ -70,7 +70,6 @@ CreateNew :: proc(identifier : string, path : string, acceptedExtensions : strin
                 nameBuf := make([]byte, len(data.FileName));
                 copy(nameBuf, data.FileName[..]);
                 str := strings.to_odin_string(^nameBuf[0]);
-                fmt.println(str);
                 for ext in res.AcceptedExtensions {
                     if _GetFileExtension(str) == ext {
                         file := File{};

@@ -99,7 +99,6 @@ CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.Hgl
             assert(wndHandle != nil);
             wndDc := win32.GetDC(wndHandle);
             assert(wndDc != nil);
-
             temp := vars.DeviceCtx;
             vars.DeviceCtx = wndDc;
             oldCtx := CreateOpenGLContext(vars, false);
@@ -111,7 +110,6 @@ CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.Hgl
             wgl.TryGetExtension(^extensions, ^wgl.GetExtensionsStringARB, "wglGetExtensionsStringARB");
             wgl.TryGetExtension(^extensions, ^wgl.SwapIntervalEXT, "wglSwapIntervalEXT");
             wgl.LoadExtensions(oldCtx, wndDc, extensions);
-
             win32wgl.MakeCurrent(nil, nil);
             win32wgl.DeleteContext(oldCtx);
             win32.ReleaseDC(wndHandle, wndDc);
@@ -129,22 +127,19 @@ CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.Hgl
                         wgl.DEPTH_BITS_ARB(24),
                         wgl.FRAMEBUFFER_SRGB_CAPABLE_ARB(true));
         attribArray := wgl.PrepareAttribArray(attribs);
-
         format : i32;
         formats : u32;
-        success := wgl.ChoosePixelFormatARB(vars.DeviceCtx, ^attribArray[0], nil, 1, ^format, ^formats);
 
+        success := wgl.ChoosePixelFormatARB(vars.DeviceCtx, ^attribArray[0], nil, 1, ^format, ^formats);
         if (success == win32.TRUE) && (formats == 0) {
             panic("Couldn't find suitable pixel format");
         }
-
         pfd : win32.PIXELFORMATDESCRIPTOR;
         pfd.version = 1;
         pfd.size = size_of(win32.PIXELFORMATDESCRIPTOR);
-        
+
         win32.DescribePixelFormat(vars.DeviceCtx, format, size_of(win32.PIXELFORMATDESCRIPTOR), ^pfd);
         win32.SetPixelFormat(vars.DeviceCtx, format, ^pfd);
-
         createAttr : [dynamic]wgl.Attrib;
         append(createAttr, wgl.CONTEXT_MAJOR_VERSION_ARB(3),
                            wgl.CONTEXT_MINOR_VERSION_ARB(3),
@@ -155,7 +150,6 @@ CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.Hgl
         ctx := wgl.CreateContextAttribsARB(vars.DeviceCtx, nil, ^attribArray[0]);
         assert(ctx != nil);
         win32wgl.MakeCurrent(vars.DeviceCtx, ctx);
-
         return ctx;
     }
 }
@@ -344,7 +338,6 @@ main :: proc() {
     win32vars.WindowHandle = CreateWindow(win32vars.AppHandle); 
     win32vars.DeviceCtx = win32.GetDC(win32vars.WindowHandle);
     win32vars.Ogl.Ctx = CreateOpenGLContext(^win32vars, true);
-    
     gl.Init();
 
     gl.DebugMessageCallback(OpenGLDebugCallback, nil);
@@ -353,7 +346,6 @@ main :: proc() {
     
     gl.GetInfo(^win32vars.Ogl);
     wgl.GetInfo(^win32vars.Ogl, win32vars.DeviceCtx);
-
     TitleBuf : [1024]byte;
     fmt.sprint(TitleBuf[..0], "Jaze ", win32vars.Ogl.VersionString);
     win32.SetWindowTextA(win32vars.WindowHandle, ^TitleBuf[0]);
@@ -361,7 +353,6 @@ main :: proc() {
     col : f32 = 56.0 / 255.0;
     gl.ClearColor(col, col, col, 1.0);
     jimgui.Init(win32vars.WindowHandle);
-
     ProgramRunning = true;
 
     time.Init();
@@ -372,16 +363,13 @@ when defines.DEBUG {
     debugWnd.GlobalDebugWndBools["ShowTestWindow"] = false;
 }
     wgl.SwapIntervalEXT(-1);
-
     xinput.Init();
     xinput.Enable(true);
     render.Init();
-
     soundCat, _   := catalog.CreateNew("data/sounds/", ".ogg");
     shaderCat, _  := catalog.CreateNew("data/shaders/", ".fs,.vs");
     textureCat, _ := catalog.CreateNew("data/textures/", ".png");
 
-    fmt.println(shaderCat^);
 
     for ProgramRunning {
         msg : win32.Msg;
