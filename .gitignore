@@ -4,6 +4,7 @@
 [Rr]un_tree/imgui.ini
 [Pp]ackages/
 *.7z
+nohup.out
 
 # Created by https://www.gitignore.io/api/windows,visualstudio
 
