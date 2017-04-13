@@ -1,0 +1,6 @@
+* text=auto
+
+*.odin text eol=crlf
+*.sh text
+
+
