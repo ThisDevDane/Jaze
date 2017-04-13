@@ -18,7 +18,7 @@
 #import asset "jaze_asset.odin";
 
 ProgramRunning : bool;
-ShowDebugMenu : bool = false;
+ShowDebugMenu : bool = true;
 GlobalWin32VarsPtr : ^Win32Vars_t;
 GlobalWindowPosition : j32.WINDOWPLACEMENT;
 
@@ -367,8 +367,8 @@ when defines.DEBUG {
     xinput.Init();
     xinput.Enable(true);
     render.Init();
-    //soundCat, _   := catalog.CreateNew("data/sounds/", ".ogg");
-    shaderCat, _  := catalog.CreateNew(catalog.Kind.Shader, "data/shaders/", ".fs,.vs");
+    soundCat, _   := catalog.CreateNew(catalog.Kind.Sound,   "data/sounds/",   ".ogg");
+    shaderCat, _  := catalog.CreateNew(catalog.Kind.Shader,  "data/shaders/",  ".fs,.vs");
     textureCat, _ := catalog.CreateNew(catalog.Kind.Texture, "data/textures/", ".png");
 
 

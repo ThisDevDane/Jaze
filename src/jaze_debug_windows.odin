@@ -280,8 +280,10 @@ ShowCatalogWindow :: proc(show : ^bool) {
         imgui.Combo("Catalog", ^ChosenCatalog, catalog.DebugInfo.CatalogNames[..], -1);
         imgui.Separator();
         cat := catalog.DebugInfo.Catalogs[ChosenCatalog];
-        imgui.Text("Folder Path: %s", cat.Path);
-        imgui.Text("Number of files: %d[%d][%d]", len(cat.Items), cat.FilesInFolder, cat.test);
+        imgui.Text("Folder Path:     %s", cat.Path);
+        imgui.Text("Kind:            %v", cat.Kind);
+        imgui.Text("Number of files: %d[%d]", len(cat.Items), cat.FilesInFolder);
+        imgui.Text("Size:            %.2fKB/%.2fKB", cast(f32)cat.CurrentSize/1024.0, cast(f32)cat.MaxSize/1024.0);
         imgui.Text("Accepted Extensions: ");
         imgui.Indent(10.0);
         for ext in cat.AcceptedExtensions {
@@ -291,21 +293,20 @@ ShowCatalogWindow :: proc(show : ^bool) {
         imgui.Separator();
         imgui.BeginChild("Files", imgui.Vec2{0, 0}, true, 0);
         for val in cat.Items {
-            imgui.Text(val.FileInfo.Name);
+            imgui.Text("%s %s", val.FileInfo.Name, val.LoadedFromDisk ? "[Loaded]" : "");
             if(imgui.IsItemHovered()) {
                 imgui.BeginTooltip();
+                imgui.Text("Path:   %s", val.FileInfo.Path);
+                imgui.Text("Size:   %.2fKB", cast(f32)val.FileInfo.Size/1024.0);
                 match e in val {
                     case ja.Asset.Texture : {
-                        imgui.Text("Path: %s", e.FileInfo.Path);
-                        imgui.Text("Loaded: %t", e.LoadedFromDisk);
+                        imgui.Text("ID:     %d", e.GLID);
                         imgui.Text("Width:  %d", e.Width);
                         imgui.Text("Height: %d", e.Height);
                         imgui.Text("Comp:   %d", e.Comp);
                     }
 
                     case ja.Asset.Shader : {
-                        imgui.Text("Path: %s", e.FileInfo.Path);
-                        imgui.Text("Loaded: %t", e.LoadedFromDisk);
                         imgui.Text("Type:   %v", e.Type);
                     }
                 }
@@ -313,7 +314,6 @@ ShowCatalogWindow :: proc(show : ^bool) {
             }
         }
         imgui.EndChild();
-
     }
     imgui.End();
 }

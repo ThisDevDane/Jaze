@@ -67,6 +67,10 @@ LOWORD             :: proc(lParam : win32.Lparam) -> u16 {
     return cast(u16)lParam;
 }
 
+CombineLoHi :: proc(lo : u32, hi : u32) -> u64 {
+    return cast(u64)(cast(u64)lo << 32 | cast(u64)hi);
+}
+
 //Kernel32
 MAX_PATH :: 0x00000104;
  
@@ -74,16 +78,16 @@ INVALID_FILE_ATTRIBUTES  :: -1;
 FILE_ATTRIBUTE_DIRECTORY :: 0x10;
 
 FindData :: struct #ordered {
-  FileAttributes    : u32,
-  CreationTime      : win32.Filetime,
-  LastAccessTime    : win32.Filetime,
-  LastWriteTime     : win32.Filetime,
-  FileSizeHigh      : u32,
-  FileSizeLow       : u32,
-  Reserved0         : u32,
-  Reserved1         : u32,
-  FileName          : [MAX_PATH]byte,
-  AlternateFileName : [14]byte,
+    FileAttributes    : u32,
+    CreationTime      : win32.Filetime,
+    LastAccessTime    : win32.Filetime,
+    LastWriteTime     : win32.Filetime,
+    FileSizeHigh      : u32,
+    FileSizeLow       : u32,
+    Reserved0         : u32,
+    Reserved1         : u32,
+    FileName          : [MAX_PATH]byte,
+    AlternateFileName : [14]byte,
 }
 
 GetFileAttributes :: proc(filename : ^byte) -> u32                             #foreign kernel32 "GetFileAttributesA";
