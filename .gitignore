@@ -1,7 +1,9 @@
 # Custom
 [Bb]uild/
 *.otm
-run_tree/imgui.ini
+[Rr]un_tree/imgui.ini
+[Pp]ackages/
+*.7z
 
 # Created by https://www.gitignore.io/api/windows,visualstudio
 
