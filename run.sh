@@ -1,4 +1,3 @@
 #!/bin/bash
-pushd run_tree
+cd run_tree
 ../build/main.exe
-popd
