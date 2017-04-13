@@ -12,16 +12,14 @@ CreateAndCompileShader :: proc(type : gl.ShaderTypes, source : string) -> (gl.Sh
     if success == 0 {
         logSize := gl.GetShaderValue(shader, gl.GetShaderNames.InfoLogLength);
         logBytes := make([]byte, logSize);
-        gl._GetShaderInfoLog(shader.ID, logSize, ^logSize, ^logBytes[0]);
+        gl._GetShaderInfoLog(cast(u32)shader, logSize, ^logSize, ^logBytes[0]);
 
         fmt.println("------ Shader Error ------");
         fmt.print(strings.to_odin_string(^logBytes[0])); 
         fmt.println("--------------------------");
         //DeleteShader(shader.ID);
-        shader.CompileStatus = false;
         return shader, false;
     }
 
-    shader.CompileStatus = true;
     return shader, true;
 }

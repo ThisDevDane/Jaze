@@ -15,6 +15,7 @@
 #import render "jaze_render.odin";
 #import time "jaze_time.odin";
 #import catalog "jaze_catalog.odin";
+#import asset "jaze_asset.odin";
 
 ProgramRunning : bool;
 ShowDebugMenu : bool = false;
@@ -366,9 +367,9 @@ when defines.DEBUG {
     xinput.Init();
     xinput.Enable(true);
     render.Init();
-    soundCat, _   := catalog.CreateNew("data/sounds/", ".ogg");
-    shaderCat, _  := catalog.CreateNew("data/shaders/", ".fs,.vs");
-    textureCat, _ := catalog.CreateNew("data/textures/", ".png");
+    //soundCat, _   := catalog.CreateNew("data/sounds/", ".ogg");
+    shaderCat, _  := catalog.CreateNew(catalog.Kind.Shader, "data/shaders/", ".fs,.vs");
+    textureCat, _ := catalog.CreateNew(catalog.Kind.Texture, "data/textures/", ".png");
 
 
     for ProgramRunning {

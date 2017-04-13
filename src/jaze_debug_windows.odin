@@ -5,6 +5,7 @@
 #import "main.odin";
 #import time "jaze_time.odin";
 #import catalog "jaze_catalog.odin";
+#import ja "jaze_asset.odin";
 
 StdWindowFlags :: imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse;
 
@@ -290,10 +291,24 @@ ShowCatalogWindow :: proc(show : ^bool) {
         imgui.Separator();
         imgui.BeginChild("Files", imgui.Vec2{0, 0}, true, 0);
         for val in cat.Items {
-            imgui.Text(val.Name);
+            imgui.Text(val.FileInfo.Name);
             if(imgui.IsItemHovered()) {
                 imgui.BeginTooltip();
-                imgui.Text(val.Path);
+                match e in val {
+                    case ja.Asset.Texture : {
+                        imgui.Text("Path: %s", e.FileInfo.Path);
+                        imgui.Text("Loaded: %t", e.LoadedFromDisk);
+                        imgui.Text("Width:  %d", e.Width);
+                        imgui.Text("Height: %d", e.Height);
+                        imgui.Text("Comp:   %d", e.Comp);
+                    }
+
+                    case ja.Asset.Shader : {
+                        imgui.Text("Path: %s", e.FileInfo.Path);
+                        imgui.Text("Loaded: %t", e.LoadedFromDisk);
+                        imgui.Text("Type:   %v", e.Type);
+                    }
+                }
                 imgui.EndTooltip();
             }
         }

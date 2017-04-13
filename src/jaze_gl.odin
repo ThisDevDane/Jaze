@@ -14,12 +14,7 @@ VBO          :: u32;
 EBO          :: u32;
 BufferObject :: u32;
 Texture      :: u32;
-
-Shader :: struct {
-    ID            : u32,
-    Source        : string,
-    CompileStatus : bool,
-}
+Shader       :: u32; 
 
 Program :: struct {
     ID         : u32,
@@ -443,7 +438,7 @@ BlendFunc :: proc(sfactor : BlendFactors, dfactor : BlendFactors) {
 GetShaderValue :: proc(shader : Shader, name : GetShaderNames) -> i32 {
     if _GetShaderiv != nil {
         res : i32;
-        _GetShaderiv(shader.ID, cast(i32)name, ^res);
+        _GetShaderiv(cast(u32)shader, cast(i32)name, ^res);
         return res;
     } else {
 
@@ -482,7 +477,7 @@ Disable  :: proc(cap : Capabilities) {
 
 AttachShader :: proc(program : Program, shader : Shader) {
     if _AttachShader != nil {
-        _AttachShader(program.ID, shader.ID);
+        _AttachShader(program.ID, cast(u32)shader);
     } else {
         //Todo: logging
     }
@@ -516,8 +511,7 @@ ShaderSource :: proc(obj : Shader, strs : []string) {
             newStrs[i] = ^(cast([]byte)s)[0];
             lengths[i] = cast(i32)len(s);
         }
-        _ShaderSource(obj.ID, cast(u32)len(strs), ^newStrs[0], ^lengths[0]);
-        obj.Source = strs[0];
+        _ShaderSource(cast(u32)obj, cast(u32)len(strs), ^newStrs[0], ^lengths[0]);
     } else {
         //Todo: logging
     }
@@ -525,10 +519,8 @@ ShaderSource :: proc(obj : Shader, strs : []string) {
 
 CreateShader :: proc(type : ShaderTypes) -> Shader {
     if _CreateShader != nil {
-        id := _CreateShader(cast(i32)type);
-        res : Shader;
-        res.ID = id;
-        return res;
+        res := _CreateShader(cast(i32)type);
+        return cast(Shader)res;
     } else {
         //Todo: logging
         return Shader{};
@@ -537,7 +529,7 @@ CreateShader :: proc(type : ShaderTypes) -> Shader {
 
 CompileShader :: proc(obj : Shader) {
     if _CompileShader != nil {
-        _CompileShader(obj.ID);
+        _CompileShader(cast(u32)obj);
     } else {
         //Todo: logging
     }

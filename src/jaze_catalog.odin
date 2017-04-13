@@ -1,7 +1,11 @@
 #import "fmt.odin";
+#import "os.odin";
 #import "strings.odin";
 #import win32 "sys/windows.odin";
 #import j32 "jaze_win32.odin";
+#import asset "jaze_asset.odin";
+#import gl "jaze_gl.odin";
+#import stbi "stb_image.odin";
 
 Err :: int;
 
@@ -9,18 +13,19 @@ ERR_SUCCESS        : Err : 0;
 ERR_PATH_NOT_FOUND : Err : 1;
 ERR_NO_FILES_FOUND : Err : 2;
 
+Kind :: enum {
+    Texture,
+    Shader,
+    Sound,
+}
+
 Catalog :: struct {
     Name : string,
     Path : string,
     FilesInFolder : int,
     test: int,
-    Items : map[string]File,
+    Items : map[string]asset.Asset,
     AcceptedExtensions : [dynamic]string,
-}
-
-File :: struct {
-    Name : string,
-    Path : string,
 }
 
 DebugInfo_t :: struct {
@@ -31,11 +36,11 @@ DebugInfo_t :: struct {
 
 DebugInfo : DebugInfo_t;
 
-CreateNew :: proc(path : string, acceptedExtensions : string) -> (^Catalog, Err) {
-    return CreateNew(path, path, acceptedExtensions);
+CreateNew :: proc(kind : Kind, path : string, acceptedExtensions : string) -> (^Catalog, Err) {
+    return CreateNew(kind, path, path, acceptedExtensions);
 }
 
-CreateNew :: proc(identifier : string, path : string, acceptedExtensions : string) -> (^Catalog, Err) {
+CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExtensions : string) -> (^Catalog, Err) {
     res := new(Catalog);
     res.Name = identifier;
     buf := make([]byte, j32.MAX_PATH);
@@ -72,12 +77,45 @@ CreateNew :: proc(identifier : string, path : string, acceptedExtensions : strin
                 str := strings.to_odin_string(^nameBuf[0]);
                 for ext in res.AcceptedExtensions {
                     if _GetFileExtension(str) == ext {
-                        file := File{};
+                        file := asset.FileInfo_t{};
                         file.Name = _GetFileNameWithoutExtension(str);
                         pathBuf := make([]byte, j32.MAX_PATH);
                         file.Path = fmt.sprintf(pathBuf[..0], "%s%s", res.Path, str);
-                        res.Items[file.Name] = file;
-                        res.test++;
+
+
+                        match kind {
+                            case Kind.Texture : {
+                                asset := asset.Asset.Texture{};
+                                c_str := strings.new_c_string(file.Path); defer free(c_str);
+                                stbi.info(c_str, ^asset.Width, ^asset.Height, ^asset.Comp);
+                                asset.FileInfo = file;
+                                res.Items[file.Name] = asset;
+                                res.test++;
+                            }
+
+                            case Kind.Shader : {
+                                asset := asset.Asset.Shader{};
+                                asset.FileInfo = file;
+                                asset.LoadedFromDisk = true;
+
+                                data, _ := os.read_entire_file(asset.FileInfo.Path);
+                                asset.Source = strings.to_odin_string(^data[0]);
+
+                                match ext {
+                                    case ".vs" : {
+                                        asset.Type = gl.ShaderTypes.Vertex;
+                                    }
+
+                                    case ".fs" : {
+                                        asset.Type = gl.ShaderTypes.Fragment;
+                                    }
+                                }
+
+                                res.Items[file.Name] = asset;
+                                res.test++;
+                            }
+                        }
+
                         break;
                     }
                 }
