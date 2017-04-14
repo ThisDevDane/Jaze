@@ -101,18 +101,12 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
                             case Kind.Shader : {
                                 asset := ja.Asset.Shader{};
                                 asset.FileInfo = file;
-                                asset.LoadedFromDisk = true;
-
-                                data, _ := os.read_entire_file(asset.FileInfo.Path);
-                                asset.Source = strings.to_odin_string(^data[0]);
-
-                                res.CurrentSize += cast(uint)len(data);
+                                asset.LoadedFromDisk = false;
 
                                 match ext {
                                     case ".vs" : {
                                         asset.Type = gl.ShaderTypes.Vertex;
                                     }
-
                                     case ".fs" : {
                                         asset.Type = gl.ShaderTypes.Fragment;
                                     }
@@ -149,10 +143,6 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
 }
 
 Find :: proc(catalog : ^Catalog, assetName : string) -> (ja.Asset, Err) {
-    return Find(catalog, assetName, true);
-}
-
-Find :: proc(catalog : ^Catalog, assetName : string, load : bool) -> (ja.Asset, Err) {
     _, ok := catalog.Items[assetName];
 
     if ok {
@@ -178,15 +168,16 @@ Find :: proc(catalog : ^Catalog, assetName : string, load : bool) -> (ja.Asset, 
                 }
 
                 case ja.Asset.Shader : {
-                    if !asset.LoadedFromDisk {
-                        asset.LoadedFromDisk = true;
-                        data, _ := os.read_entire_file(asset.FileInfo.Path);
+                    if !e.LoadedFromDisk {
+                        e.LoadedFromDisk = true;
+                        data, _ := os.read_entire_file(e.FileInfo.Path);
+                        e.Data = data;
                         e.Source = strings.to_odin_string(^data[0]);
                         catalog.CurrentSize += cast(uint)len(data);
+                    }
 
-                        if e.GLID == 0 {
-                            e.GLID, _ = glUtil.CreateAndCompileShader(e.Type, e.Source);
-                        }
+                    if e.GLID == 0 {
+                        e.GLID, _ = glUtil.CreateAndCompileShader(e.Type, e.Source);
                     }
                 }
             }

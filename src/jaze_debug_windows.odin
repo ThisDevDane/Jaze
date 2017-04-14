@@ -275,6 +275,19 @@ ShowTimeDataWindow :: proc(show : ^bool) {
 
 ChosenCatalog : i32;
 ShowCatalogWindow :: proc(show : ^bool) {
+
+    PrintName :: proc(asset : ja.Asset) {
+        match a in asset {
+            case ja.Asset.Texture, ja.Asset.Shader : {
+                imgui.Text("%s %s %s", a.FileInfo.Name, a.LoadedFromDisk ? "[Loaded]" : ""
+                           a.GLID != 0 ? "[Uploaded]" : "");
+            }
+            default : {
+                imgui.Text("%s %s", a.FileInfo.Name, a.LoadedFromDisk ? "[Loaded]" : "");
+            }
+        }
+    }
+
     imgui.Begin("Catalogs", show, StdWindowFlags);
     {
         imgui.Combo("Catalog", ^ChosenCatalog, catalog.DebugInfo.CatalogNames[..], -1);
@@ -293,7 +306,7 @@ ShowCatalogWindow :: proc(show : ^bool) {
         imgui.Separator();
         imgui.BeginChild("Files", imgui.Vec2{0, 0}, true, 0);
         for val in cat.Items {
-            imgui.Text("%s %s", val.FileInfo.Name, val.LoadedFromDisk ? "[Loaded]" : "");
+            PrintName(val);
             if(imgui.IsItemHovered()) {
                 imgui.BeginTooltip();
                 imgui.Text("Path:   %s", val.FileInfo.Path);
@@ -307,6 +320,7 @@ ShowCatalogWindow :: proc(show : ^bool) {
                     }
 
                     case ja.Asset.Shader : {
+                        imgui.Text("ID:     %d", e.GLID);
                         imgui.Text("Type:   %v", e.Type);
                     }
                 }

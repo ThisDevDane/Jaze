@@ -366,11 +366,12 @@ when defines.DEBUG {
     wgl.SwapIntervalEXT(-1);
     xinput.Init();
     xinput.Enable(true);
-    render.Init();
     soundCat, _   := catalog.CreateNew(catalog.Kind.Sound,   "data/sounds/",   ".ogg");
     shaderCat, _  := catalog.CreateNew(catalog.Kind.Shader,  "data/shaders/",  ".fs,.vs");
     textureCat, _ := catalog.CreateNew(catalog.Kind.Texture, "data/textures/", ".png");
 
+    catalog.Find(textureCat, "dropdownBottom");
+    render.Init(shaderCat);
 
     for ProgramRunning {
         msg : win32.Msg;

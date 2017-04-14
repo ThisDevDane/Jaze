@@ -5,6 +5,8 @@
 #import gl "jaze_gl.odin";
 #import glUtil "jaze_gl_util.odin";
 #import time "jaze_time.odin";
+#import catalog "jaze_catalog.odin";
+#import ja "jaze_asset.odin";
 
 mainProgram : gl.Program; 
 vao : gl.VAO;
@@ -19,24 +21,17 @@ Draw :: proc() {
     gl.DrawArrays(gl.DrawModes.Triangles, 0, 3);
 }
 
-Init :: proc() {
-    vertex_bytes, _ := os.read_entire_file("data/shaders/test_vert.vs");
-    frag_bytes, _    := os.read_entire_file("data/shaders/test_frag.fs");
+Init :: proc(cat : ^catalog.Catalog) {
 
-    defer {
-        free(vertex_bytes);
-        free(frag_bytes);
-    }
+    vertexAsset, _ := catalog.Find(cat, "test_vert");
+    fragAsset, _ := catalog.Find(cat, "test_frag");
 
-    vertex : string = strings.to_odin_string(^vertex_bytes[0]);
-    frag : string   = strings.to_odin_string(^frag_bytes[0]);
-
-    VertexShader, _ := glUtil.CreateAndCompileShader(gl.ShaderTypes.Vertex, vertex);
-    FragShader, _ := glUtil.CreateAndCompileShader(gl.ShaderTypes.Fragment, frag);
+    vertex := union_cast(ja.Asset.Shader)vertexAsset;
+    frag := union_cast(ja.Asset.Shader)fragAsset;
 
     mainProgram = gl.CreateProgram();
-    gl.AttachShader(mainProgram, VertexShader);
-    gl.AttachShader(mainProgram, FragShader);
+    gl.AttachShader(mainProgram, vertex.GLID);
+    gl.AttachShader(mainProgram, frag.GLID);
 
 
     gl.BindFragDataLocation(mainProgram, 0, "OutColor");

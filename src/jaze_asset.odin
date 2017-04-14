@@ -21,6 +21,7 @@ Asset :: union {
         GLID : gl.Shader,
         Type : gl.ShaderTypes,
         Source : string,
+        Data : []byte,
     },
     Sound {
         //????
