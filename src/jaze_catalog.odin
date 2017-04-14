@@ -74,36 +74,43 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
                         res.MaxSize += cast(uint)file.Size;
                         match kind {
                             case Kind.Texture : {
-                                asset := new(ja.Asset.Texture);
-                                asset.FileInfo = file;
-                                asset.LoadedFromDisk = false;
+                                asset := new(ja.Asset);
+                                texture := ja.Asset.Texture{};
+                                texture.FileInfo = file;
+                                texture.LoadedFromDisk = false;
                                 c_str := strings.new_c_string(file.Path); defer free(c_str);
-                                stbi.info(c_str, ^asset.Width, ^asset.Height, ^asset.Comp);
-                                res.Items[asset.FileInfo.Name] = cast(^ja.Asset)asset;
+                                stbi.info(c_str, ^texture.Width, ^texture.Height, ^texture.Comp);
+                                asset^ = texture;
+                                res.Items[asset.FileInfo.Name] = asset;
                             }
 
                             case Kind.Shader : {
-                                asset := new(ja.Asset.Shader);
-                                asset.FileInfo = file;
-                                asset.LoadedFromDisk = false;
+                                asset := new(ja.Asset);
+                                shader := ja.Asset.Shader{};
+                                shader.FileInfo = file;
+                                shader.LoadedFromDisk = false;
 
                                 match ext {
                                     case ".vs" : {
-                                        asset.Type = gl.ShaderTypes.Vertex;
+                                        shader.Type = gl.ShaderTypes.Vertex;
                                     }
                                     case ".fs" : {
-                                        asset.Type = gl.ShaderTypes.Fragment;
+                                        shader.Type = gl.ShaderTypes.Fragment;
                                     }
                                 }
 
-                                res.Items[asset.FileInfo.Name] = cast(^ja.Asset)asset;
+                                asset^ = shader;
+                                res.Items[asset.FileInfo.Name] = asset;
                             }
 
                             case Kind.Sound : {
-                                asset := new(ja.Asset.Sound);
-                                asset.FileInfo = file;
-                                asset.LoadedFromDisk = false;
-                                res.Items[asset.FileInfo.Name] = cast(^ja.Asset)asset;
+                                asset := new(ja.Asset);
+                                sound := ja.Asset.Sound{};
+                                sound.FileInfo = file;
+                                sound.LoadedFromDisk = false;
+
+                                asset^ = sound;
+                                res.Items[asset.FileInfo.Name] = asset;
                             }
                         }
 
@@ -179,12 +186,10 @@ Find :: proc(catalog : ^Catalog, assetName : string) -> (^ja.Asset, Err) {
             match e in asset {
                 case ja.Asset.Texture : {
                     LoadTexture(e);
-                    asset = cast(^ja.Asset)e;
                 }
 
                 case ja.Asset.Shader : {
                     LoadShader(e, catalog);
-                    asset = cast(^ja.Asset)e;
                 }
             }
         }
