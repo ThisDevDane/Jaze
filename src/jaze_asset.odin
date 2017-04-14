@@ -2,6 +2,7 @@
 
 FileInfo_t :: struct {
     Name : string,
+    Ext  : string,
     Path : string,
     Size : u64,
 }
@@ -22,11 +23,12 @@ Asset :: union {
         Type : gl.ShaderTypes,
         Source : string,
         Data : []byte,
+        //Program : ^ShaderProgram, //Gets Undeclared name... Tell bill xD maybe it makes sense
     },
     Sound {
         //????
     },
-    Program {
+    ShaderProgram {
         GLID : gl.Program,
         Vertex : ^Shader,
         Fragment : ^Shader,
@@ -36,13 +38,14 @@ Asset :: union {
 }
 
 MetaTag :: enum {
-    Program,
+    Unknown,
+    ShaderProgram,
 }
 
-ParseMetaTag :: proc() {
-
+ParseMetaTag :: proc(metastr : string) -> MetaTag {
+    return MetaTag.Unknown;
 }
 
-ParseMetaProgram :: proc() {
-    
+ParseShaderProgram :: proc() -> Asset.ShaderProgram {
+    return Asset.ShaderProgram{};
 }

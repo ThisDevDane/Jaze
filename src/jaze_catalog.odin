@@ -57,19 +57,20 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
         res.Items[asset.FileInfo.Name] = asset;
     }
 
-    AddShader :: proc(res : ^Catalog file : ja.FileInfo_t, ext : string) {
+    AddShader :: proc(res : ^Catalog file : ja.FileInfo_t) {
         asset := new(ja.Asset);
         shader := ja.Asset.Shader{};
         shader.FileInfo = file;
         shader.LoadedFromDisk = false;
 
-        match ext {
-            case ".vs" : {
-                shader.Type = gl.ShaderTypes.Vertex;
-            }
-            case ".fs" : {
-                shader.Type = gl.ShaderTypes.Fragment;
-            }
+        match shader.FileInfo.Ext {
+            case ".vs" : { shader.Type = gl.ShaderTypes.Vertex; }
+            case ".glslv" : { shader.Type = gl.ShaderTypes.Vertex; }
+            case ".vert" : { shader.Type = gl.ShaderTypes.Vertex; }
+
+            case ".fs" : { shader.Type = gl.ShaderTypes.Fragment; }
+            case ".frag" : { shader.Type = gl.ShaderTypes.Fragment; }
+            case ".glslf" : { shader.Type = gl.ShaderTypes.Fragment; }
         }
 
         asset^ = shader;
@@ -135,7 +136,7 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
                             }
 
                             case Kind.Shader : {
-                                AddShader(res, file, ext);
+                                AddShader(res, file);
                             }
 
                             case Kind.Sound : {
@@ -261,6 +262,7 @@ _IsDirectory :: proc(attr : u32) -> bool {
 _CreateFileInfo :: proc(path : string filename : string, data : j32.FindData) -> ja.FileInfo_t {
     file := ja.FileInfo_t{};
     file.Name = _GetFileNameWithoutExtension(filename);
+    file.Ext  = _GetFileExtension(filename);
     pathBuf := make([]byte, j32.MAX_PATH);
     file.Path = fmt.sprintf(pathBuf[..0], "%s%s", path, filename);
     MAXDWORD :: 0xffffffff;

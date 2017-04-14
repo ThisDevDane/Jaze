@@ -1,5 +1,5 @@
 {
-    META_TAG = META_PROGRAM,
+    META_TAG = META_SHADERPROGRAM,
     Vertex_id = "test_vert",
     Frag_id = "test_frag",
     Uniforms = [
