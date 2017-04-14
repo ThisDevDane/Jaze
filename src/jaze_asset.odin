@@ -34,3 +34,15 @@ Asset :: union {
         Attributes : map[string]i32,
     }
 }
+
+MetaTag :: enum {
+    Program,
+}
+
+ParseMetaTag :: proc() {
+
+}
+
+ParseMetaProgram :: proc() {
+    
+}

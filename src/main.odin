@@ -358,11 +358,6 @@ main :: proc() {
 
     time.Init();
 
-when defines.DEBUG {
-    debugWnd.GlobalDebugWndBools["ShowOpenGLInfo"] = false;
-    debugWnd.GlobalDebugWndBools["ShowWin32VarInfo"] = false;
-    debugWnd.GlobalDebugWndBools["ShowTestWindow"] = false;
-}
     wgl.SwapIntervalEXT(-1);
     xinput.Init();
     xinput.Enable(true);

@@ -45,6 +45,63 @@ CreateNew :: proc(kind : Kind, path : string, acceptedExtensions : string) -> (^
 }
 
 CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExtensions : string) -> (^Catalog, Err) {
+    
+    AddTexture :: proc(res : ^Catalog file : ja.FileInfo_t) {
+        asset := new(ja.Asset);
+        texture := ja.Asset.Texture{};
+        texture.FileInfo = file;
+        texture.LoadedFromDisk = false;
+        c_str := strings.new_c_string(file.Path); defer free(c_str);
+        stbi.info(c_str, ^texture.Width, ^texture.Height, ^texture.Comp);
+        asset^ = texture;
+        res.Items[asset.FileInfo.Name] = asset;
+    }
+
+    AddShader :: proc(res : ^Catalog file : ja.FileInfo_t, ext : string) {
+        asset := new(ja.Asset);
+        shader := ja.Asset.Shader{};
+        shader.FileInfo = file;
+        shader.LoadedFromDisk = false;
+
+        match ext {
+            case ".vs" : {
+                shader.Type = gl.ShaderTypes.Vertex;
+            }
+            case ".fs" : {
+                shader.Type = gl.ShaderTypes.Fragment;
+            }
+        }
+
+        asset^ = shader;
+        res.Items[asset.FileInfo.Name] = asset;
+    }
+
+    AddSound :: proc(res : ^Catalog file : ja.FileInfo_t) {
+        asset := new(ja.Asset);
+        sound := ja.Asset.Sound{};
+        sound.FileInfo = file;
+        sound.LoadedFromDisk = false;
+        asset^ = sound;
+        res.Items[asset.FileInfo.Name] = asset;        
+    }    
+
+    ExtractAcceptedExtensions :: proc(res : ^Catalog, acceptedExtensions : string) {
+        if acceptedExtensions != "" {
+            strlen := len(acceptedExtensions);
+            last := 0;
+            for i := 0; i < strlen; i++ {
+                if acceptedExtensions[i] == ',' {
+                    append(res.AcceptedExtensions, acceptedExtensions[last..i]);
+                    last = i+1;
+                }
+
+                if i == strlen-1 {
+                    append(res.AcceptedExtensions, acceptedExtensions[last..i+1]);
+                }
+            } 
+        }
+    }
+
     //Check if path exists
     pstr := strings.new_c_string(path); defer free(pstr);
     attr := j32.GetFileAttributes(pstr);
@@ -55,7 +112,7 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
         buf := make([]byte, j32.MAX_PATH);
         res.Path = fmt.sprintf(buf[..0], "%s%s", path, path[len(path)-1] == '/' ? "" : "/");
         res.Kind = kind;
-        _ExtractAcceptedExtensions(res, acceptedExtensions);
+        ExtractAcceptedExtensions(res, acceptedExtensions);
         data := j32.FindData{};
         fmt.sprintf(buf[..0], "%s%s", path, path[len(path)-1] == '\\' ? "*" : "\\*");
         fileH := j32.FindFirstFile(^buf[0], ^data);
@@ -74,43 +131,15 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
                         res.MaxSize += cast(uint)file.Size;
                         match kind {
                             case Kind.Texture : {
-                                asset := new(ja.Asset);
-                                texture := ja.Asset.Texture{};
-                                texture.FileInfo = file;
-                                texture.LoadedFromDisk = false;
-                                c_str := strings.new_c_string(file.Path); defer free(c_str);
-                                stbi.info(c_str, ^texture.Width, ^texture.Height, ^texture.Comp);
-                                asset^ = texture;
-                                res.Items[asset.FileInfo.Name] = asset;
+                                AddTexture(res, file);
                             }
 
                             case Kind.Shader : {
-                                asset := new(ja.Asset);
-                                shader := ja.Asset.Shader{};
-                                shader.FileInfo = file;
-                                shader.LoadedFromDisk = false;
-
-                                match ext {
-                                    case ".vs" : {
-                                        shader.Type = gl.ShaderTypes.Vertex;
-                                    }
-                                    case ".fs" : {
-                                        shader.Type = gl.ShaderTypes.Fragment;
-                                    }
-                                }
-
-                                asset^ = shader;
-                                res.Items[asset.FileInfo.Name] = asset;
+                                AddShader(res, file, ext);
                             }
 
                             case Kind.Sound : {
-                                asset := new(ja.Asset);
-                                sound := ja.Asset.Sound{};
-                                sound.FileInfo = file;
-                                sound.LoadedFromDisk = false;
-
-                                asset^ = sound;
-                                res.Items[asset.FileInfo.Name] = asset;
+                                AddSound(res, file);
                             }
                         }
 
@@ -239,19 +268,3 @@ _CreateFileInfo :: proc(path : string filename : string, data : j32.FindData) ->
     return file;
 }
 
-_ExtractAcceptedExtensions :: proc(res : ^Catalog, acceptedExtensions : string) {
-    if acceptedExtensions != "" {
-        strlen := len(acceptedExtensions);
-        last := 0;
-        for i := 0; i < strlen; i++ {
-            if acceptedExtensions[i] == ',' {
-                append(res.AcceptedExtensions, acceptedExtensions[last..i]);
-                last = i+1;
-            }
-
-            if i == strlen-1 {
-                append(res.AcceptedExtensions, acceptedExtensions[last..i+1]);
-            }
-        } 
-    }
-}

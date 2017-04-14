@@ -1,0 +1,11 @@
+{
+    META_TAG = META_PROGRAM,
+    Vertex_id = "test_vert",
+    Frag_id = "test_frag",
+    Uniforms = [
+        "Color",
+    ],
+    Attributes = [
+        "Position",
+    ],
+}
