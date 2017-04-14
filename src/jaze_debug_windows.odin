@@ -312,7 +312,7 @@ ShowCatalogWindow :: proc(show : ^bool) {
         imgui.Separator();
         imgui.BeginChild("Files", imgui.Vec2{0, 0}, true, 0);
         for val in cat.Items {
-            PrintName(val);
+            PrintName(val^);
             if(imgui.IsItemHovered()) {
                 imgui.BeginTooltip();
                 imgui.Text("Path:   %s", val.FileInfo.Path);

@@ -25,5 +25,12 @@ Asset :: union {
     },
     Sound {
         //????
+    },
+    Program {
+        GLID : gl.Program,
+        Vertex : ^Shader,
+        Fragment : ^Shader,
+        Uniforms : map[string]i32,
+        Attributes : map[string]i32,
     }
 }

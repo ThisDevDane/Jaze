@@ -26,7 +26,7 @@ Catalog :: struct {
     Path : string,
     Kind : Kind,
     FilesInFolder : int,
-    Items : map[string]ja.Asset,
+    Items : map[string]^ja.Asset,
     MaxSize : uint, // This is if all assets are loaded
     CurrentSize: uint, // This is the currently loaded asset size
     AcceptedExtensions : [dynamic]string,
@@ -45,35 +45,21 @@ CreateNew :: proc(kind : Kind, path : string, acceptedExtensions : string) -> (^
 }
 
 CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExtensions : string) -> (^Catalog, Err) {
-    res := new(Catalog);
-    res.Name = identifier;
-    buf := make([]byte, j32.MAX_PATH);
-    res.Path = fmt.sprintf(buf[..0], "%s%s", path, path[len(path)-1] == '/' ? "" : "/");
-    res.Kind = kind;
     //Check if path exists
     pstr := strings.new_c_string(path); defer free(pstr);
     attr := j32.GetFileAttributes(pstr);
     if _IsDirectory(attr) {
 
-        if acceptedExtensions != "" {
-            strlen := len(acceptedExtensions);
-            last := 0;
-            for i := 0; i < strlen; i++ {
-                if acceptedExtensions[i] == ',' {
-                    append(res.AcceptedExtensions, acceptedExtensions[last..i]);
-                    last = i+1;
-                }
-
-                if i == strlen-1 {
-                    append(res.AcceptedExtensions, acceptedExtensions[last..i+1]);
-                }
-            } 
-        }
-
+        res := new(Catalog);
+        res.Name = identifier;
+        buf := make([]byte, j32.MAX_PATH);
+        res.Path = fmt.sprintf(buf[..0], "%s%s", path, path[len(path)-1] == '/' ? "" : "/");
+        res.Kind = kind;
+        _ExtractAcceptedExtensions(res, acceptedExtensions);
         data := j32.FindData{};
         fmt.sprintf(buf[..0], "%s%s", path, path[len(path)-1] == '\\' ? "*" : "\\*");
         fileH := j32.FindFirstFile(^buf[0], ^data);
-        res.FilesInFolder++;
+
         if fileH != win32.INVALID_HANDLE {
             for j32.FindNextFile(fileH, ^data) == win32.TRUE {
                 if _IsDirectory(data.FileAttributes) {
@@ -83,26 +69,21 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
                 copy(nameBuf, data.FileName[..]);
                 str := strings.to_odin_string(^nameBuf[0]);
                 for ext in res.AcceptedExtensions {
-                    if _GetFileExtension(str) == ext {
-                        file := ja.FileInfo_t{};
-                        file.Name = _GetFileNameWithoutExtension(str);
-                        pathBuf := make([]byte, j32.MAX_PATH);
-                        file.Path = fmt.sprintf(pathBuf[..0], "%s%s", res.Path, str);
-                        MAXDWORD :: 0xffffffff;
-                        file.Size =  cast(u64)(cast(u64)data.FileSizeHigh * cast(u64)(MAXDWORD+1)) + cast(u64)data.FileSizeLow;
+                    if _GetFileExtension(str) == ext {                        
+                        file := _CreateFileInfo(res.Path, str, data);
                         res.MaxSize += cast(uint)file.Size;
                         match kind {
                             case Kind.Texture : {
-                                asset := ja.Asset.Texture{};
+                                asset := new(ja.Asset.Texture);
                                 asset.FileInfo = file;
                                 asset.LoadedFromDisk = false;
                                 c_str := strings.new_c_string(file.Path); defer free(c_str);
                                 stbi.info(c_str, ^asset.Width, ^asset.Height, ^asset.Comp);
-                                res.Items[asset.FileInfo.Name] = asset;
+                                res.Items[asset.FileInfo.Name] = cast(^ja.Asset)asset;
                             }
 
                             case Kind.Shader : {
-                                asset := ja.Asset.Shader{};
+                                asset := new(ja.Asset.Shader);
                                 asset.FileInfo = file;
                                 asset.LoadedFromDisk = false;
 
@@ -115,14 +96,14 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
                                     }
                                 }
 
-                                res.Items[asset.FileInfo.Name] = asset;
+                                res.Items[asset.FileInfo.Name] = cast(^ja.Asset)asset;
                             }
 
                             case Kind.Sound : {
-                                asset := ja.Asset.Sound{};
+                                asset := new(ja.Asset.Sound);
                                 asset.FileInfo = file;
                                 asset.LoadedFromDisk = false;
-                                res.Items[asset.FileInfo.Name] = asset;
+                                res.Items[asset.FileInfo.Name] = cast(^ja.Asset)asset;
                             }
                         }
 
@@ -131,77 +112,86 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
                 }
                 res.FilesInFolder++;
             }
+
+            DebugInfo.NumberOfCatalogs++;
+            append(DebugInfo.CatalogNames, res.Name);
+            append(DebugInfo.Catalogs, res);
+            return res, ERR_SUCCESS;
         } else {
             free(res);
             return nil, ERR_NO_FILES_FOUND;
         }
 
     } else {
-        free(res);
         return nil, ERR_PATH_NOT_FOUND;
     }
-
-    DebugInfo.NumberOfCatalogs++;
-    append(DebugInfo.CatalogNames, res.Name);
-    append(DebugInfo.Catalogs, res);
-    return res, ERR_SUCCESS;
 }
 
-Find :: proc(catalog : ^Catalog, assetName : string) -> (ja.Asset, Err) {
+Find :: proc(catalog : ^Catalog, assetName : string) -> (^ja.Asset, Err) {
+    LoadTexture :: proc(e : ^ja.Asset.Texture) {
+        if e.GLID == 0 {
+            c_str := strings.new_c_string(e.FileInfo.Path); defer free(c_str);
+            w, h, c : i32;
+            data := stbi.load(c_str, ^w, ^h, ^c, 0); defer stbi.image_free(data);
+            e.Width = w;
+            e.Height = h;
+            e.Comp = c;
+            e.GLID = gl.GenTexture();
+            gl.BindTexture(gl.TextureTargets.Texture2D, e.GLID);
+            gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MinFilter, gl.TextureParametersValues.Linear);
+            gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MagFilter, gl.TextureParametersValues.Linear);
+            match e.Comp {
+                case 3 : {
+                    gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
+                                  e.Width, e.Height, gl.PixelDataFormat.RGB, 
+                                  gl.Texture2DDataType.UByte, data);
+                }
+
+                case 4 : {
+                    gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
+                                  e.Width, e.Height, gl.PixelDataFormat.RGBA, 
+                                  gl.Texture2DDataType.UByte, data);
+                }
+            }
+        }
+    }
+
+    LoadShader :: proc(e : ^ja.Asset.Shader, cat : ^Catalog) {
+        if !e.LoadedFromDisk {
+            e.LoadedFromDisk = true;
+            data, _ := os.read_entire_file(e.FileInfo.Path);
+            e.Data = data;
+            e.Source = strings.to_odin_string(^data[0]);
+            cat.CurrentSize += cast(uint)len(data);
+        }
+
+        if e.GLID == 0 {
+            e.GLID, _ = glUtil.CreateAndCompileShader(e.Type, e.Source);
+        }
+    }
+
     _, ok := catalog.Items[assetName];
 
     if ok {
         asset := catalog.Items[assetName];
         if !asset.LoadedFromDisk {
-            match e in ^asset {
-                case ja.Asset.Texture : {
-                    if e.GLID == 0 {
-                        c_str := strings.new_c_string(e.FileInfo.Path); defer free(c_str);
-                        w, h, c : i32;
-                        data := stbi.load(c_str, ^w, ^h, ^c, 0); defer stbi.image_free(data);
-                        e.Width = w;
-                        e.Height = h;
-                        e.Comp = c;
-                        e.GLID = gl.GenTexture();
-                        gl.BindTexture(gl.TextureTargets.Texture2D, e.GLID);
-                        gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MinFilter, gl.TextureParametersValues.Linear);
-                        gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MagFilter, gl.TextureParametersValues.Linear);
-                        match e.Comp {
-                            case 3 : {
-                                gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
-                                              e.Width, e.Height, gl.PixelDataFormat.RGB, 
-                                              gl.Texture2DDataType.UByte, data);
-                            }
 
-                            case 4 : {
-                                gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
-                                              e.Width, e.Height, gl.PixelDataFormat.RGBA, 
-                                              gl.Texture2DDataType.UByte, data);
-                            }
-                        }
-                    }
+            match e in asset {
+                case ja.Asset.Texture : {
+                    LoadTexture(e);
+                    asset = cast(^ja.Asset)e;
                 }
 
                 case ja.Asset.Shader : {
-                    if !e.LoadedFromDisk {
-                        e.LoadedFromDisk = true;
-                        data, _ := os.read_entire_file(e.FileInfo.Path);
-                        e.Data = data;
-                        e.Source = strings.to_odin_string(^data[0]);
-                        catalog.CurrentSize += cast(uint)len(data);
-                    }
-
-                    if e.GLID == 0 {
-                        e.GLID, _ = glUtil.CreateAndCompileShader(e.Type, e.Source);
-                    }
+                    LoadShader(e, catalog);
+                    asset = cast(^ja.Asset)e;
                 }
             }
         }
-        catalog.Items[assetName] = asset;
         return asset, ERR_SUCCESS;
     }
 
-    return ja.Asset{}, ERR_ASSET_NOT_FOUND;
+    return nil, ERR_ASSET_NOT_FOUND;
 }
 
 /////////////////////////////
@@ -232,4 +222,31 @@ _GetFileNameWithoutExtension :: proc(filename : string) -> string {
 _IsDirectory :: proc(attr : u32) -> bool {
    return (cast(i32)attr != j32.INVALID_FILE_ATTRIBUTES) && 
           ((attr & j32.FILE_ATTRIBUTE_DIRECTORY) == j32.FILE_ATTRIBUTE_DIRECTORY);
+}
+
+_CreateFileInfo :: proc(path : string filename : string, data : j32.FindData) -> ja.FileInfo_t {
+    file := ja.FileInfo_t{};
+    file.Name = _GetFileNameWithoutExtension(filename);
+    pathBuf := make([]byte, j32.MAX_PATH);
+    file.Path = fmt.sprintf(pathBuf[..0], "%s%s", path, filename);
+    MAXDWORD :: 0xffffffff;
+    file.Size =  cast(u64)(cast(u64)data.FileSizeHigh * cast(u64)(MAXDWORD+1)) + cast(u64)data.FileSizeLow;
+    return file;
+}
+
+_ExtractAcceptedExtensions :: proc(res : ^Catalog, acceptedExtensions : string) {
+    if acceptedExtensions != "" {
+        strlen := len(acceptedExtensions);
+        last := 0;
+        for i := 0; i < strlen; i++ {
+            if acceptedExtensions[i] == ',' {
+                append(res.AcceptedExtensions, acceptedExtensions[last..i]);
+                last = i+1;
+            }
+
+            if i == strlen-1 {
+                append(res.AcceptedExtensions, acceptedExtensions[last..i+1]);
+            }
+        } 
+    }
 }
