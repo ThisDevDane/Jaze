@@ -278,10 +278,16 @@ ShowCatalogWindow :: proc(show : ^bool) {
 
     PrintName :: proc(asset : ja.Asset) {
         match a in asset {
-            case ja.Asset.Texture, ja.Asset.Shader : {
-                imgui.Text("%s %s %s", a.FileInfo.Name, a.LoadedFromDisk ? "[Loaded]" : ""
+            case ja.Asset.Texture : {
+                imgui.Text("%s %s%s", a.FileInfo.Name, a.LoadedFromDisk ? "[Loaded]" : "",
                            a.GLID != 0 ? "[Uploaded]" : "");
             }
+
+            case ja.Asset.Shader : {
+                imgui.Text("%s %s%s", a.FileInfo.Name, a.LoadedFromDisk ? "[Loaded]" : "",
+                           a.GLID != 0 ? "[Uploaded]" : "");
+            }
+
             default : {
                 imgui.Text("%s %s", a.FileInfo.Name, a.LoadedFromDisk ? "[Loaded]" : "");
             }

@@ -17,22 +17,23 @@ Draw :: proc() {
     r : f32 = cast(f32)math.sin(time.GetTimeSinceStart()+1);
     g : f32 = cast(f32)math.sin(time.GetTimeSinceStart()+2);
     b : f32 = cast(f32)math.sin(time.GetTimeSinceStart()+3);
+
     gl.Uniform(mainProgram.Uniforms["Color"], r, g, b, 1.0);
     gl.DrawArrays(gl.DrawModes.Triangles, 0, 3);
 }
 
 Init :: proc(cat : ^catalog.Catalog) {
-
-    vertexAsset, _ := catalog.Find(cat, "test_vert");
-    fragAsset, _ := catalog.Find(cat, "test_frag");
-
+    vertexAsset, ok1 := catalog.Find(cat, "test_vert");
+    fragAsset, ok2 := catalog.Find(cat, "test_frag");
+    if ok1 != catalog.ERR_SUCCESS || ok2 != catalog.ERR_SUCCESS {
+        panic("FUCK COULDN'T FIND YA SHADERS M8");
+    }
     vertex := union_cast(ja.Asset.Shader)vertexAsset;
     frag := union_cast(ja.Asset.Shader)fragAsset;
 
     mainProgram = gl.CreateProgram();
     gl.AttachShader(mainProgram, vertex.GLID);
     gl.AttachShader(mainProgram, frag.GLID);
-
 
     gl.BindFragDataLocation(mainProgram, 0, "OutColor");
 

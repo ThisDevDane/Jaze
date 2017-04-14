@@ -182,7 +182,6 @@ Init :: proc(windowHandle : win32.Hwnd) {
                   width, height, gl.PixelDataFormat.RGBA, 
                   gl.Texture2DDataType.UByte, pixels);
     FontAtlas_SetTexID(io.Fonts, cast(rawptr)^State.FontTexture);
-    append(gl.DebugInfo.LoadedTextures, State.FontTexture);
 
     SetStyle();
 }

@@ -366,11 +366,10 @@ when defines.DEBUG {
     wgl.SwapIntervalEXT(-1);
     xinput.Init();
     xinput.Enable(true);
-    soundCat, _   := catalog.CreateNew(catalog.Kind.Sound,   "data/sounds/",   ".ogg");
+    //soundCat, _   := catalog.CreateNew(catalog.Kind.Sound,   "data/sounds/",   ".ogg");
     shaderCat, _  := catalog.CreateNew(catalog.Kind.Shader,  "data/shaders/",  ".fs,.vs");
-    textureCat, _ := catalog.CreateNew(catalog.Kind.Texture, "data/textures/", ".png");
+    textureCat, _ := catalog.CreateNew(catalog.Kind.Texture, "data/textures/", ".png,.jpg,.jpeg");
 
-    catalog.Find(textureCat, "dropdownBottom");
     render.Init(shaderCat);
 
     for ProgramRunning {
@@ -427,7 +426,7 @@ when defines.DEBUG {
         }
     }
 
-        gl.Clear(gl.ClearFlags.COLOR_BUFFER/* | gl.ClearFlags.DEPTH_BUFFER*/);
+        gl.Clear(gl.ClearFlags.COLOR_BUFFER | gl.ClearFlags.DEPTH_BUFFER);
 
         render.Draw();        
 

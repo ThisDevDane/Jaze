@@ -76,6 +76,9 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
         res.FilesInFolder++;
         if fileH != win32.INVALID_HANDLE {
             for j32.FindNextFile(fileH, ^data) == win32.TRUE {
+                if _IsDirectory(data.FileAttributes) {
+                    continue;
+                }
                 nameBuf := make([]byte, len(data.FileName));
                 copy(nameBuf, data.FileName[..]);
                 str := strings.to_odin_string(^nameBuf[0]);
@@ -129,10 +132,12 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
                 res.FilesInFolder++;
             }
         } else {
+            free(res);
             return nil, ERR_NO_FILES_FOUND;
         }
 
     } else {
+        free(res);
         return nil, ERR_PATH_NOT_FOUND;
     }
 
@@ -161,9 +166,19 @@ Find :: proc(catalog : ^Catalog, assetName : string) -> (ja.Asset, Err) {
                         gl.BindTexture(gl.TextureTargets.Texture2D, e.GLID);
                         gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MinFilter, gl.TextureParametersValues.Linear);
                         gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MagFilter, gl.TextureParametersValues.Linear);
-                        gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
-                                      e.Width, e.Height, gl.PixelDataFormat.RGBA, 
-                                      gl.Texture2DDataType.UByte, data);
+                        match e.Comp {
+                            case 3 : {
+                                gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
+                                              e.Width, e.Height, gl.PixelDataFormat.RGB, 
+                                              gl.Texture2DDataType.UByte, data);
+                            }
+
+                            case 4 : {
+                                gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
+                                              e.Width, e.Height, gl.PixelDataFormat.RGBA, 
+                                              gl.Texture2DDataType.UByte, data);
+                            }
+                        }
                     }
                 }
 

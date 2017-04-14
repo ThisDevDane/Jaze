@@ -405,14 +405,16 @@ ActiveTexture :: proc(texture : TextureUnits) {
 }
 
 GenTexture :: proc() -> Texture {
-    res : Texture;
-    _GenTextures(1, cast(^u32)^res);
-    return res;
+    res := GenTextures(1);
+    return res[0];
 }
 
 GenTextures :: proc(count : i32) -> []Texture {
     res := make([]Texture, count);
     _GenTextures(count, cast(^u32)^res[0]);
+    for id in res {
+        append(DebugInfo.LoadedTextures, id);
+    }
     return res;
 }
 
