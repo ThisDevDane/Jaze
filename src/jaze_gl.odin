@@ -102,6 +102,7 @@ DebugMessageCallbackProc :: #type proc(source : DebugSource, type : DebugType, i
     _GetShaderInfoLog        : proc(shader : u32, maxLength : i32, length : ^i32, infoLog : ^byte)                      #cc_c;
     _GetStringi              : proc(name : i32, index : u32) -> ^byte                                                   #cc_c;
     _BindFragDataLocation    : proc(program : u32, colorNumber : u32, name : ^byte)                                     #cc_c;
+    _PolygonMode             : proc(face : i32, mode : i32)                                                             #cc_c;
 
     // Foreign Function Declarations
     Viewport       :: proc(x : i32, y : i32, width : i32, height : i32)                                                  #foreign lib "glViewport";
@@ -121,6 +122,14 @@ DebugMessageCallbackProc :: #type proc(source : DebugSource, type : DebugType, i
 // Utility
 
 // API
+
+PolygonMode :: proc(face : PolygonFace, mode : PolygonModes) {
+    if _PolygonMode != nil {
+        _PolygonMode(cast(i32)face, cast(i32)mode);
+    } else {
+        //TODO logging
+    }
+}
 
 DebugMessageControl :: proc(source : DebugSource, type : DebugType, severity : DebugSeverity, count : i32, ids : ^u32, enabled : bool) {
     if _DebugMessageControl != nil {
@@ -154,6 +163,11 @@ BufferData :: proc(target : BufferTargets, size : i32, data : rawptr, usage : Bu
 GenVBO :: proc() -> VBO {
     bo := GenBuffer();
     return cast(VBO)bo;
+}
+
+GenEBO :: proc() -> EBO {
+    bo := GenBuffer();
+    return cast(EBO)bo;
 }
 
 GenBuffer :: proc() -> BufferObject {
@@ -622,4 +636,5 @@ Init :: proc() {
     set_proc_address(lib, ^_UniformMatrix4fv,        "glUniformMatrix4fv",        type_info_of_val(_UniformMatrix4fv)       );
     set_proc_address(lib, ^_GetUniformLocation,      "glGetUniformLocation",      type_info_of_val(_GetUniformLocation)     );
     set_proc_address(lib, ^_GetAttribLocation,       "glGetAttribLocation",       type_info_of_val(_GetAttribLocation)      );
+    set_proc_address(lib, ^_PolygonMode,             "glPolygonMode",             type_info_of_val(_PolygonMode)            );
 }

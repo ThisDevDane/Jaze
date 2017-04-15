@@ -14,7 +14,7 @@ CreateAndCompileShader :: proc(type : gl.ShaderTypes, source : string) -> (gl.Sh
         logBytes := make([]byte, logSize);
         gl._GetShaderInfoLog(cast(u32)shader, logSize, ^logSize, ^logBytes[0]);
 
-        fmt.println("------ Shader Error ------");
+        fmt.printf("------ Shader Error(%s) ---\n", type);
         fmt.print(strings.to_odin_string(^logBytes[0])); 
         fmt.println("--------------------------");
         //DeleteShader(shader.ID);

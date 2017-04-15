@@ -363,9 +363,9 @@ main :: proc() {
     xinput.Enable(true);
     //soundCat, _   := catalog.CreateNew(catalog.Kind.Sound,   "data/sounds/",   ".ogg");
     shaderCat, _  := catalog.CreateNew(catalog.Kind.Shader,  "data/shaders/",  ".fs,.vs");
-    textureCat, _ := catalog.CreateNew(catalog.Kind.Texture, "data/textures/", ".png,.jpg,.jpeg");
+    textureCat, _ := catalog.CreateNew(catalog.Kind.Texture, "data/textures/", ".jpg,.jpeg");
 
-    render.Init(shaderCat);
+    render.Init(shaderCat, textureCat);
 
     for ProgramRunning {
         msg : win32.Msg;
@@ -423,7 +423,7 @@ main :: proc() {
 
         gl.Clear(gl.ClearFlags.COLOR_BUFFER | gl.ClearFlags.DEPTH_BUFFER);
 
-        render.Draw();        
+        render.Draw(win32vars.WindowSize);        
 
     when defines.DEBUG {
         if ShowDebugMenu {

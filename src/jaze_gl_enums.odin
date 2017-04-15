@@ -426,3 +426,15 @@ BufferDataUsage :: enum i32 {
     DynamicRead                        = const.DYNAMIC_READ,
     DynamicCopy                        = const.DYNAMIC_COPY,
 }
+
+PolygonFace :: enum i32 {
+    Front = const.FRONT,
+    Back = const.BACK,
+    FrontAndBack = const.FRONT_AND_BACK,
+}
+
+PolygonModes :: enum i32 {
+    Point = const.POINT,
+    Line = const.LINE,
+    Fill = const.FILL,
+}

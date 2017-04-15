@@ -5,7 +5,9 @@
     Uniforms = [
         "Color",
     ],
+    Attr_Stride = x
     Attributes = [
-        "Position",
+        "Position", type, count, offset,
+        "Color", f32, 3, 3,
     ],
 }

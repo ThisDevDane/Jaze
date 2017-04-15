@@ -1,9 +1,11 @@
 #version 330
 
+in vec2 uv;
+
 out vec4 OutColor;
 
-uniform vec4 Color;
+uniform sampler2D textureSampler;
 
 void main() {
-    OutColor = Color;
+    OutColor = texture(textureSampler, uv);
 }
