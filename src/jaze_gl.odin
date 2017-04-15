@@ -3,6 +3,7 @@
 #import win32wgl "sys/wgl.odin";
 #import "fmt.odin";
 #import "strings.odin";
+#import "math.odin";
 #load "jaze_gl_enums.odin";
 
 TRUE  :: 1;
@@ -333,9 +334,9 @@ Uniform :: proc(loc: i32, v0, v1, v2, v3: f32) {
     }
 }
 
-UniformMatrix4fv :: proc(loc : i32, values : []f32, transpose : bool) {
+UniformMatrix4fv :: proc(loc : i32, matrix : math.Mat4, transpose : bool) {
     if _UniformMatrix4fv != nil {
-        _UniformMatrix4fv(loc, cast(u32)len(values), cast(i32)transpose, ^values[0]);
+        _UniformMatrix4fv(loc, 1, cast(i32)transpose, cast(^f32)^matrix);
     } else {
         //Todo: logging
     }
