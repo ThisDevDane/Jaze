@@ -37,7 +37,7 @@ CreateWindow :: proc (instance : win32.Hinstance, ) -> win32.Hwnd {
     wndClass.style = CS_OWNDC|CS_HREDRAW|CS_VREDRAW;
     wndClass.wnd_proc = WindowProc;
     wndClass.instance = instance;
-    wndClass.class_name = strings.new_c_string("jaze_class");
+wndClass.class_name = strings.new_c_string("jaze_class");
 
     if RegisterClassExA(^wndClass) == 0 {
         panic("Could Not Register Class");
@@ -106,10 +106,10 @@ CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.Hgl
             vars.DeviceCtx = temp;
             assert(oldCtx != nil);
             extensions := wgl.TryGetExtensionList{};
-            wgl.TryGetExtension(^extensions, ^wgl.ChoosePixelFormatARB, "wglChoosePixelFormatARB");
+            wgl.TryGetExtension(^extensions, ^wgl.ChoosePixelFormatARB,    "wglChoosePixelFormatARB");
             wgl.TryGetExtension(^extensions, ^wgl.CreateContextAttribsARB, "wglCreateContextAttribsARB");
-            wgl.TryGetExtension(^extensions, ^wgl.GetExtensionsStringARB, "wglGetExtensionsStringARB");
-            wgl.TryGetExtension(^extensions, ^wgl.SwapIntervalEXT, "wglSwapIntervalEXT");
+            wgl.TryGetExtension(^extensions, ^wgl.GetExtensionsStringARB,  "wglGetExtensionsStringARB");
+            wgl.TryGetExtension(^extensions, ^wgl.SwapIntervalEXT,         "wglSwapIntervalEXT");
             wgl.LoadExtensions(oldCtx, wndDc, extensions);
             win32wgl.MakeCurrent(nil, nil);
             win32wgl.DeleteContext(oldCtx);
@@ -244,37 +244,29 @@ ToggleFullscreen :: proc(wnd : win32.Hwnd) {
 }
 
 RenderDebugUI :: proc(vars : ^Win32Vars_t) {
+
+    MakeMenuItem :: proc(title : string, id : string) {
+        if imgui.MenuItem(title, "", false, true) {
+            debugWnd.ToggleWindow(id);
+        }
+    }
+
     imgui.BeginMainMenuBar();
     if imgui.BeginMenu("Misc", true) {
-        if imgui.MenuItem("OpenGL Info", "", false, true) {
-            debugWnd.ToggleWindow("ShowOpenGLInfo");
-        }
-        
-        if imgui.MenuItem("Win32Var Info", "", false, true) {
-            debugWnd.ToggleWindow("ShowWin32VarInfo");
-        }
 
+        MakeMenuItem("OpenGL Info", "ShowOpenGLInfo");
+        MakeMenuItem("Win32Var Info", "ShowWin32VarInfo");
+        
         if imgui.BeginMenu("XInput", true) {
-            if imgui.MenuItem("Info", "", false, true) {
-                debugWnd.ToggleWindow("ShowXinputInfo");
-            }
-            if imgui.MenuItem("State", "", false, true) {
-                debugWnd.ToggleWindow("ShowXinputState");
-            }
+            MakeMenuItem("Info", "ShowXinputInfo");
+            MakeMenuItem("State", "ShowXinputState");
             imgui.EndMenu();
         }
 
-        if imgui.MenuItem("Time Data", "", false, true) {
-            debugWnd.ToggleWindow("ShowTimeData");
-        }
+        MakeMenuItem("Time Data", "ShowTimeData");
+        MakeMenuItem("Catalogs", "ShowCatalogWindow");
+        MakeMenuItem("Show Test Window", "ShowTestWindow");
 
-        if imgui.MenuItem("Catalogs", "", false, true) {
-            debugWnd.ToggleWindow("ShowCatalogWindow");
-        }
-
-        if imgui.MenuItem("Show Test Window", "", false, true) {
-            debugWnd.ToggleWindow("ShowTestWindow");
-        }
         imgui.Separator();
         if imgui.MenuItem("Toggle Fullscreen", "Alt+Enter", false, true) {
             ToggleFullscreen(vars.WindowHandle);
@@ -288,46 +280,27 @@ RenderDebugUI :: proc(vars : ^Win32Vars_t) {
     
     imgui.EndMainMenuBar();
 
-    if debugWnd.GetWindowState("ShowOpenGLInfo" == true {
+    if debugWnd.GetWindowState("ShowOpenGLInfo") {
         b := debugWnd.GetWindowState("ShowOpenGLInfo");
         debugWnd.OpenGLInfo(^vars.Ogl, ^b);
         debugWnd.SetWindowState("ShowOpenGLInfo", b);
     }
 
-    if debugWnd.GlobalDebugWndBools["ShowWin32VarInfo"] == true {
-        b := debugWnd.GlobalDebugWndBools["ShowWin32VarInfo"];
+    if debugWnd.GetWindowState("ShowWin32VarInfo") {
+        b := debugWnd.GetWindowState("ShowWin32VarInfo");
         debugWnd.Win32VarsInfo(vars, ^b);
-        debugWnd.GlobalDebugWndBools["ShowWin32VarInfo"] = b;
-    }
-    
-    if debugWnd.GlobalDebugWndBools["ShowXinputInfo"] {
-        b := debugWnd.GlobalDebugWndBools["ShowXinputInfo"];
-        debugWnd.ShowXinputInfoWindow(^b);
-        debugWnd.GlobalDebugWndBools["ShowXinputInfo"] = b;
+        debugWnd.SetWindowState("ShowWin32VarInfo", b);
     }
 
-    if debugWnd.GlobalDebugWndBools["ShowXinputState"] {
-        b := debugWnd.GlobalDebugWndBools["ShowXinputState"];
-        debugWnd.ShowXinputStateWindow(^b);
-        debugWnd.GlobalDebugWndBools["ShowXinputState"] = b;
-    }
-    
-    if debugWnd.GlobalDebugWndBools["ShowTimeData"] {
-        b := debugWnd.GlobalDebugWndBools["ShowTimeData"];
-        debugWnd.ShowTimeDataWindow(^b);
-        debugWnd.GlobalDebugWndBools["ShowTimeData"] = b;
-    }
+    debugWnd.TryShowWindow("ShowXinputInfo",    debugWnd.ShowXinputInfoWindow);
+    debugWnd.TryShowWindow("ShowXinputState",   debugWnd.ShowXinputStateWindow);
+    debugWnd.TryShowWindow("ShowTimeData",      debugWnd.ShowTimeDataWindow);
+    debugWnd.TryShowWindow("ShowCatalogWindow", debugWnd.ShowCatalogWindow);
 
-    if debugWnd.GlobalDebugWndBools["ShowCatalogWindow"] {
-        b := debugWnd.GlobalDebugWndBools["ShowCatalogWindow"];
-        debugWnd.ShowCatalogWindow(^b);
-        debugWnd.GlobalDebugWndBools["ShowCatalogWindow"] = b;
-    }
-
-    if debugWnd.GlobalDebugWndBools["ShowTestWindow"] {
-        b := debugWnd.GlobalDebugWndBools["ShowTestWindow"];
+    if debugWnd.GetWindowState("ShowTestWindow") {
+        b := debugWnd.GetWindowState("ShowTestWindow");
         imgui.ShowTestWindow(^b);
-        debugWnd.GlobalDebugWndBools["ShowTestWindow"] = b;
+        debugWnd.SetWindowState("ShowTestWindow", b);
     }
 }
 

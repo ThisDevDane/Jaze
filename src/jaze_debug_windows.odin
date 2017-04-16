@@ -13,7 +13,7 @@ _GlobalDebugWndBools : map[string]bool;
 _CurrentViewTexture : gl.Texture;
 _ChosenCatalog : i32;
 
-GetWindowState :: proc(str : string) {
+GetWindowState :: proc(str : string) -> bool {
     return _GlobalDebugWndBools[str];
 }
 
@@ -22,11 +22,19 @@ SetWindowState :: proc(str : string, state : bool) {
 }
 
 ToggleWindow :: proc(str : string) {
-    GlobalDebugWndBools[str] = !GlobalDebugWndBools[str];
+    _GlobalDebugWndBools[str] = !_GlobalDebugWndBools[str];
+}
+
+TryShowWindow :: proc(id : string, p : proc(b : ^bool)) {
+    if GetWindowState(id) {
+        b := GetWindowState(id);
+        p(^b);
+        SetWindowState(id, b);
+    }
 }
 
 OpenGLExtensions :: proc(name : string, extensions : [dynamic]string, show : ^bool) {
-    imgui.Begin(name, show, StdWindowFlags); 
+    imgui.Begin(name, show, _StdWindowFlags); 
     {
         //imgui.BeginChild("Ext", imgui.Vec2{0, 0}, true, 0);
         for ext in extensions {
@@ -38,36 +46,36 @@ OpenGLExtensions :: proc(name : string, extensions : [dynamic]string, show : ^bo
 }
 
 OpenGLTextureOverview :: proc(show : ^bool) {
-    imgui.Begin("Loaded Textures", show, StdWindowFlags);
+    imgui.Begin("Loaded Textures", show, _StdWindowFlags);
     {
         for id in gl.DebugInfo.LoadedTextures {
             imgui.PushIdInt(cast(i32)id);
             imgui.Text("Texture %d:", id); imgui.SameLine(0, -1);
             if imgui.Button("View", imgui.Vec2{0, 0}) {
-                CurrentViewTexture = id;
-                GlobalDebugWndBools["ViewGLTexture"] = true;
+                _CurrentViewTexture = id;
+                SetWindowState("ViewGLTexture", true);
             }
             imgui.PopId();
         }
     }
     imgui.End();
 
-    if GlobalDebugWndBools["ViewGLTexture"] == true {
-        b := GlobalDebugWndBools["ViewGLTexture"];
-        OpenGLTextureView(CurrentViewTexture, ^b);
-        GlobalDebugWndBools["ViewGLTexture"] = b;
+    if GetWindowState("ViewGLTexture") {
+        b := GetWindowState("ViewGLTexture");
+        OpenGLTextureView(_CurrentViewTexture, ^b);
+        SetWindowState("ViewGLTexture", b);
     }
 }
 
 OpenGLTextureView :: proc(textureId : gl.Texture, show : ^bool) {
-    imgui.Begin("Texture View", show, StdWindowFlags);
+    imgui.Begin("Texture View", show, _StdWindowFlags);
     {
         imgui.Image(cast(imgui.TextureID)cast(uint)1, imgui.Vec2{100, 100}, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0, 0, 0, 0});
     }
     imgui.End();
 }
 OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
-    imgui.Begin("OpenGL Info", show, StdWindowFlags);
+    imgui.Begin("OpenGL Info", show, _StdWindowFlags);
     {
         imgui.Text("Versions:");
         imgui.Indent(20.0);
@@ -83,11 +91,11 @@ OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
         imgui.Separator();
             imgui.Text("Number of extensions:       %d", vars.NumExtensions); imgui.SameLine(0, -1);
             if imgui.Button("View##Ext", imgui.Vec2{0, 0}) {
-                GlobalDebugWndBools["OpenGLShowExtensions"] = true;
+                SetWindowState("OpenGLShowExtensions", true);
             }
             imgui.Text("Number of WGL extensions:   %d", vars.NumWglExtensions); imgui.SameLine(0, -1); 
             if imgui.Button("View##WGL", imgui.Vec2{0, 0}) {
-                GlobalDebugWndBools["OpenGLShowWGLExtensions"] = true;
+                SetWindowState("OpenGLShowWGLExtensions", true);
             }
             imgui.Text("Number of functions loaded: %d/%d", gl.DebugInfo.NumberOfFunctionsLoadedSuccessed, gl.DebugInfo.NumberOfFunctionsLoaded); 
         imgui.Separator();
@@ -97,7 +105,7 @@ OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
             suc : string;
             for status in gl.DebugInfo.Statuses {
                 imgui.Text(status.Name);
-                if(imgui.IsItemHovered()) {
+/*                if(imgui.IsItemHovered()) {
                     imgui.BeginTooltip();
                     imgui.PushTextWrapPos(450.0);
                     imgui.Text("%s @ 0x%X", status.Name, status.Address);
@@ -116,7 +124,7 @@ OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
 
                     imgui.PopTextWrapPos();
                     imgui.EndTooltip();
-                }
+                }*/
                 imgui.NextColumn();
                 if status.Success {
                     suc = "true";
@@ -133,32 +141,28 @@ OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
 
         imgui.Text("Number of loaded textures: %d", len(gl.DebugInfo.LoadedTextures)); imgui.SameLine(0, -1);
         if imgui.Button("View##Texture", imgui.Vec2{0, 0}) {
-            GlobalDebugWndBools["ShowGLTextureOverview"] = true;
+            SetWindowState("ShowGLTextureOverview", true);
         }
     }
     imgui.End();
 
-    if GlobalDebugWndBools["OpenGLShowExtensions"] == true {
-        b := GlobalDebugWndBools["OpenGLShowExtensions"];
+    if GetWindowState("OpenGLShowExtensions") {
+        b := GetWindowState("OpenGLShowExtensions");
         OpenGLExtensions("Extensions##Ext", vars.Extensions, ^b);
-        GlobalDebugWndBools["OpenGLShowExtensions"] = b;
+        SetWindowState("OpenGLShowExtensions", b);
     }
 
-    if GlobalDebugWndBools["OpenGLShowWGLExtensions"] == true {
-        b := GlobalDebugWndBools["OpenGLShowWGLExtensions"];
+    if GetWindowState("OpenGLShowWGLExtensions") {
+        b := GetWindowState("OpenGLShowWGLExtensions");
         OpenGLExtensions("WGL Extensions", vars.WglExtensions, ^b);
-        GlobalDebugWndBools["OpenGLShowWGLExtensions"] = b;
+        SetWindowState("OpenGLShowWGLExtensions", b);
     }
 
-    if GlobalDebugWndBools["ShowGLTextureOverview"] == true {
-        b := GlobalDebugWndBools["ShowGLTextureOverview"];
-        OpenGLTextureOverview(^b);
-        GlobalDebugWndBools["ShowGLTextureOverview"] = b;
-    }
+    TryShowWindow("ShowGLTextureOverview", OpenGLTextureOverview);
 }
 
 Win32VarsInfo :: proc(vars : ^main.Win32Vars_t, show : ^bool) {
-    imgui.Begin("Win32Vars Info", show, StdWindowFlags);
+    imgui.Begin("Win32Vars Info", show, _StdWindowFlags);
     {
         imgui.Text("Application Handle:    0x%X", cast(int)vars.AppHandle);
         imgui.Text("Window Handle:         0x%X", cast(int)vars.WindowHandle);
@@ -169,7 +173,7 @@ Win32VarsInfo :: proc(vars : ^main.Win32Vars_t, show : ^bool) {
 }
 
 ShowXinputInfoWindow :: proc(show : ^bool) {
-    imgui.Begin("XInput Info", show, StdWindowFlags);
+    imgui.Begin("XInput Info", show, _StdWindowFlags);
     {
         imgui.Text("Version: %s", xinput.Version);
         imgui.Text("Lib Address: 0x%x", cast(int)xinput.DebugInfo.LibAddress);
@@ -197,11 +201,15 @@ ShowXinputInfoWindow :: proc(show : ^bool) {
                     imgui.Text("Subtype %s", cap.SubType);
                     imgui.Text("Flags:");
                     imgui.Indent(10.0);
-                        imgui.Text("Voice:         %t", cap.Flags & xinput.CapabilitiesFlags.Voice == xinput.CapabilitiesFlags.Voice);
-                        imgui.Text("FFB:           %t", cap.Flags & xinput.CapabilitiesFlags.FFB == xinput.CapabilitiesFlags.FFB);
-                        imgui.Text("Wireless:      %t", cap.Flags & xinput.CapabilitiesFlags.Wireless == xinput.CapabilitiesFlags.Wireless);
-                        imgui.Text("PMD:           %t", cap.Flags & xinput.CapabilitiesFlags.PMD == xinput.CapabilitiesFlags.PMD);
-                        imgui.Text("NoNavigations: %t", cap.Flags & xinput.CapabilitiesFlags.NoNavigations == xinput.CapabilitiesFlags.NoNavigations);
+                        CheckCapability :: proc(cap : xinput.Capabilities, c : xinput.CapabilitiesFlags) -> bool {
+                            return cap.Flags & c == c;
+                        }
+
+                        imgui.Text("Voice:         %t", CheckCapability(cap, xinput.CapabilitiesFlags.Voice)        );
+                        imgui.Text("FFB:           %t", CheckCapability(cap, xinput.CapabilitiesFlags.FFB)          );
+                        imgui.Text("Wireless:      %t", CheckCapability(cap, xinput.CapabilitiesFlags.Wireless)     );
+                        imgui.Text("PMD:           %t", CheckCapability(cap, xinput.CapabilitiesFlags.PMD)          );
+                        imgui.Text("NoNavigations: %t", CheckCapability(cap, xinput.CapabilitiesFlags.NoNavigations));
                     imgui.Unindent(10.0);    
                 imgui.Unindent(20.0);
                 imgui.Text("Battery Information:");
@@ -217,7 +225,7 @@ ShowXinputInfoWindow :: proc(show : ^bool) {
 }
 
 ShowXinputStateWindow :: proc(show : ^bool) {
-    imgui.Begin("XInput State", show, StdWindowFlags);
+    imgui.Begin("XInput State", show, _StdWindowFlags);
     {
         for i in 0..4 {
             state, err := xinput.GetState(cast(xinput.User)i);
@@ -229,20 +237,24 @@ ShowXinputStateWindow :: proc(show : ^bool) {
                     imgui.Text("Button States:");
                     imgui.Indent(10.0);
                     {
-                        imgui.Text("DpadUp:        %t", state.Gamepad.Buttons & cast(u16)xinput.Buttons.DpadUp == cast(u16)xinput.Buttons.DpadUp);
-                        imgui.Text("DpadDown:      %t", state.Gamepad.Buttons & cast(u16)xinput.Buttons.DpadDown == cast(u16)xinput.Buttons.DpadDown);
-                        imgui.Text("DpadLeft:      %t", state.Gamepad.Buttons & cast(u16)xinput.Buttons.DpadLeft == cast(u16)xinput.Buttons.DpadLeft);
-                        imgui.Text("DpadRight:     %t", state.Gamepad.Buttons & cast(u16)xinput.Buttons.DpadRight == cast(u16)xinput.Buttons.DpadRight);
-                        imgui.Text("Start:         %t", state.Gamepad.Buttons & cast(u16)xinput.Buttons.Start == cast(u16)xinput.Buttons.Start);
-                        imgui.Text("Back:          %t", state.Gamepad.Buttons & cast(u16)xinput.Buttons.Back == cast(u16)xinput.Buttons.Back);
-                        imgui.Text("LeftThumb:     %t", state.Gamepad.Buttons & cast(u16)xinput.Buttons.LeftThumb == cast(u16)xinput.Buttons.LeftThumb);
-                        imgui.Text("RightThumb:    %t", state.Gamepad.Buttons & cast(u16)xinput.Buttons.RightThumb == cast(u16)xinput.Buttons.RightThumb);
-                        imgui.Text("LeftShoulder:  %t", state.Gamepad.Buttons & cast(u16)xinput.Buttons.LeftShoulder == cast(u16)xinput.Buttons.LeftShoulder);
-                        imgui.Text("RightShoulder: %t", state.Gamepad.Buttons & cast(u16)xinput.Buttons.RightShoulder == cast(u16)xinput.Buttons.RightShoulder);
-                        imgui.Text("A:             %t", state.Gamepad.Buttons & cast(u16)xinput.Buttons.A == cast(u16)xinput.Buttons.A);
-                        imgui.Text("B:             %t", state.Gamepad.Buttons & cast(u16)xinput.Buttons.B == cast(u16)xinput.Buttons.B);
-                        imgui.Text("X:             %t", state.Gamepad.Buttons & cast(u16)xinput.Buttons.X == cast(u16)xinput.Buttons.X);
-                        imgui.Text("Y:             %t", state.Gamepad.Buttons & cast(u16)xinput.Buttons.Y == cast(u16)xinput.Buttons.Y);
+                        IsButtonPressed :: proc(state : xinput.State, b : xinput.Buttons) -> bool {
+                            return state.Gamepad.Buttons & cast(u16)b == cast(u16)b;
+                        }
+
+                        imgui.Text("DpadUp:        %t", IsButtonPressed(state, xinput.Buttons.DpadUp)       );
+                        imgui.Text("DpadDown:      %t", IsButtonPressed(state, xinput.Buttons.DpadDown)     );
+                        imgui.Text("DpadLeft:      %t", IsButtonPressed(state, xinput.Buttons.DpadLeft)     );
+                        imgui.Text("DpadRight:     %t", IsButtonPressed(state, xinput.Buttons.DpadRight)    );
+                        imgui.Text("Start:         %t", IsButtonPressed(state, xinput.Buttons.Start)        );
+                        imgui.Text("Back:          %t", IsButtonPressed(state, xinput.Buttons.Back)         );
+                        imgui.Text("LeftThumb:     %t", IsButtonPressed(state, xinput.Buttons.LeftThumb)    );
+                        imgui.Text("RightThumb:    %t", IsButtonPressed(state, xinput.Buttons.RightThumb)   );
+                        imgui.Text("LeftShoulder:  %t", IsButtonPressed(state, xinput.Buttons.LeftShoulder) );
+                        imgui.Text("RightShoulder: %t", IsButtonPressed(state, xinput.Buttons.RightShoulder));
+                        imgui.Text("A:             %t", IsButtonPressed(state, xinput.Buttons.A)            );
+                        imgui.Text("B:             %t", IsButtonPressed(state, xinput.Buttons.B)            );
+                        imgui.Text("X:             %t", IsButtonPressed(state, xinput.Buttons.X)            );
+                        imgui.Text("Y:             %t", IsButtonPressed(state, xinput.Buttons.Y)            );
                     }
                     imgui.Unindent(10.0);
                     imgui.Separator();
@@ -271,7 +283,7 @@ ShowXinputStateWindow :: proc(show : ^bool) {
 }
 
 ShowTimeDataWindow :: proc(show : ^bool) {
-    imgui.Begin("Time Data", show, StdWindowFlags);
+    imgui.Begin("Time Data", show, _StdWindowFlags);
     {
         data := time.GetTimeData();
         imgui.Text("Time Scale:               %f", data.TimeScale);
@@ -289,15 +301,18 @@ ShowTimeDataWindow :: proc(show : ^bool) {
 ShowCatalogWindow :: proc(show : ^bool) {
 
     PrintName :: proc(asset : ja.Asset) {
+        PrintLoadedUploaded :: proc(name : string, load : bool, up : bool) {
+            imgui.Text("%s %s%s", name, load ? "[Loaded]" : "",
+                       up ? "[Uploaded]" : "");
+        }
+
         match a in asset {
             case ja.Asset.Texture : {
-                imgui.Text("%s %s%s", a.FileInfo.Name, a.LoadedFromDisk ? "[Loaded]" : "",
-                           a.GLID != 0 ? "[Uploaded]" : "");
+                PrintLoadedUploaded(a.FileInfo.Name, a.LoadedFromDisk, a.GLID != 0);
             }
 
             case ja.Asset.Shader : {
-                imgui.Text("%s %s%s", a.FileInfo.Name, a.LoadedFromDisk ? "[Loaded]" : "",
-                           a.GLID != 0 ? "[Uploaded]" : "");
+                PrintLoadedUploaded(a.FileInfo.Name, a.LoadedFromDisk, a.GLID != 0);
             }
 
             default : {
@@ -306,14 +321,14 @@ ShowCatalogWindow :: proc(show : ^bool) {
         }
     }
 
-    imgui.Begin("Catalogs", show, StdWindowFlags);
+    imgui.Begin("Catalogs", show, _StdWindowFlags);
     {
-        imgui.Combo("Catalog", ^ChosenCatalog, catalog.DebugInfo.CatalogNames[..], -1);
+        imgui.Combo("Catalog", ^_ChosenCatalog, catalog.DebugInfo.CatalogNames[..], -1);
         imgui.Separator();
-        cat := catalog.DebugInfo.Catalogs[ChosenCatalog];
+        cat := catalog.DebugInfo.Catalogs[_ChosenCatalog];
         imgui.Text("Folder Path:     %s", cat.Path);
         imgui.Text("Kind:            %v", cat.Kind);
-        imgui.Text("Number of files: %d[%d]", len(cat.Items), cat.FilesInFolder);
+        imgui.Text("Number of files: %d/%d", len(cat.Items), cat.FilesInFolder);
         imgui.Text("Size:            %.2fKB/%.2fKB", cast(f32)cat.CurrentSize/1024.0, cast(f32)cat.MaxSize/1024.0);
         imgui.Text("Accepted Extensions: ");
         imgui.Indent(10.0);
