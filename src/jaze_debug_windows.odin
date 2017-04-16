@@ -7,10 +7,23 @@
 #import catalog "jaze_catalog.odin";
 #import ja "jaze_asset.odin";
 
-StdWindowFlags :: imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse;
+_StdWindowFlags :: imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse;
 
-GlobalDebugWndBools : map[string]bool;
-CurrentViewTexture : gl.Texture;
+_GlobalDebugWndBools : map[string]bool;
+_CurrentViewTexture : gl.Texture;
+_ChosenCatalog : i32;
+
+GetWindowState :: proc(str : string) {
+    return _GlobalDebugWndBools[str];
+}
+
+SetWindowState :: proc(str : string, state : bool) {
+    _GlobalDebugWndBools[str] = state;
+}
+
+ToggleWindow :: proc(str : string) {
+    GlobalDebugWndBools[str] = !GlobalDebugWndBools[str];
+}
 
 OpenGLExtensions :: proc(name : string, extensions : [dynamic]string, show : ^bool) {
     imgui.Begin(name, show, StdWindowFlags); 
@@ -273,7 +286,6 @@ ShowTimeDataWindow :: proc(show : ^bool) {
     imgui.End();
 }
 
-ChosenCatalog : i32;
 ShowCatalogWindow :: proc(show : ^bool) {
 
     PrintName :: proc(asset : ja.Asset) {

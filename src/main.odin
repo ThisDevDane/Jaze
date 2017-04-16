@@ -247,33 +247,33 @@ RenderDebugUI :: proc(vars : ^Win32Vars_t) {
     imgui.BeginMainMenuBar();
     if imgui.BeginMenu("Misc", true) {
         if imgui.MenuItem("OpenGL Info", "", false, true) {
-            debugWnd.GlobalDebugWndBools["ShowOpenGLInfo"] = !debugWnd.GlobalDebugWndBools["ShowOpenGLInfo"];
+            debugWnd.ToggleWindow("ShowOpenGLInfo");
         }
         
         if imgui.MenuItem("Win32Var Info", "", false, true) {
-            debugWnd.GlobalDebugWndBools["ShowWin32VarInfo"] = !debugWnd.GlobalDebugWndBools["ShowWin32VarInfo"];
+            debugWnd.ToggleWindow("ShowWin32VarInfo");
         }
 
         if imgui.BeginMenu("XInput", true) {
             if imgui.MenuItem("Info", "", false, true) {
-                debugWnd.GlobalDebugWndBools["ShowXinputInfo"] = !debugWnd.GlobalDebugWndBools["ShowXinputInfo"];
+                debugWnd.ToggleWindow("ShowXinputInfo");
             }
             if imgui.MenuItem("State", "", false, true) {
-                debugWnd.GlobalDebugWndBools["ShowXinputState"] = !debugWnd.GlobalDebugWndBools["ShowXinputState"];
+                debugWnd.ToggleWindow("ShowXinputState");
             }
             imgui.EndMenu();
         }
 
         if imgui.MenuItem("Time Data", "", false, true) {
-            debugWnd.GlobalDebugWndBools["ShowTimeData"] = !debugWnd.GlobalDebugWndBools["ShowTimeData"];
+            debugWnd.ToggleWindow("ShowTimeData");
         }
 
         if imgui.MenuItem("Catalogs", "", false, true) {
-            debugWnd.GlobalDebugWndBools["ShowCatalogWindow"] = !debugWnd.GlobalDebugWndBools["ShowCatalogWindow"];
+            debugWnd.ToggleWindow("ShowCatalogWindow");
         }
 
         if imgui.MenuItem("Show Test Window", "", false, true) {
-            debugWnd.GlobalDebugWndBools["ShowTestWindow"] = !debugWnd.GlobalDebugWndBools["ShowTestWindow"];
+            debugWnd.ToggleWindow("ShowTestWindow");
         }
         imgui.Separator();
         if imgui.MenuItem("Toggle Fullscreen", "Alt+Enter", false, true) {
@@ -288,10 +288,10 @@ RenderDebugUI :: proc(vars : ^Win32Vars_t) {
     
     imgui.EndMainMenuBar();
 
-    if debugWnd.GlobalDebugWndBools["ShowOpenGLInfo"] == true {
-        b := debugWnd.GlobalDebugWndBools["ShowOpenGLInfo"];
+    if debugWnd.GetWindowState("ShowOpenGLInfo" == true {
+        b := debugWnd.GetWindowState("ShowOpenGLInfo");
         debugWnd.OpenGLInfo(^vars.Ogl, ^b);
-        debugWnd.GlobalDebugWndBools["ShowOpenGLInfo"] = b;
+        debugWnd.SetWindowState("ShowOpenGLInfo", b);
     }
 
     if debugWnd.GlobalDebugWndBools["ShowWin32VarInfo"] == true {
