@@ -104,6 +104,7 @@ DebugMessageCallbackProc :: #type proc(source : DebugSource, type : DebugType, i
     _GetStringi              : proc(name : i32, index : u32) -> ^byte                                                   #cc_c;
     _BindFragDataLocation    : proc(program : u32, colorNumber : u32, name : ^byte)                                     #cc_c;
     _PolygonMode             : proc(face : i32, mode : i32)                                                             #cc_c;
+    _GenerateMipmap          : proc(target : i32)                                                                       #cc_c;
 
     // Foreign Function Declarations
     Viewport       :: proc(x : i32, y : i32, width : i32, height : i32)                                                  #foreign lib "glViewport";
@@ -123,6 +124,14 @@ DebugMessageCallbackProc :: #type proc(source : DebugSource, type : DebugType, i
 // Utility
 
 // API
+
+GenerateMipmap :: proc(target : MipmapTargets) {
+    if _GenerateMipmap != nil {
+        _GenerateMipmap(cast(i32)target);
+    } else {
+        //TODO logging
+    }
+}
 
 PolygonMode :: proc(face : PolygonFace, mode : PolygonModes) {
     if _PolygonMode != nil {
@@ -638,4 +647,5 @@ Init :: proc() {
     set_proc_address(lib, ^_GetUniformLocation,      "glGetUniformLocation",      type_info_of_val(_GetUniformLocation)     );
     set_proc_address(lib, ^_GetAttribLocation,       "glGetAttribLocation",       type_info_of_val(_GetAttribLocation)      );
     set_proc_address(lib, ^_PolygonMode,             "glPolygonMode",             type_info_of_val(_PolygonMode)            );
+    set_proc_address(lib, ^_GenerateMipmap,          "glGenerateMipmap",          type_info_of_val(_GenerateMipmap)         );
 }

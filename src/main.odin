@@ -335,7 +335,7 @@ main :: proc() {
     xinput.Init();
     xinput.Enable(true);
     //soundCat, _   := catalog.CreateNew(catalog.Kind.Sound,   "data/sounds/",   ".ogg");
-    shaderCat, _  := catalog.CreateNew(catalog.Kind.Shader,  "data/shaders/",  ".fs,.vs");
+    shaderCat, _  := catalog.CreateNew(catalog.Kind.Shader,  "data/shaders/",  ".frag,.vert");
     textureCat, _ := catalog.CreateNew(catalog.Kind.Texture, "data/textures/", ".png,.jpg,.jpeg");
 
     render.Init(shaderCat, textureCat);

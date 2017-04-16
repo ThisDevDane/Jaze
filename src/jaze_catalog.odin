@@ -175,21 +175,40 @@ Find :: proc(catalog : ^Catalog, assetName : string) -> (^ja.Asset, Err) {
             e.Comp = c;
             e.GLID = gl.GenTexture();
             gl.BindTexture(gl.TextureTargets.Texture2D, e.GLID);
-            gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MinFilter, gl.TextureParametersValues.Linear);
-            gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MagFilter, gl.TextureParametersValues.Linear);
             match e.Comp {
+                case 1 : {
+                    gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
+                                  e.Width, e.Height, gl.PixelDataFormat.Red, 
+                                  gl.Texture2DDataType.UByte, data);
+                    gl.GenerateMipmap(gl.MipmapTargets.Texture2D);
+                }
+
+                case 2 : {
+                    gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
+                                  e.Width, e.Height, gl.PixelDataFormat.RG, 
+                                  gl.Texture2DDataType.UByte, data);
+                    gl.GenerateMipmap(gl.MipmapTargets.Texture2D);
+                }
+
                 case 3 : {
                     gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
                                   e.Width, e.Height, gl.PixelDataFormat.RGB, 
                                   gl.Texture2DDataType.UByte, data);
+                    gl.GenerateMipmap(gl.MipmapTargets.Texture2D);
                 }
 
                 case 4 : {
                     gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
                                   e.Width, e.Height, gl.PixelDataFormat.RGBA, 
                                   gl.Texture2DDataType.UByte, data);
+                    gl.GenerateMipmap(gl.MipmapTargets.Texture2D);
                 }
             }
+            gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MinFilter, gl.TextureParametersValues.LinearMipmapLinear);
+            gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MagFilter, gl.TextureParametersValues.Linear);
+
+            gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.WrapS, gl.TextureParametersValues.ClampToEdge);
+            gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.WrapT, gl.TextureParametersValues.ClampToEdge);
         }
     }
 

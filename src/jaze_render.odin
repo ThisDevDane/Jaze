@@ -61,7 +61,6 @@ Draw :: proc(window : math.Vec2) {
     gl.UseProgram(mainProgram);
     gl.BindVertexArray(vao);
     gl.Enable(gl.Capabilities.DepthTest);
-    gl.Enable(gl.Capabilities.Multisample);  
     gl.Enable(gl.Capabilities.Blend);
     gl.BlendFunc(gl.BlendFactors.SrcAlpha, gl.BlendFactors.OneMinusSrcAlpha);  
 
@@ -79,7 +78,8 @@ Draw :: proc(window : math.Vec2) {
         model := math.mul(t, r);
         
         gl.UniformMatrix4fv(mainProgram.Uniforms["Model"], model, false);
-        gl.PolygonMode(gl.PolygonFace.FrontAndBack, gl.PolygonModes.Fill);
+        gl.DrawArrays(gl.DrawModes.Triangles, 0, 36);
+        gl.PolygonMode(gl.PolygonFace.FrontAndBack, gl.PolygonModes.Line);
         gl.DrawArrays(gl.DrawModes.Triangles, 0, 36);
         gl.PolygonMode(gl.PolygonFace.FrontAndBack, gl.PolygonModes.Fill);
     }
@@ -90,7 +90,7 @@ Draw :: proc(window : math.Vec2) {
 Init :: proc(shaderCat : ^catalog.Catalog, textureCat : ^catalog.Catalog) {
     vertexAsset, ok1 := catalog.Find(shaderCat, "test_vert");
     fragAsset, ok2 := catalog.Find(shaderCat, "test_frag");
-    textureAsset, ok3 := catalog.Find(textureCat, "yellow_cross");
+    textureAsset, ok3 := catalog.Find(textureCat, "player_kick");
 
     if ok1 != catalog.ERR_SUCCESS || ok2 != catalog.ERR_SUCCESS || ok3 != catalog.ERR_SUCCESS {
         panic("FUCK COULDN'T FIND YA SHADERS M8");

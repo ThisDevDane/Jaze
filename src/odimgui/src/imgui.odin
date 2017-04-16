@@ -383,9 +383,9 @@ Begin :: proc(name : string, open : ^bool, flags : GuiWindowFlags) -> bool{
 //Begin                                                   :: proc(name : c_string, p_open : ^bool, size_on_first_use : Vec2, bg_alpha : f32, flags : GuiWindowFlags) -> bool                                                                                                     #foreign cimgui "igBegin2";
 End                                                     :: proc()                                                                                                                                                                                                              #foreign cimgui "igEnd";
 BeginChild :: proc(str_id : string, size : Vec2, border : bool, extra_flags : GuiWindowFlags) -> bool {
-    ImBeginChild :: proc(str_id : c_string, size : u64, border : bool, extra_flags : GuiWindowFlags) -> bool #foreign cimgui "igBeginChild";
+    ImBeginChild :: proc(str_id : c_string, size : Vec2, border : bool, extra_flags : GuiWindowFlags) -> bool #foreign cimgui "igBeginChild";
     str := strings.new_c_string(str_id); defer free(str);
-    return ImBeginChild(str, transmute(u64)size, border, extra_flags);
+    return ImBeginChild(str, size, border, extra_flags);
 }
 
 //BeginChild                                              :: proc(str_id : c_string, size : Vec2, border : bool, extra_flags : GuiWindowFlags) -> bool                                                                                                                           #foreign cimgui "igBeginChild";
@@ -511,17 +511,27 @@ GetIdPtr                                                :: proc(ptr_id : rawptr)
 Text :: proc(fmt_: string, args: ..any) {
     // NOTE: This procedure would have a C-style vararg parameters but
     // it will be ignored as Odin doesn't support them
-    igText :: proc(fmt: ^byte) #cc_c #foreign cimgui "igText"; 
+    ImText :: proc(fmt: ^byte) #cc_c #foreign cimgui "igText"; 
 
     buf: [1024]byte;
     s := fmt.sprintf(buf[..0], fmt_, ..args);
     assert(len(s) < len(buf));
     c_str := ^buf[0];
 
-    igText(c_str);
+    ImText(c_str);
+}
+
+TextColored :: proc(col : Vec4, fmt_: string, args: ..any) {
+    ImTextColored :: proc(col : Vec4, fmt : ^byte) #cc_c #foreign cimgui "igTextColored";
+
+    buf: [1024]byte;
+    s := fmt.sprintf(buf[..0], fmt_, ..args);
+    assert(len(s) < len(buf));
+    c_str := ^buf[0];
+
+    ImTextColored(col, c_str);
 }
 /*
-TextColored                                             :: proc(CONST struct ImVec4 col, CONST char* fmt, ...)                                                                                                                                                                 #foreign cimgui "igTextColored";
 TextDisabled                                            :: proc(CONST char* fmt, ...)                                                                                                                                                                                          #foreign cimgui "igTextDisabled";
 TextWrapped                                             :: proc(CONST char* fmt, ...)                                                                                                                                                                                          #foreign cimgui "igTextWrapped";
 */
@@ -535,19 +545,19 @@ BulletText                                              :: proc(CONST char* fmt,
 */
 
 Button :: proc(label : string, size : Vec2) -> bool {
-    ImButton :: proc(label : c_string, size : u64) -> bool #foreign cimgui "igButton";
+    ImButton :: proc(label : c_string, size : Vec2) -> bool #foreign cimgui "igButton";
     str := strings.new_c_string(label); defer free(str);
-    return ImButton(str, transmute(u64)size);
+    return ImButton(str, size);
 }
 
-SmallButton                                             :: proc(label : c_string) -> bool                                                                                                                                                                                      #foreign cimgui "igSmallButton";
-InvisibleButton                                         :: proc(str_id : c_string, size : Vec2) -> bool                                                                                                                                                                        #foreign cimgui "igInvisibleButton";
-Image :: proc(user_texture_id : TextureID, size : Vec2, uv0 : Vec2, uv1 : Vec2, tint_col : Vec4, border_col : Vec4) {
-    ImImage :: proc(user_texture_id : TextureID, size : u64, uv0 : u64, uv1 : u64, tint_col : Vec4, border_col : Vec4) #foreign cimgui "igImage";
-    fmt.println(user_texture_id, size, uv0, uv1, tint_col, border_col);
-    fmt.println(user_texture_id, transmute(u64)size, transmute(u64)uv0, transmute(u64)uv1, tint_col, border_col);
-    ImImage(user_texture_id, transmute(u64)size, transmute(u64)uv0, transmute(u64)uv1, tint_col, border_col);
+SmallButton :: proc(label : string) -> bool {
+    ImSmallButton :: proc(label : c_string) -> bool #foreign cimgui "igSmallButton";
+    str := strings.new_c_string(label); defer free(str);
+    return ImSmallButton(str);
 }
+InvisibleButton                                         :: proc(str_id : c_string, size : Vec2) -> bool                                                                                                                                                                        #foreign cimgui "igInvisibleButton";
+Image :: proc(user_texture_id : TextureID, size : Vec2, uv0 : Vec2, uv1 : Vec2, tint_col : Vec4, border_col : Vec4) #foreign cimgui "igImage";
+
 
 ImageButton                                             :: proc(user_texture_id : TextureID, size : Vec2, uv0 : Vec2, uv1 : Vec2, frame_padding : i32, bg_col : Vec4, tint_col : Vec4) -> bool                                                                                 #foreign cimgui "igImageButton";
 Checkbox                                                :: proc(label : c_string, v : ^bool) -> bool                                                                                                                                                                           #foreign cimgui "igCheckbox";
@@ -591,7 +601,13 @@ VSliderFloat                                            :: proc(label : c_string
 VSliderInt                                              :: proc(label : c_string, size : Vec2, v : ^i32, v_min : i32, v_max : i32, display_format : c_string) -> bool                                                                                                          #foreign cimgui "igVSliderInt";
 
 // Widgets: Drags                                         :: proc(tip: ctrl+click on a drag box to input text)
-DragFloat                                               :: proc(label : c_string, v : ^f32, v_speed : f32, v_min : f32, v_max : f32, display_format : c_string, power : f32)                                                                                                   #foreign cimgui "igDragFloat";
+DragFloat :: proc(label : string, v : ^f32, v_speed : f32, v_min : f32, v_max : f32, display_format : string, power : f32) {
+    ImDragFloat :: proc(label : c_string, v : ^f32, v_speed : f32, v_min : f32, v_max : f32, display_format : c_string, power : f32) #foreign cimgui "igDragFloat";
+
+    str := strings.new_c_string(label); defer free(str);
+    fstr := strings.new_c_string(display_format); defer free(fstr);
+    ImDragFloat(str, v, v_speed, v_min, v_max, fstr, power);
+}
 DragFloat2                                              :: proc(label : c_string, v : [2]f32, v_speed : f32, v_min : f32, v_max : f32, display_format : c_string, power : f32) -> bool                                                                                         #foreign cimgui "igDragFloat2";
 DragFloat3                                              :: proc(label : c_string, v : [3]f32, v_speed : f32, v_min : f32, v_max : f32, display_format : c_string, power : f32) -> bool                                                                                         #foreign cimgui "igDragFloat3";
 DragFloat4                                              :: proc(label : c_string, v : [4]f32, v_speed : f32, v_min : f32, v_max : f32, display_format : c_string, power : f32) -> bool                                                                                         #foreign cimgui "igDragFloat4";

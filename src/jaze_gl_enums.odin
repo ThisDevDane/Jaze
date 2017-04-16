@@ -317,7 +317,17 @@ VertexAttribDataType :: enum i32 {
     UInt_10f_11f_11f_rev               = const.UNSIGNED_INT_10F_11F_11F_REV, 
 }
 
-TextureTargets :: enum u32 {
+MipmapTargets :: enum i32 {
+    Texture1D                          = const.TEXTURE_1D, 
+    Texture2D                          = const.TEXTURE_2D,
+    Texture3D                          = const.TEXTURE_3D, 
+
+    Texture1DArray                     = const.TEXTURE_1D_ARRAY,
+    Texture2DArray                     = const.TEXTURE_2D_ARRAY,
+    TextureCubeMapArray                = const.TEXTURE_CUBE_MAP_ARRAY,
+}
+
+TextureTargets :: enum i32 {
     Texture1D                          = const.TEXTURE_1D, 
     Texture2D                          = const.TEXTURE_2D,
     Texture3D                          = const.TEXTURE_3D, 
@@ -361,6 +371,8 @@ TextureParametersValues :: enum i32 {
     NearestMipmapLinear                = const.NEAREST_MIPMAP_LINEAR,
     LinearMipmapLinear                 = const.LINEAR_MIPMAP_LINEAR,
 
+    Repeat                             = const.REPEAT,
+    ClampToEdge                        = const.CLAMP_TO_EDGE,
 }
 
 TextureUnits :: enum i32 {

@@ -7,7 +7,7 @@
 #import catalog "jaze_catalog.odin";
 #import ja "jaze_asset.odin";
 
-_StdWindowFlags :: imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse;
+STD_WINDOW :: imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse;
 
 _GlobalDebugWndBools : map[string]bool;
 _CurrentViewTexture : gl.Texture;
@@ -34,48 +34,70 @@ TryShowWindow :: proc(id : string, p : proc(b : ^bool)) {
 }
 
 OpenGLExtensions :: proc(name : string, extensions : [dynamic]string, show : ^bool) {
-    imgui.Begin(name, show, _StdWindowFlags); 
+    imgui.Begin(name, show, STD_WINDOW); 
     {
-        //imgui.BeginChild("Ext", imgui.Vec2{0, 0}, true, 0);
         for ext in extensions {
             imgui.Text(ext);
         }
-        //imgui.EndChild();   
     }   
     imgui.End();
 }
 
+_PreviewSize := imgui.Vec2{20, 20};
+_ShowID : gl.Texture = 1;
 OpenGLTextureOverview :: proc(show : ^bool) {
-    imgui.Begin("Loaded Textures", show, _StdWindowFlags);
-    {
-        for id in gl.DebugInfo.LoadedTextures {
-            imgui.PushIdInt(cast(i32)id);
-            imgui.Text("Texture %d:", id); imgui.SameLine(0, -1);
-            if imgui.Button("View", imgui.Vec2{0, 0}) {
-                _CurrentViewTexture = id;
-                SetWindowState("ViewGLTexture", true);
-            }
-            imgui.PopId();
+    _CalculateMaxColumns :: proc(w : f32, csize : f32, max : i32) -> i32 {
+        Columns : i32 = cast(i32)(w / csize);
+        if Columns > max {
+            Columns = max;
         }
-    }
-    imgui.End();
 
-    if GetWindowState("ViewGLTexture") {
-        b := GetWindowState("ViewGLTexture");
-        OpenGLTextureView(_CurrentViewTexture, ^b);
-        SetWindowState("ViewGLTexture", b);
+        return Columns;
     }
-}
 
-OpenGLTextureView :: proc(textureId : gl.Texture, show : ^bool) {
-    imgui.Begin("Texture View", show, _StdWindowFlags);
+    imgui.Begin("Loaded Textures", show, STD_WINDOW);
     {
-        imgui.Image(cast(imgui.TextureID)cast(uint)1, imgui.Vec2{100, 100}, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0, 0, 0, 0});
+        imgui.DragFloat("Preview Size:", ^_PreviewSize.x, 0.2, 20, 100, "%.0f", 1);
+        imgui.Separator();
+        _PreviewSize.y = _PreviewSize.x;
+        size : imgui.Vec2;
+        imgui.GetWindowSize(^size);
+        Columns := _CalculateMaxColumns(size.x, _PreviewSize.x + 15, cast(i32)len(gl.DebugInfo.LoadedTextures));
+        imgui.BeginChild("", imgui.Vec2{0, 0}, false, 0);
+        {
+            imgui.Columns(Columns, nil, false);
+            for id in gl.DebugInfo.LoadedTextures {
+                imgui.Image(cast(imgui.TextureID)cast(uint)id, _PreviewSize, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0.91, 0.4, 0.23, 1});
+                if imgui.IsItemHovered() {
+                    imgui.BeginTooltip();
+                    {
+                        imgui.Text("ID: %d", id);
+                    }
+                    imgui.EndTooltip();
+                }
+                if imgui.IsItemClicked(0) {
+                    _ShowID = id;
+                }
+
+                imgui.NextColumn();
+            }
+            imgui.Columns(1, nil, false);
+            }
+        imgui.EndChild();
+    }
+    imgui.End();
+
+    imgui.Begin("Texture View", nil, STD_WINDOW);
+    {
+        size : imgui.Vec2;
+        imgui.GetWindowSize(^size);
+        imgui.Image(cast(imgui.TextureID)cast(uint)_ShowID, imgui.Vec2{size.x-30, size.y-30}, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0.91, 0.4, 0.23, 0});
     }
     imgui.End();
 }
+
 OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
-    imgui.Begin("OpenGL Info", show, _StdWindowFlags);
+    imgui.Begin("OpenGL Info", show, STD_WINDOW);
     {
         imgui.Text("Versions:");
         imgui.Indent(20.0);
@@ -90,12 +112,16 @@ OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
             imgui.Text("CtxFlags: %d", vars.ContextFlags);
         imgui.Separator();
             imgui.Text("Number of extensions:       %d", vars.NumExtensions); imgui.SameLine(0, -1);
-            if imgui.Button("View##Ext", imgui.Vec2{0, 0}) {
+            if imgui.SmallButton("View##Ext") {
                 SetWindowState("OpenGLShowExtensions", true);
             }
-            imgui.Text("Number of WGL extensions:   %d", vars.NumWglExtensions); imgui.SameLine(0, -1); 
-            if imgui.Button("View##WGL", imgui.Vec2{0, 0}) {
+            imgui.Text("Number of WGL extensions:   %d", vars.NumWglExtensions);imgui.SameLine(0, -1);
+            if imgui.SmallButton("View##WGL") {
                 SetWindowState("OpenGLShowWGLExtensions", true);
+            }
+            imgui.Text("Number of loaded textures: %d", len(gl.DebugInfo.LoadedTextures)); imgui.SameLine(0, -1);
+            if imgui.SmallButton("View##Texture") {
+                SetWindowState("ShowGLTextureOverview", true);
             }
             imgui.Text("Number of functions loaded: %d/%d", gl.DebugInfo.NumberOfFunctionsLoadedSuccessed, gl.DebugInfo.NumberOfFunctionsLoaded); 
         imgui.Separator();
@@ -138,11 +164,6 @@ OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
             imgui.Columns(1, nil, false);
             imgui.EndChild();
         }
-
-        imgui.Text("Number of loaded textures: %d", len(gl.DebugInfo.LoadedTextures)); imgui.SameLine(0, -1);
-        if imgui.Button("View##Texture", imgui.Vec2{0, 0}) {
-            SetWindowState("ShowGLTextureOverview", true);
-        }
     }
     imgui.End();
 
@@ -162,7 +183,7 @@ OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
 }
 
 Win32VarsInfo :: proc(vars : ^main.Win32Vars_t, show : ^bool) {
-    imgui.Begin("Win32Vars Info", show, _StdWindowFlags);
+    imgui.Begin("Win32Vars Info", show, STD_WINDOW);
     {
         imgui.Text("Application Handle:    0x%X", cast(int)vars.AppHandle);
         imgui.Text("Window Handle:         0x%X", cast(int)vars.WindowHandle);
@@ -172,14 +193,29 @@ Win32VarsInfo :: proc(vars : ^main.Win32Vars_t, show : ^bool) {
     imgui.End();
 }
 
+_PrintGamepadName :: proc(id : int, err : xinput.Error) {
+    imgui.Text("Gamepad %d(", id+1);
+    b := err == xinput.Success;
+    c : imgui.Vec4;
+    if b {
+        c = imgui.Vec4{0,0.78,0,1};
+    } else {
+        c = imgui.Vec4{1,0,0,1};
+    }
+    imgui.SameLine(0, 0);
+    imgui.TextColored(c, "%s", b ? "Connected" : "Not Connected");
+    imgui.SameLine(0, 0);
+    imgui.Text("):");
+}
+
 ShowXinputInfoWindow :: proc(show : ^bool) {
-    imgui.Begin("XInput Info", show, _StdWindowFlags);
+    imgui.Begin("XInput Info", show, STD_WINDOW);
     {
         imgui.Text("Version: %s", xinput.Version);
         imgui.Text("Lib Address: 0x%x", cast(int)xinput.DebugInfo.LibAddress);
         imgui.Text("Number of functions loaded: %d/%d", xinput.DebugInfo.NumberOfFunctionsLoadedSuccessed, xinput.DebugInfo.NumberOfFunctionsLoaded); 
         if imgui.CollapsingHeader("Loaded Functions", 0) {
-            imgui.BeginChild("Functions", imgui.Vec2{0, 0}, true, 0);
+            imgui.BeginChild("Functions", imgui.Vec2{0, 150}, true, 0);
             imgui.Columns(2, nil, false);
             for status in xinput.DebugInfo.Statuses {
                 imgui.Text(status.Name);
@@ -192,9 +228,10 @@ ShowXinputInfoWindow :: proc(show : ^bool) {
             imgui.EndChild();
         }
 
+        imgui.Columns(2, nil, true);
         for i in 0..4 { //I WANT TO DO THIS Pl0x for(user in xinput.Users) 
             cap, err := xinput.GetCapabilities(cast(xinput.User)i);
-            imgui.Text("Gamepad %d(%s):", i+1, err == xinput.Success ? "Connected" : "Not Connected");
+            _PrintGamepadName(i, err);
             if err == xinput.Success {
                 imgui.Text("Capabilites:");
                 imgui.Indent(20.0);
@@ -218,18 +255,24 @@ ShowXinputInfoWindow :: proc(show : ^bool) {
                     imgui.Text("Battery Level: %s", "N/A");
                 imgui.Unindent(20.0);
             }
-            imgui.Separator();
+
+            imgui.NextColumn();
+            if i%2 == 1 {
+                imgui.Separator();
+            }
         }
+        imgui.Columns(1, nil, false);
     }
     imgui.End();
 }
 
 ShowXinputStateWindow :: proc(show : ^bool) {
-    imgui.Begin("XInput State", show, _StdWindowFlags);
+    imgui.Begin("XInput State", show, STD_WINDOW);
     {
+        imgui.Columns(2, nil, true);
         for i in 0..4 {
             state, err := xinput.GetState(cast(xinput.User)i);
-            imgui.Text("Gamepad %d(%s):", i+1, err == xinput.Success ? "Connected" : "Not Connected");
+            _PrintGamepadName(i, err);
             if err == xinput.Success {
                 imgui.Indent(10.0);
                 {
@@ -277,13 +320,19 @@ ShowXinputStateWindow :: proc(show : ^bool) {
                 }
                 imgui.Unindent(10.0);
             }
+            
+            imgui.NextColumn();
+            if i%2 == 1 {
+                imgui.Separator();
+            }
         }
+        imgui.Columns(1, nil, false);
     }
     imgui.End();
 }
 
 ShowTimeDataWindow :: proc(show : ^bool) {
-    imgui.Begin("Time Data", show, _StdWindowFlags);
+    imgui.Begin("Time Data", show, STD_WINDOW);
     {
         data := time.GetTimeData();
         imgui.Text("Time Scale:               %f", data.TimeScale);
@@ -300,36 +349,60 @@ ShowTimeDataWindow :: proc(show : ^bool) {
 
 ShowCatalogWindow :: proc(show : ^bool) {
 
-    PrintName :: proc(asset : ja.Asset) {
-        PrintLoadedUploaded :: proc(name : string, load : bool, up : bool) {
-            imgui.Text("%s %s%s", name, load ? "[Loaded]" : "",
-                       up ? "[Uploaded]" : "");
+    PrintName :: proc(asset : ^ja.Asset) {
+        PrintLoadedUploaded :: proc(name : string, load : bool, up : bool, asset : ^ja.Asset) {
+            imgui.Text(name);
+            ToolTip(asset);
+            imgui.SameLine(0, 0);
+            imgui.TextColored(imgui.Vec4{0,0.78,0,1}, " %s", load ? "[Loaded]" : "");
+            imgui.SameLine(0, 0);
+            imgui.TextColored(imgui.Vec4{1,0,0,1}, "%s", up ? "[Uploaded]" : "");
         }
 
         match a in asset {
             case ja.Asset.Texture : {
-                PrintLoadedUploaded(a.FileInfo.Name, a.LoadedFromDisk, a.GLID != 0);
+                PrintLoadedUploaded(a.FileInfo.Name, a.LoadedFromDisk, a.GLID != 0, asset);
             }
 
             case ja.Asset.Shader : {
-                PrintLoadedUploaded(a.FileInfo.Name, a.LoadedFromDisk, a.GLID != 0);
+                PrintLoadedUploaded(a.FileInfo.Name, a.LoadedFromDisk, a.GLID != 0, asset);
             }
 
             default : {
                 imgui.Text("%s %s", a.FileInfo.Name, a.LoadedFromDisk ? "[Loaded]" : "");
+                ToolTip(asset);
             }
         }
     }
 
-    imgui.Begin("Catalogs", show, _StdWindowFlags);
+    ToolTip :: proc(val : ^ja.Asset) {
+      if(imgui.IsItemHovered()) {
+            imgui.BeginTooltip();
+            imgui.Text("Path:        %s", val.FileInfo.Path);
+            imgui.Text("Disk Size:   %.2fKB", cast(f32)val.FileInfo.Size/1024.0);
+            match e in val {
+                case ja.Asset.Texture : {
+                    imgui.Text("ID:          %d", e.GLID);
+                    imgui.Text("Size:        %dx%d", e.Width, e.Height);
+                    imgui.Text("Comp:        %d", e.Comp);
+                }
+
+                case ja.Asset.Shader : {
+                    imgui.Text("ID:          %d", e.GLID);
+                    imgui.Text("Type:        %v", e.Type);
+                }
+            }
+            imgui.EndTooltip();
+        }
+    }
+
+    imgui.Begin("Catalogs", show, STD_WINDOW);
     {
         imgui.Combo("Catalog", ^_ChosenCatalog, catalog.DebugInfo.CatalogNames[..], -1);
         imgui.Separator();
         cat := catalog.DebugInfo.Catalogs[_ChosenCatalog];
         imgui.Text("Folder Path:     %s", cat.Path);
         imgui.Text("Kind:            %v", cat.Kind);
-        imgui.Text("Number of files: %d/%d", len(cat.Items), cat.FilesInFolder);
-        imgui.Text("Size:            %.2fKB/%.2fKB", cast(f32)cat.CurrentSize/1024.0, cast(f32)cat.MaxSize/1024.0);
         imgui.Text("Accepted Extensions: ");
         imgui.Indent(10.0);
         for ext in cat.AcceptedExtensions {
@@ -337,30 +410,15 @@ ShowCatalogWindow :: proc(show : ^bool) {
         }
         imgui.Unindent(10.0);
         imgui.Separator();
-        imgui.BeginChild("Files", imgui.Vec2{0, 0}, true, 0);
+        imgui.BeginChild("Files", imgui.Vec2{0, -18}, true, 0);
         for val in cat.Items {
-            PrintName(val^);
-            if(imgui.IsItemHovered()) {
-                imgui.BeginTooltip();
-                imgui.Text("Path:   %s", val.FileInfo.Path);
-                imgui.Text("Size:   %.2fKB", cast(f32)val.FileInfo.Size/1024.0);
-                match e in val {
-                    case ja.Asset.Texture : {
-                        imgui.Text("ID:     %d", e.GLID);
-                        imgui.Text("Width:  %d", e.Width);
-                        imgui.Text("Height: %d", e.Height);
-                        imgui.Text("Comp:   %d", e.Comp);
-                    }
-
-                    case ja.Asset.Shader : {
-                        imgui.Text("ID:     %d", e.GLID);
-                        imgui.Text("Type:   %v", e.Type);
-                    }
-                }
-                imgui.EndTooltip();
-            }
+            PrintName(val);
         }
         imgui.EndChild();
+        imgui.Separator();
+        imgui.Text("No. of files: %d/%d", len(cat.Items), cat.FilesInFolder);
+        imgui.SameLine(0, -1);
+        imgui.Text("In Memory: %.2fKB/%.2fKB", cast(f32)cat.CurrentSize/1024.0, cast(f32)cat.MaxSize/1024.0);
     }
     imgui.End();
 }
