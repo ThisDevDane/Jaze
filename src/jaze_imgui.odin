@@ -271,8 +271,8 @@ RenderProc :: proc(data : ^DrawData) #cc_c {
     //@TODO(Hoej): BACKUP STATE!
 
     gl.Enable(gl.Capabilities.Blend);
-    gl.BlendEquation(gl.BlendEquations.FuncAdd);
     gl.BlendFunc(gl.BlendFactors.SrcAlpha, gl.BlendFactors.OneMinusSrcAlpha);
+    gl.BlendEquation(gl.BlendEquations.FuncAdd);
     gl.Disable(gl.Capabilities.CullFace);
     gl.Disable(gl.Capabilities.DepthTest);
     gl.Enable(gl.Capabilities.ScissorTest);

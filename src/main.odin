@@ -37,7 +37,7 @@ CreateWindow :: proc (instance : win32.Hinstance, ) -> win32.Hwnd {
     wndClass.style = CS_OWNDC|CS_HREDRAW|CS_VREDRAW;
     wndClass.wnd_proc = WindowProc;
     wndClass.instance = instance;
-wndClass.class_name = strings.new_c_string("jaze_class");
+    wndClass.class_name = strings.new_c_string("jaze_class");
 
     if RegisterClassExA(^wndClass) == 0 {
         panic("Could Not Register Class");
@@ -324,8 +324,7 @@ main :: proc() {
     fmt.sprint(TitleBuf[..0], "Jaze ", win32vars.Ogl.VersionString);
     win32.SetWindowTextA(win32vars.WindowHandle, ^TitleBuf[0]);
 
-    col : f32 = 56.0 / 255.0;
-    gl.ClearColor(col, col, col, 1.0);
+    gl.ClearColor(1, 0, 1, 1);
     jimgui.Init(win32vars.WindowHandle);
     ProgramRunning = true;
 

@@ -87,11 +87,11 @@ OpenGLTextureOverview :: proc(show : ^bool) {
     }
     imgui.End();
 
-    imgui.Begin("Texture View", nil, STD_WINDOW);
+    imgui.Begin("Texture View", nil, STD_WINDOW | imgui.GuiWindowFlags.NoScrollbar);
     {
         size : imgui.Vec2;
         imgui.GetWindowSize(^size);
-        imgui.Image(cast(imgui.TextureID)cast(uint)_ShowID, imgui.Vec2{size.x-30, size.y-30}, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0.91, 0.4, 0.23, 0});
+        imgui.Image(cast(imgui.TextureID)cast(uint)_ShowID, imgui.Vec2{size.x-16, size.y-35}, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0.91, 0.4, 0.23, 0});
     }
     imgui.End();
 }
@@ -354,9 +354,9 @@ ShowCatalogWindow :: proc(show : ^bool) {
             imgui.Text(name);
             ToolTip(asset);
             imgui.SameLine(0, 0);
-            imgui.TextColored(imgui.Vec4{0,0.78,0,1}, " %s", load ? "[Loaded]" : "");
+            imgui.TextColored(imgui.Vec4{1,0,0,1}, " %s", load ? "[Loaded]" : "");
             imgui.SameLine(0, 0);
-            imgui.TextColored(imgui.Vec4{1,0,0,1}, "%s", up ? "[Uploaded]" : "");
+            imgui.TextColored(imgui.Vec4{0,0.78,0,1}, "%s", up ? "[Uploaded]" : "");
         }
 
         match a in asset {

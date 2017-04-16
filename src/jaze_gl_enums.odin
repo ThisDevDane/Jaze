@@ -450,3 +450,14 @@ PolygonModes :: enum i32 {
     Line = const.LINE,
     Fill = const.FILL,
 }
+
+DepthFuncs :: enum i32 {
+    Never = const.NEVER,
+    Less = const.LESS,
+    Equal = const.EQUAL,
+    Lequal = const.LEQUAL,
+    Greater = const.GREATER,
+    NotEqual = const.NOTEQUAL,
+    Gequal = const.GEQUAL,
+    Always = const.ALWAYS,
+}
