@@ -265,6 +265,7 @@ RenderDebugUI :: proc(vars : ^Win32Vars_t) {
 
         MakeMenuItem("Time Data", "ShowTimeData");
         MakeMenuItem("Catalogs", "ShowCatalogWindow");
+        MakeMenuItem("Camera Settings", "ShowCameraSettings");
         MakeMenuItem("Show Test Window", "ShowTestWindow");
 
         imgui.Separator();

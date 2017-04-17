@@ -9,6 +9,7 @@
 #import ja "jaze_asset.odin";
 #import rnd "pcg.odin";
 #import "odimgui/src/imgui.odin";
+#import debugWnd "jaze_debug_windows.odin";
 
 mainProgram : gl.Program; 
 vao : gl.VAO;
@@ -16,35 +17,15 @@ textures : [dynamic]gl.Texture;
 back : gl.Texture;
 
 pos := [..]math.Vec3 {
-    {0,   0, 0},
-    {0.2, 0, 0}, 
+    {0,  1, 0},
+    {10, 0, 0}, 
 };
-l, r, b, t, n, f : f32;
 
-test :: proc (left, top, bottom, right : f32, near, far : f32) -> math.Mat4 {
-    ortho := math.Mat4{};
-    ortho[0][0] = 2.0 / (right - left);
-    ortho[0][1] = 0;
-    ortho[0][2] = 0;
-    ortho[0][3] = -1.0 * (left + right) / (right - left);
+fov : f32 = 45;
+near : f32 = 0.1;
+far : f32 = 50;
 
-    ortho[1][0] = 0;
-    ortho[1][1] = 2.0 / (top - bottom);
-    ortho[1][2] = 0;
-    ortho[1][3] = -1 * (top + bottom) / (top - bottom);
-
-    ortho[2][0] = 0;
-    ortho[2][1] = 0;
-    ortho[2][2] = (-2.0 / (far - near));
-    ortho[2][3] = (-1.0 * (far + near) / (far - near));
-
-    ortho[3][0] = 0;
-    ortho[3][1] = 0;
-    ortho[3][2] = 0;
-    ortho[3][3] = 1.0;
-
-    return ortho;
-}
+cameraPos := math.Vec3{0, 0, -15};
 
 Draw :: proc(window : math.Vec2) { 
     gl.Enable(gl.Capabilities.DepthTest);
@@ -55,23 +36,31 @@ Draw :: proc(window : math.Vec2) {
     gl.DepthFunc(gl.DepthFuncs.Lequal);
     gl.BlendFunc(gl.BlendFactors.SrcAlpha, gl.BlendFactors.OneMinusSrcAlpha);  
 
-    view  := math.mat4_translate(math.Vec3{0.0, 0.0, -15.0});
-    //proj  := math.perspective(math.to_radians(45.0), window.x / window.y, 0.1, 50.0);
-
-    imgui.Begin("TEST", nil, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
-    {
-        imgui.DragFloat("Left",   ^l,    0.1, 0, 0, "%.2f", 1);
-        imgui.DragFloat("Right",  ^r,    0.1, 0, 0, "%.2f", 1);
-        imgui.DragFloat("Bottom", ^b,    0.1, 0, 0, "%.2f", 1);
-        imgui.DragFloat("Top",    ^t,    0.1, 0, 0, "%.2f", 1);
-        imgui.DragFloat("Near",   ^n,    0.1, 0, 0, "%.2f", 1);
-        imgui.DragFloat("Far",    ^f,    0.1, 0, 0, "%.2f", 1);
+    if debugWnd.GetWindowState("ShowCameraSettings") {
+        b := debugWnd.GetWindowState("ShowCameraSettings");
+        imgui.Begin("Camera Settings", ^b, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
+        {
+            imgui.DragFloat("FOV",  ^fov,  0.1, 0, 0, "%.2f", 1);
+            imgui.DragFloat("Near", ^near, 0.1, 0, 0, "%.2f", 1);
+            imgui.DragFloat("Far",  ^far,  0.1, 0, 0, "%.2f", 1);
+            imgui.Separator();
+            pos : [3]f32;
+            pos[0] = -cameraPos.x;
+            pos[1] = -cameraPos.y;
+            pos[2] = -cameraPos.z;
+            imgui.DragFloat3("Pos", ^pos, 0.1, 0, 0, "%.2f", 1);
+            cameraPos.x = -pos[0];
+            cameraPos.y = -pos[1];
+            cameraPos.z = -pos[2];
+        }
+        imgui.End();
+        debugWnd.SetWindowState("ShowCameraSettings", b);
     }
-    imgui.End();
-
-    proj  := test(l, t, b, r, n, f);
+    
+    view  := math.mat4_translate(cameraPos);
+    proj  := math.perspective(math.to_radians(fov), window.x / window.y, near, far);
     gl.UniformMatrix4fv(mainProgram.Uniforms["View"],  view,  false);
-    gl.UniformMatrix4fv(mainProgram.Uniforms["Proj"],  proj,  true);
+    gl.UniformMatrix4fv(mainProgram.Uniforms["Proj"],  proj,  false);
 
     gl.BindTexture(gl.TextureTargets.Texture2D, back);
     t := math.mat4_translate(math.Vec3{-12,-10, -1});

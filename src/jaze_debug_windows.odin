@@ -52,6 +52,9 @@ OpenGLTextureOverview :: proc(show : ^bool) {
             Columns = max;
         }
 
+        if Columns <= 0 {
+            Columns = 1;
+        }
         return Columns;
     }
 
@@ -62,7 +65,7 @@ OpenGLTextureOverview :: proc(show : ^bool) {
         _PreviewSize.y = _PreviewSize.x;
         size : imgui.Vec2;
         imgui.GetWindowSize(^size);
-        Columns := _CalculateMaxColumns(size.x, _PreviewSize.x + 15, cast(i32)len(gl.DebugInfo.LoadedTextures));
+        Columns := _CalculateMaxColumns(size.x, _PreviewSize.x + 24, cast(i32)len(gl.DebugInfo.LoadedTextures));
         imgui.BeginChild("", imgui.Vec2{0, 0}, false, 0);
         {
             imgui.Columns(Columns, nil, false);
@@ -78,7 +81,6 @@ OpenGLTextureOverview :: proc(show : ^bool) {
                 if imgui.IsItemClicked(0) {
                     _ShowID = id;
                 }
-
                 imgui.NextColumn();
             }
             imgui.Columns(1, nil, false);

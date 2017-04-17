@@ -608,8 +608,17 @@ DragFloat :: proc(label : string, v : ^f32, v_speed : f32, v_min : f32, v_max : 
     fstr := strings.new_c_string(display_format); defer free(fstr);
     ImDragFloat(str, v, v_speed, v_min, v_max, fstr, power);
 }
+
 DragFloat2                                              :: proc(label : c_string, v : [2]f32, v_speed : f32, v_min : f32, v_max : f32, display_format : c_string, power : f32) -> bool                                                                                         #foreign cimgui "igDragFloat2";
-DragFloat3                                              :: proc(label : c_string, v : [3]f32, v_speed : f32, v_min : f32, v_max : f32, display_format : c_string, power : f32) -> bool                                                                                         #foreign cimgui "igDragFloat3";
+
+DragFloat3 :: proc(label : string, v : ^[3]f32, v_speed : f32, v_min : f32, v_max : f32, display_format : string, power : f32) -> bool {
+    ImDragFloat3 :: proc(label : c_string, v : ^f32, v_speed : f32, v_min : f32, v_max : f32, display_format : c_string, power : f32) -> bool #foreign cimgui "igDragFloat3";
+
+    str := strings.new_c_string(label); defer free(str);
+    fstr := strings.new_c_string(display_format); defer free(fstr);
+    return ImDragFloat3(str, ^v[0], v_speed, v_min, v_max, fstr, power);
+}
+
 DragFloat4                                              :: proc(label : c_string, v : [4]f32, v_speed : f32, v_min : f32, v_max : f32, display_format : c_string, power : f32) -> bool                                                                                         #foreign cimgui "igDragFloat4";
 DragFloatRange2                                         :: proc(label : c_string, v_current_min : ^f32, v_current_max : ^f32, v_speed : f32, v_min : f32, v_max : f32, display_format : c_string, display_format_max : c_string, power : f32) -> bool                          #foreign cimgui "igDragFloatRange2";
 DragInt                                                 :: proc(label : c_string, v : ^i32, v_speed : f32, v_min : i32, v_max : i32, display_format : c_string)                                                                                                                #foreign cimgui "igDragInt";
