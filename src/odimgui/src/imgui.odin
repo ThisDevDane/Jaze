@@ -628,7 +628,11 @@ DragInt4                                                :: proc(label : c_string
 DragIntRange2                                           :: proc(label : c_string, v_current_min : ^i32, v_current_max : ^i32, v_speed : f32, v_min : i32, v_max : i32, display_format : c_string, display_format_max : c_string) -> bool                                       #foreign cimgui "igDragIntRange2";
 
 // Widgets: Input
-InputText                                               :: proc(label : c_string, buf : c_string, buf_size : u64 /*size_t*/, flags : GuiInputTextFlags, callback : GuiTextEditCallback, user_data : rawptr) -> bool                                                            #foreign cimgui "igInputText";
+InputText :: proc(label : string, buf : []byte, flags : GuiInputTextFlags, callback : GuiTextEditCallback, user_data : rawptr) -> bool {
+    ImInputText :: proc(label : c_string, buf : c_string, buf_size : u64 /*size_t*/, flags : GuiInputTextFlags, callback : GuiTextEditCallback, user_data : rawptr) -> bool #foreign cimgui "igInputText";
+    str := strings.new_c_string(label); defer free(str);
+    return ImInputText(str, ^buf[0], cast(u64)len(buf), flags, callback, user_data);
+}
 InputTextMultiline                                      :: proc(label : c_string, buf : c_string, buf_size : u64 /*size_t*/, size : Vec2, flags : GuiInputTextFlags, callback : GuiTextEditCallback, user_data : rawptr) -> bool                                               #foreign cimgui "igInputTextMultiline";
 InputFloat                                              :: proc(label : c_string, v : ^f32, step : f32, step_fast : f32, decimal_precision : i32, extra_flags : GuiInputTextFlags) -> bool                                                                                     #foreign cimgui "igInputFloat";
 InputFloat2                                             :: proc(label : c_string, v : [2]f32, decimal_precision : i32, extra_flags : GuiInputTextFlags) -> bool                                                                                                                #foreign cimgui "igInputFloat2";

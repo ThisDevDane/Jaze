@@ -6,6 +6,8 @@
 #import "math.odin";
 #load "jaze_gl_enums.odin";
 
+#import log "jaze_log.odin";
+
 TRUE  :: 1;
 FALSE :: 0;
 
@@ -130,7 +132,7 @@ DepthFunc :: proc(func : DepthFuncs) {
     if _DepthFunc != nil {
         _DepthFunc(cast(i32)func);
     } else {
-        fmt.println(#procedure, "isn't loaded!");
+        log.LogError("%s ins't loaded!", #procedure);
     }
 }
 

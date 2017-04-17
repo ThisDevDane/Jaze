@@ -7,11 +7,12 @@
 #import catalog "jaze_catalog.odin";
 #import ja "jaze_asset.odin";
 
-STD_WINDOW :: imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse;
+STD_WINDOW :: /*imgui.GuiWindowFlags.ShowBorders |*/  imgui.GuiWindowFlags.NoCollapse;
 
 _GlobalDebugWndBools : map[string]bool;
-_CurrentViewTexture : gl.Texture;
 _ChosenCatalog : i32;
+_PreviewSize := imgui.Vec2{20, 20};
+_ShowID : gl.Texture = 1;
 
 GetWindowState :: proc(str : string) -> bool {
     return _GlobalDebugWndBools[str];
@@ -33,6 +34,32 @@ TryShowWindow :: proc(id : string, p : proc(b : ^bool)) {
     }
 }
 
+ShowDebugWindowStates :: proc(show : ^bool) {
+    imgui.Begin("Debug Window States", show, STD_WINDOW);
+    {
+        imgui.Text("Chosen Catalog Index: %d", _ChosenCatalog);
+        imgui.Text("Texture Preview Sixe: <%.2f,%.2f>", _PreviewSize.x, _PreviewSize.y);
+        imgui.Text("Texture Show ID:      %d", _ShowID);
+        imgui.Separator();_CurrentViewTexture : gl.Texture;
+_ChosenCatalog : i32;
+_PreviewSize := imgui.Vec2{20, 20};
+_ShowID : gl.Texture = 1;
+
+        imgui.BeginChild("Window States", imgui.Vec2{0, 0}, true, 0);
+        imgui.Columns(2, nil, true);
+        for val, id in _GlobalDebugWndBools {
+            imgui.Text("%s", id);
+            imgui.NextColumn();
+            imgui.Text("%t", val);
+            imgui.NextColumn();
+            imgui.Separator();
+        }
+        imgui.Columns(1, nil, true);
+        imgui.EndChild();
+    }
+    imgui.End();
+}
+
 OpenGLExtensions :: proc(name : string, extensions : [dynamic]string, show : ^bool) {
     imgui.Begin(name, show, STD_WINDOW); 
     {
@@ -43,8 +70,6 @@ OpenGLExtensions :: proc(name : string, extensions : [dynamic]string, show : ^bo
     imgui.End();
 }
 
-_PreviewSize := imgui.Vec2{20, 20};
-_ShowID : gl.Texture = 1;
 OpenGLTextureOverview :: proc(show : ^bool) {
     _CalculateMaxColumns :: proc(w : f32, csize : f32, max : i32) -> i32 {
         Columns : i32 = cast(i32)(w / csize);
@@ -154,12 +179,16 @@ OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
                     imgui.EndTooltip();
                 }*/
                 imgui.NextColumn();
+                c : imgui.Vec4;
                 if status.Success {
+                    c = imgui.Vec4{0,0.78,0,1};
                     suc = "true";
                 } else {
+                    c = imgui.Vec4{1,0,0,1};
                     suc = "false";
                 }
-                imgui.Text("Loaded: %s", suc);
+
+                imgui.TextColored(c, "Loaded: %s", suc);
                 imgui.NextColumn();
 
             }

@@ -35,13 +35,14 @@ SetStyle :: proc() {
     style.Colors[GuiCol.WindowBg]              = Vec4{0.23, 0.23, 0.23, 0.98};
     style.Colors[GuiCol.ChildWindowBg]         = Vec4{0.20, 0.20, 0.20, 1.00};
     style.Colors[GuiCol.PopupBg]               = Vec4{0.25, 0.25, 0.25, 0.96};
+    style.Colors[GuiCol.Column]                = Vec4{0.18, 0.18, 0.18, 0.98};
     style.Colors[GuiCol.Border]                = Vec4{0.18, 0.18, 0.18, 0.98};
     style.Colors[GuiCol.BorderShadow]          = Vec4{0.00, 0.00, 0.00, 0.04};
     style.Colors[GuiCol.FrameBg]               = Vec4{0.00, 0.00, 0.00, 0.29};
     style.Colors[GuiCol.TitleBg]               = Vec4{0.25, 0.25, 0.25, 0.98};
     style.Colors[GuiCol.TitleBgCollapsed]      = Vec4{0.25, 0.25, 0.25, 0.49};
     style.Colors[GuiCol.TitleBgActive]         = Vec4{0.33, 0.33, 0.33, 0.98};
-    style.Colors[GuiCol.MenuBarBg]             = Vec4{0.39, 0.39, 0.39, 0.78};
+    style.Colors[GuiCol.MenuBarBg]             = Vec4{0.11, 0.11, 0.11, 0.42};
     style.Colors[GuiCol.ScrollbarBg]           = Vec4{0.00, 0.00, 0.00, 0.08};
     style.Colors[GuiCol.ScrollbarGrab]         = Vec4{0.27, 0.27, 0.27, 1.00};
     style.Colors[GuiCol.ScrollbarGrabHovered]  = Vec4{0.78, 0.78, 0.78, 0.40};
@@ -54,55 +55,6 @@ SetStyle :: proc() {
     style.Colors[GuiCol.HeaderActive]          = Vec4{0.80, 0.50, 0.50, 1.00};
     style.Colors[GuiCol.TextSelectedBg]        = Vec4{0.65, 0.35, 0.35, 0.26};
     style.Colors[GuiCol.ModalWindowDarkening]  = Vec4{0.20, 0.20, 0.20, 0.35};
-
-/*    style.Colors[GuiCol.Text]                 = Vec4{56.0  / 255.0, 56.0  / 255.0, 56.0  / 255.0, 255.0 / 255.0};
-    style.Colors[GuiCol.TextDisabled]         = Vec4{180.0 / 255.0, 180.0 / 255.0, 180.0 / 255.0, 255.0 / 255.0};
-
-    style.Colors[GuiCol.WindowBg]             = Vec4{255.0 / 255.0, 255.0 / 255.0, 255.0 / 255.0, 240.0 / 255.0};
-    style.Colors[GuiCol.ChildWindowBg]        = Vec4{255.0 / 255.0, 255.0 / 255.0, 255.0 / 255.0, 0.0   / 255.0};
-
-    style.Colors[GuiCol.PopupBg]              = Vec4{250.0 / 255.0, 250.0 / 255.0, 250.0 / 255.0, 240.0 / 255.0};
-
-    style.Colors[GuiCol.Border]               = Vec4{140.0 / 255.0, 140.0 / 255.0, 140.0 / 255.0, 255.0 / 255.0};
-    style.Colors[GuiCol.BorderShadow]         = Vec4{0.0   / 255.0, 0.0   / 255.0, 0.0   / 255.0, 10.0  / 255.0};
-
-    style.Colors[GuiCol.FrameBg]              = Vec4{215.0 / 255.0, 215.0 / 255.0, 215.0 / 255.0, 115.0 / 255.0};
-
-    style.Colors[GuiCol.TitleBg]              = Vec4{200.0 / 255.0, 50.0  / 255.0, 50.0  / 255.0, 255.0 / 255.0};
-    style.Colors[GuiCol.TitleBgCollapsed]     = Vec4{102.0 / 255.0, 102.0 / 255.0, 204.0 / 255.0, 102.0 / 255.0};
-    style.Colors[GuiCol.TitleBgActive]        = Vec4{255.0 / 255.0, 50.0  / 255.0, 50.0  / 255.0, 255.0 / 255.0};
-
-    style.Colors[GuiCol.MenuBarBg]            = Vec4{240.0 / 255.0, 240.0 / 255.0, 240.0 / 255.0, 255.0 / 255.0};
-
-    style.Colors[GuiCol.ScrollbarBg]          = Vec4{240.0 / 255.0, 240.0 / 255.0, 240.0 / 255.0, 244.0 / 255.0};
-    style.Colors[GuiCol.ScrollbarGrab]        = Vec4{204.0 / 255.0, 102.0 / 255.0, 102.0 / 255.0, 77.0  / 255.0};
-    style.Colors[GuiCol.ScrollbarGrabHovered] = Vec4{240.0 / 255.0, 102.0 / 255.0, 102.0 / 255.0, 102.0 / 255.0};
-    style.Colors[GuiCol.ScrollbarGrabActive]  = Vec4{255.0 / 255.0, 128.0 / 255.0, 128.0 / 255.0, 102.0 / 255.0};
-
-    style.Colors[GuiCol.ComboBg]              = Vec4{230.0 / 255.0, 230.0 / 255.0, 230.0 / 255.0, 252.0 / 255.0};
-
-    style.Colors[GuiCol.CheckMark]            = Vec4{100.0 / 255.0, 100.0 / 255.0, 100.0 / 255.0, 252.0 / 255.0};
-
-    style.Colors[GuiCol.SliderGrab]           = Vec4{100.0 / 255.0, 100.0 / 255.0, 100.0 / 255.0, 100.0 / 255.0};
-    style.Colors[GuiCol.SliderGrabActive]     = Vec4{150.0 / 255.0, 100.0 / 255.0, 100.0 / 255.0, 255.0 / 255.0};
-    
-    style.Colors[GuiCol.Button]               = Vec4{200.0 / 255.0, 50.0  / 255.0, 50.0  / 255.0, 153.0 / 255.0};
-    style.Colors[GuiCol.ButtonHovered]        = Vec4{255.0 / 255.0, 50.0  / 255.0, 50.0  / 255.0, 255.0 / 255.0};
-
-    style.Colors[GuiCol.Header]               = Vec4{240.0 / 255.0, 102.0 / 255.0, 102.0 / 255.0, 115.0 / 255.0};
-    style.Colors[GuiCol.HeaderHovered]        = Vec4{240.0 / 255.0, 115.0 / 255.0, 155.0 / 255.0, 204.0 / 255.0};
-    style.Colors[GuiCol.HeaderActive]         = Vec4{222.0 / 255.0, 135.0 / 255.0, 145.0 / 255.0, 204.0 / 255.0};
-
-    style.Colors[GuiCol.ResizeGrip]           = Vec4{150.0 / 255.0, 150.0 / 255.0, 150.0 / 255.0, 77.0  / 255.0};
-    style.Colors[GuiCol.ResizeGripHovered]    = Vec4{150.0 / 255.0, 150.0 / 255.0, 150.0 / 255.0, 153.0 / 255.0};
-    style.Colors[GuiCol.ResizeGripActive]     = Vec4{150.0 / 255.0, 150.0 / 255.0, 150.0 / 255.0, 230.0 / 255.0};
-
-    style.Colors[GuiCol.PlotLines]            = Vec4{100.0 / 255.0, 100.0 / 255.0, 100.0 / 255.0, 255.0 / 255.0};
-    style.Colors[GuiCol.PlotHistogramHovered] = Vec4{255.0 / 255.0, 116.0 / 255.0, 0.0   / 255.0, 255.0 / 255.0};
-
-    style.Colors[GuiCol.TextSelectedBg]       = Vec4{255.0 / 255.0, 0.0   / 255.0, 0.0   / 255.0, 89.0  / 255.0};
-
-    style.Colors[GuiCol.ModalWindowDarkening] = Vec4{51.0  / 255.0, 51.0  / 255.0, 51.0  / 255.0, 90.0 / 255.0};*/
 }
 
 Init :: proc(windowHandle : win32.Hwnd) {

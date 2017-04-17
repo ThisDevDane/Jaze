@@ -16,6 +16,7 @@
 #import time "jaze_time.odin";
 #import catalog "jaze_catalog.odin";
 #import asset "jaze_asset.odin";
+#import log "jaze_log.odin";
 
 ProgramRunning : bool;
 ShowDebugMenu : bool = true;
@@ -246,14 +247,19 @@ ToggleFullscreen :: proc(wnd : win32.Hwnd) {
 RenderDebugUI :: proc(vars : ^Win32Vars_t) {
 
     MakeMenuItem :: proc(title : string, id : string) {
-        if imgui.MenuItem(title, "", false, true) {
+        MakeMenuItem(title, "", id);
+    }
+
+    MakeMenuItem :: proc(title : string, shortcut : string, id : string) {
+        if imgui.MenuItem(title, shortcut, false, true) {
             debugWnd.ToggleWindow(id);
         }
     }
 
+    imgui.PushStyleColor(imgui.GuiCol.MenuBarBg, imgui.Vec4{0.35, 0.35, 0.35, 0.78});
     imgui.BeginMainMenuBar();
-    if imgui.BeginMenu("Misc", true) {
-
+   
+    if imgui.BeginMenu("Data", true) {
         MakeMenuItem("OpenGL Info", "ShowOpenGLInfo");
         MakeMenuItem("Win32Var Info", "ShowWin32VarInfo");
         
@@ -264,8 +270,18 @@ RenderDebugUI :: proc(vars : ^Win32Vars_t) {
         }
 
         MakeMenuItem("Time Data", "ShowTimeData");
+        imgui.EndMenu();
+    }
+
+    if imgui.BeginMenu("Asset", true) {
         MakeMenuItem("Catalogs", "ShowCatalogWindow");
+        imgui.EndMenu();
+    }
+
+    if imgui.BeginMenu("Misc", true) {
         MakeMenuItem("Camera Settings", "ShowCameraSettings");
+        MakeMenuItem("Console", "Alt+C", "ShowConsoleWindow");
+        MakeMenuItem("Debug Window States", "ShowDebugWindowStates");
         MakeMenuItem("Show Test Window", "ShowTestWindow");
 
         imgui.Separator();
@@ -278,8 +294,8 @@ RenderDebugUI :: proc(vars : ^Win32Vars_t) {
         }
         imgui.EndMenu();
     }
-    
     imgui.EndMainMenuBar();
+    imgui.PopStyleColor(1);
 
     if debugWnd.GetWindowState("ShowOpenGLInfo") {
         b := debugWnd.GetWindowState("ShowOpenGLInfo");
@@ -293,10 +309,13 @@ RenderDebugUI :: proc(vars : ^Win32Vars_t) {
         debugWnd.SetWindowState("ShowWin32VarInfo", b);
     }
 
-    debugWnd.TryShowWindow("ShowXinputInfo",    debugWnd.ShowXinputInfoWindow);
-    debugWnd.TryShowWindow("ShowXinputState",   debugWnd.ShowXinputStateWindow);
-    debugWnd.TryShowWindow("ShowTimeData",      debugWnd.ShowTimeDataWindow);
-    debugWnd.TryShowWindow("ShowCatalogWindow", debugWnd.ShowCatalogWindow);
+    debugWnd.TryShowWindow("ShowXinputInfo",        debugWnd.ShowXinputInfoWindow);
+    debugWnd.TryShowWindow("ShowXinputState",       debugWnd.ShowXinputStateWindow);
+    debugWnd.TryShowWindow("ShowTimeData",          debugWnd.ShowTimeDataWindow);
+    debugWnd.TryShowWindow("ShowCatalogWindow",     debugWnd.ShowCatalogWindow);
+    debugWnd.TryShowWindow("ShowDebugWindowStates", debugWnd.ShowDebugWindowStates);
+    debugWnd.TryShowWindow("ShowConsoleWindow",     log.DrawConsole);
+    debugWnd.TryShowWindow("ShowLogWindow",         log.DrawLog);
 
     if debugWnd.GetWindowState("ShowTestWindow") {
         b := debugWnd.GetWindowState("ShowTestWindow");
@@ -340,6 +359,8 @@ main :: proc() {
 
     render.Init(shaderCat, textureCat);
 
+    log.AddCommand("Test", log.TestCommand);
+
     for ProgramRunning {
         msg : win32.Msg;
         for win32.PeekMessageA(^msg, nil, 0, 0, win32.PM_REMOVE) == win32.TRUE {
@@ -353,6 +374,10 @@ main :: proc() {
                         ToggleFullscreen(win32vars.WindowHandle);
                     }
 
+                    if cast(win32.Key_Code)msg.wparam == win32.Key_Code.C {
+                        debugWnd.ToggleWindow("ShowConsoleWindow");
+                    }
+
                     if msg.wparam == 0xC0 {
                         ShowDebugMenu = !ShowDebugMenu;
                     }
@@ -364,18 +389,20 @@ main :: proc() {
                         win32.PostQuitMessage(0);
                     }
 
-                    if cast(win32.Key_Code)msg.wparam == win32.Key_Code.TAB {
+
+
+                    /*if cast(win32.Key_Code)msg.wparam == win32.Key_Code.TAB {
                         style := imgui.GetStyle();
                         style.Alpha = 0.1;
-                    } 
+                    } */
                 } 
 
-                case win32.WM_KEYUP : {
+                /*case win32.WM_KEYUP : {
                     if cast(win32.Key_Code)msg.wparam == win32.Key_Code.TAB {
                         style := imgui.GetStyle();
                         style.Alpha = 1.0;
                     } 
-                }
+                }*/
             }
 
             win32.TranslateMessage(^msg);
@@ -397,7 +424,6 @@ main :: proc() {
         gl.Clear(gl.ClearFlags.COLOR_BUFFER | gl.ClearFlags.DEPTH_BUFFER);
 
         render.Draw(win32vars.WindowSize);        
-
     when defines.DEBUG {
         if ShowDebugMenu {
             imgui.Render();
