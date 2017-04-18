@@ -47,7 +47,6 @@ CreateWindow :: proc (instance : win32.Hinstance, ) -> win32.Hwnd {
     windowStyle : u32 = WS_OVERLAPPEDWINDOW|WS_VISIBLE;
     clientRect := Rect{0,0,1280,720};
     AdjustWindowRect(^clientRect, windowStyle, 0);
-
     windowHandle := CreateWindowExA(0,
                                     wndClass.class_name,
                                     strings.new_c_string("Jaze"),
@@ -60,7 +59,6 @@ CreateWindow :: proc (instance : win32.Hinstance, ) -> win32.Hwnd {
                                     nil,
                                     instance,
                                     nil);
-
     if windowHandle == nil {
         panic("Could Not Create Window");
     }
@@ -80,18 +78,23 @@ CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.Hgl
         pfd.alpha_bits = 8;
         pfd.depth_bits = 24;
         format := win32.ChoosePixelFormat(vars.DeviceCtx, ^pfd);
+
         win32.DescribePixelFormat(vars.DeviceCtx, format, size_of(win32.PIXELFORMATDESCRIPTOR), ^pfd);
+
         win32.SetPixelFormat(vars.DeviceCtx, format, ^pfd);
+
         ctx := win32wgl.CreateContext(vars.DeviceCtx);
+
         assert(ctx != nil);
         win32wgl.MakeCurrent(vars.DeviceCtx, ctx);
 
-        vars.Ogl.VersionMajorMax = gl.GetInteger(gl.GetIntegerNames.MajorVersion);
-        vars.Ogl.VersionMinorMax = gl.GetInteger(gl.GetIntegerNames.MinorVersion);
+        gl._GetIntegervStatic(cast(i32)gl.GetIntegerNames.MajorVersion, ^vars.Ogl.VersionMajorMax);
+        gl._GetIntegervStatic(cast(i32)gl.GetIntegerNames.MinorVersion, ^vars.Ogl.VersionMinorMax);
 
         return ctx;
     } else {
         {
+    
             wndHandle := win32.CreateWindowExA(0, 
                            strings.new_c_string("STATIC"), 
                            strings.new_c_string("OpenGL Loader"), 
@@ -103,7 +106,9 @@ CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.Hgl
             assert(wndDc != nil);
             temp := vars.DeviceCtx;
             vars.DeviceCtx = wndDc;
+    
             oldCtx := CreateOpenGLContext(vars, false);
+    
             vars.DeviceCtx = temp;
             assert(oldCtx != nil);
             extensions := wgl.TryGetExtensionList{};
@@ -116,6 +121,7 @@ CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.Hgl
             win32wgl.DeleteContext(oldCtx);
             win32.ReleaseDC(wndHandle, wndDc);
             win32.DestroyWindow(wndHandle);
+    
         }
         
         attribs : [dynamic]wgl.Attrib;
@@ -333,11 +339,9 @@ main :: proc() {
     win32vars.DeviceCtx = win32.GetDC(win32vars.WindowHandle);
     win32vars.Ogl.Ctx = CreateOpenGLContext(^win32vars, true);
     gl.Init();
-
     gl.DebugMessageCallback(OpenGLDebugCallback, nil);
     gl.Enable(gl.Capabilities.DebugOutputSynchronous);
     gl.DebugMessageControl(gl.DebugSource.DontCare, gl.DebugType.DontCare, gl.DebugSeverity.Notification, 0, nil, false);
-    
     gl.GetInfo(^win32vars.Ogl);
     wgl.GetInfo(^win32vars.Ogl, win32vars.DeviceCtx);
     TitleBuf : [1024]byte;

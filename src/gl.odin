@@ -67,66 +67,7 @@ DebugInfo : DebugInfo_t;
 
 DebugMessageCallbackProc :: #type proc(source : DebugSource, type : DebugType, id : i32, severity : DebugSeverity, length : i32, message : ^byte, userParam : rawptr) #cc_c;
 
-// Functions
-    // Function variables
-    _BufferData              : proc(target: i32, size: i32, data: rawptr, usage: i32)                                   #cc_c;
-    _BindBuffer              : proc(target : i32, buffer : u32)                                                         #cc_c;
-    _GenBuffers              : proc(n : i32, buffer : ^u32)                                                             #cc_c;
-    _GenVertexArrays         : proc(count: i32, buffers: ^u32)                                                          #cc_c;
-    _EnableVertexAttribArray : proc(index: u32)                                                                         #cc_c;
-    _VertexAttribPointer     : proc(index: u32, size: i32, type: i32, normalized: bool, stride: u32, pointer: rawptr)   #cc_c;
-    _BindVertexArray         : proc(buffer: u32)                                                                        #cc_c;
-    _Uniform1i               : proc(loc: i32, v0: i32)                                                                  #cc_c;
-    _Uniform2i               : proc(loc: i32, v0, v1: i32)                                                              #cc_c;
-    _Uniform3i               : proc(loc: i32, v0, v1, v2: i32)                                                          #cc_c;
-    _Uniform4i               : proc(loc: i32, v0, v1, v2, v3: i32)                                                      #cc_c;
-    _Uniform1f               : proc(loc: i32, v0: f32)                                                                  #cc_c;
-    _Uniform2f               : proc(loc: i32, v0, v1: f32)                                                              #cc_c;
-    _Uniform3f               : proc(loc: i32, v0, v1, v2: f32)                                                          #cc_c;
-    _Uniform4f               : proc(loc: i32, v0, v1, v2, v3: f32)                                                      #cc_c;
-    _UniformMatrix4fv        : proc(loc: i32, count: u32, transpose: i32, value: ^f32)                                  #cc_c;
-    _GetUniformLocation      : proc(program: u32, name: ^byte) -> i32                                                   #cc_c;
-    _GetAttribLocation       : proc(program: u32, name: ^byte) -> i32                                                   #cc_c;
-    _DrawElements            : proc(mode: i32, count: i32, type_: i32, indices: rawptr)                                 #cc_c;
-    _DrawArrays              : proc(mode: i32, first : i32, count : i32)                                                #cc_c;
-    _UseProgram              : proc(program: u32)                                                                       #cc_c;
-    _LinkProgram             : proc(program: u32)                                                                       #cc_c;
-    _ActiveTexture           : proc(texture: i32)                                                                       #cc_c;
-    _BlendEquationSeparate   : proc(modeRGB : i32, modeAlpha : i32)                                                     #cc_c;
-    _BlendEquation           : proc(mode : i32)                                                                         #cc_c;
-    _AttachShader            : proc(program, shader: u32)                                                               #cc_c;
-    _CreateProgram           : proc() -> u32                                                                            #cc_c;
-    _ShaderSource            : proc(shader: u32, count: u32, str: ^^byte, length: ^i32)                                 #cc_c;
-    _CreateShader            : proc(shader_type: i32) -> u32                                                            #cc_c;
-    _CompileShader           : proc(shader: u32)                                                                        #cc_c;
-    _DebugMessageControl     : proc(source : i32, type : i32, severity : i32, count : i32, ids : ^u32, enabled : bool)  #cc_c;
-    _DebugMessageCallback    : proc(callback : DebugMessageCallbackProc, userParam : rawptr)                            #cc_c;
-    _GetShaderiv             : proc(shader : u32, pname : i32, params : ^i32)                                           #cc_c;
-    _GetShaderInfoLog        : proc(shader : u32, maxLength : i32, length : ^i32, infoLog : ^byte)                      #cc_c;
-    _GetStringi              : proc(name : i32, index : u32) -> ^byte                                                   #cc_c;
-    _BindFragDataLocation    : proc(program : u32, colorNumber : u32, name : ^byte)                                     #cc_c;
-    _PolygonMode             : proc(face : i32, mode : i32)                                                             #cc_c;
-    _GenerateMipmap          : proc(target : i32)                                                                       #cc_c;
-    _Enable                  : proc(cap: i32)                                                                           #cc_c;
-    _DepthFunc               : proc(func: i32)                                                                          #cc_c;
-
-    // Foreign Function Declarations
-    Viewport       :: proc(x : i32, y : i32, width : i32, height : i32)                                                  #foreign lib "glViewport";
-    ClearColor     :: proc(red : f32, blue : f32, green : f32, alpha : f32)                                              #foreign lib "glClearColor";
-    Scissor        :: proc(x : i32, y : i32, width : i32, height : i32)                                                  #foreign lib "glScissor";
-    _GetString     :: proc(name : i32) -> ^byte                                                                          #foreign lib "glGetString";
-    _TexImage2D    :: proc(target, level, internal_format, width, height, border, format, _type: i32, data: rawptr)      #foreign lib "glTexImage2D";
-    _TexParameteri :: proc(target, pname, param: i32)                                                                    #foreign lib "glTexParameteri";
-    _BindTexture   :: proc(target: i32, texture: u32)                                                                    #foreign lib "glBindTexture";
-    _GenTextures   :: proc(count: i32, result: ^u32)                                                                     #foreign lib "glGenTextures";
-    _BlendFunc     :: proc(sfactor : i32, dfactor: i32)                                                                  #foreign lib "glBlendFunc";
-    _GetIntegerv   :: proc(name: i32, v: ^i32)                                                                           #foreign lib "glGetIntegerv";
-    _Disable       :: proc(cap: i32)                                                                                     #foreign lib "glDisable";
-    _Clear         :: proc(mask: i32)                                                                                    #foreign lib "glClear";
-
-// Utility
-
-// API
+// API 
 
 DepthFunc :: proc(func : DepthFuncs) {
     if _DepthFunc != nil {
@@ -140,7 +81,7 @@ GenerateMipmap :: proc(target : MipmapTargets) {
     if _GenerateMipmap != nil {
         _GenerateMipmap(cast(i32)target);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -148,7 +89,7 @@ PolygonMode :: proc(face : PolygonFace, mode : PolygonModes) {
     if _PolygonMode != nil {
         _PolygonMode(cast(i32)face, cast(i32)mode);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -156,7 +97,7 @@ DebugMessageControl :: proc(source : DebugSource, type : DebugType, severity : D
     if _DebugMessageControl != nil {
         _DebugMessageControl(cast(i32)source, cast(i32)type, cast(i32)severity, count, ids, enabled);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -164,7 +105,7 @@ DebugMessageCallback :: proc(callback : DebugMessageCallbackProc, userParam : ra
     if _DebugMessageCallback != nil {
         _DebugMessageCallback(callback, userParam);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -177,7 +118,7 @@ BufferData :: proc(target : BufferTargets, size : i32, data : rawptr, usage : Bu
     if _BufferData != nil {
         _BufferData(cast(i32)target, size, data, cast(i32)usage);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }     
 }
 
@@ -197,7 +138,7 @@ GenBuffer :: proc() -> BufferObject {
         _GenBuffers(1, cast(^u32)^res);
         return res;
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
         return 0;
     }      
 }
@@ -208,7 +149,7 @@ GenBuffers :: proc(n : i32) -> []BufferObject {
         _GenBuffers(n, cast(^u32)^res[0]);
         return res;
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
         return nil;
     }       
 }
@@ -217,7 +158,7 @@ BindBuffer :: proc(target : BufferTargets, buffer : BufferObject) {
     if _BindBuffer != nil {
         _BindBuffer(cast(i32)target, cast(u32)buffer);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }       
 }
 
@@ -235,7 +176,7 @@ BindFragDataLocation :: proc(program : Program, colorNumber : u32, name : string
         c := strings.new_c_string(name);
         _BindFragDataLocation(program.ID, colorNumber, c);
     } else {
-        console.Log("%s isn't loaded!");      
+        console.Log("%s isn't loaded!", #procedure);      
     }
 }
 
@@ -245,7 +186,7 @@ GenVertexArray :: proc() -> VAO {
         _GenVertexArrays(1, cast(^u32)^res);
         return res;
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }  
 
     return 0;
@@ -257,7 +198,7 @@ GenVertexArrays :: proc(count : i32) -> []VAO {
         _GenVertexArrays(count, cast(^u32)^res[0]);
         return res;
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }  
 
     return nil;
@@ -267,7 +208,7 @@ EnableVertexAttribArray :: proc(index : u32) {
     if _EnableVertexAttribArray != nil {
         _EnableVertexAttribArray(index);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }       
 }
 
@@ -275,7 +216,7 @@ VertexAttribPointer :: proc(index : u32, size : i32, type : VertexAttribDataType
     if _VertexAttribPointer != nil {
         _VertexAttribPointer(index, size, cast(i32)type, normalized, stride, pointer);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }       
 }
 
@@ -284,7 +225,7 @@ BindVertexArray :: proc(buffer : VAO) {
     if _BindVertexArray != nil {
         _BindVertexArray(cast(u32)buffer);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }    
 }
 
@@ -292,7 +233,7 @@ Uniform :: proc(loc : i32, v0 : i32) {
     if _Uniform1i != nil {
         _Uniform1i(loc, v0);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -300,7 +241,7 @@ Uniform :: proc(loc: i32, v0, v1: i32) {
     if _Uniform2i != nil {
         _Uniform2i(loc, v0, v1);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -308,7 +249,7 @@ Uniform :: proc(loc: i32, v0, v1, v2: i32) {
     if _Uniform3i != nil {
         _Uniform3i(loc, v0, v1, v2);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -316,7 +257,7 @@ Uniform :: proc(loc: i32, v0, v1, v2, v3: i32) {
     if _Uniform4i != nil {
         _Uniform4i(loc, v0, v1, v2, v3);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -324,7 +265,7 @@ Uniform :: proc(loc: i32, v0: f32) {
     if _Uniform1f != nil {
         _Uniform1f(loc, v0);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -332,7 +273,7 @@ Uniform :: proc(loc: i32, v0, v1: f32) {
     if _Uniform2f != nil {
         _Uniform2f(loc, v0, v1);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -340,7 +281,7 @@ Uniform :: proc(loc: i32, v0, v1, v2: f32) {
     if _Uniform3f != nil {
         _Uniform3f(loc, v0, v1, v2);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -348,7 +289,7 @@ Uniform :: proc(loc: i32, v0, v1, v2, v3: f32) {
     if _Uniform4f != nil {
         _Uniform4f(loc, v0, v1, v2, v3);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -356,7 +297,7 @@ UniformMatrix4fv :: proc(loc : i32, matrix : math.Mat4, transpose : bool) {
     if _UniformMatrix4fv != nil {
         _UniformMatrix4fv(loc, 1, cast(i32)transpose, cast(^f32)^matrix);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -366,7 +307,7 @@ GetUniformLocation :: proc(program : Program, name : string) -> i32{
         res := _GetUniformLocation(cast(u32)program.ID, str);
         return res;
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
         return 0;
     }
 }
@@ -377,7 +318,7 @@ GetAttribLocation :: proc(program : Program, name : string) -> i32 {
         res := _GetAttribLocation(cast(u32)program.ID, str);
         return res;
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
         return 0;
     }
 }
@@ -386,7 +327,7 @@ DrawElements :: proc(mode : DrawModes, count : i32, type : DrawElementsType, ind
     if _DrawElements != nil {
         _DrawElements(cast(i32)mode, count, cast(i32)type, indices);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }    
 }
 
@@ -394,7 +335,7 @@ DrawArrays :: proc(mode : DrawModes, first : i32, count : i32) {
     if _DrawArrays != nil {
         _DrawArrays(cast(i32)mode, first, count);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }    
 }
 
@@ -402,7 +343,7 @@ UseProgram :: proc(program : Program) {
     if _UseProgram != nil {
         _UseProgram(program.ID);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -410,7 +351,7 @@ LinkProgram :: proc(program : Program) {
     if _LinkProgram != nil {
         _LinkProgram(program.ID);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -433,7 +374,7 @@ ActiveTexture :: proc(texture : TextureUnits) {
     if _ActiveTexture != nil {
         _ActiveTexture(cast(i32)texture);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -455,7 +396,7 @@ BlendEquationSeparate :: proc(modeRGB : BlendEquations, modeAlpha : BlendEquatio
     if _BlendEquationSeparate != nil {
         _BlendEquationSeparate(cast(i32)modeRGB, cast(i32)modeAlpha);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }    
 }
 
@@ -463,7 +404,7 @@ BlendEquation :: proc(mode : BlendEquations) {
     if _BlendEquation != nil {
         _BlendEquation(cast(i32)mode);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -471,7 +412,7 @@ BlendFunc :: proc(sfactor : BlendFactors, dfactor : BlendFactors) {
     if _BlendFunc != nil {
         _BlendFunc(cast(i32)sfactor, cast(i32)dfactor);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -492,26 +433,37 @@ GetString :: proc(name : GetStringNames, index : u32) -> string {
         res := _GetStringi(cast(i32)name, index);
         return strings.to_odin_string(res);
     } else {
+        console.Log("%s isn't loaded!", #procedure);
         return "nil";
     }
 }
 
 GetString :: proc(name : GetStringNames) -> string {
-    res := _GetString(cast(i32)name);
-    return strings.to_odin_string(res);
+    if _GetString != nil {
+        res := _GetString(cast(i32)name);
+        return strings.to_odin_string(res);
+    } else {
+        console.Log("%s isn't loaded!", #procedure);
+    }
+    return "nil";
 }
 
 GetInteger :: proc(name : GetIntegerNames) -> i32 {
-    res : i32;
-    _GetIntegerv(cast(i32)name, ^res);
-    return res;
+    if _GetIntegerv != nil { 
+        res : i32;
+        _GetIntegerv(cast(i32)name, ^res);
+        return res;
+    } else {
+        console.Log("%s isn't loaded!", #procedure);
+        return 0;
+    }
 }
 
 Enable  :: proc(cap : Capabilities) {
     if _Enable != nil {
         _Enable(cast(i32)cap);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -519,7 +471,7 @@ Disable  :: proc(cap : Capabilities) {
     if _Disable != nil {
         _Disable(cast(i32)cap);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -527,7 +479,7 @@ AttachShader :: proc(program : Program, shader : Shader) {
     if _AttachShader != nil {
         _AttachShader(program.ID, cast(u32)shader);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -539,7 +491,7 @@ CreateProgram :: proc() -> Program {
 
         return res;
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 
     return Program{};
@@ -561,7 +513,7 @@ ShaderSource :: proc(obj : Shader, strs : []string) {
         }
         _ShaderSource(cast(u32)obj, cast(u32)len(strs), ^newStrs[0], ^lengths[0]);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -570,7 +522,7 @@ CreateShader :: proc(type : ShaderTypes) -> Shader {
         res := _CreateShader(cast(i32)type);
         return cast(Shader)res;
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
         return Shader{};
     }
 }
@@ -579,7 +531,7 @@ CompileShader :: proc(obj : Shader) {
     if _CompileShader != nil {
         _CompileShader(cast(u32)obj);
     } else {
-        console.Log("%s isn't loaded!");
+        console.Log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -603,7 +555,64 @@ GetInfo :: proc(vars : ^OpenGLVars_t) {
     }
 }
 
+// Functions
+    // Function variables
+    _BufferData              : proc(target: i32, size: i32, data: rawptr, usage: i32)                                        #cc_c;
+    _BindBuffer              : proc(target : i32, buffer : u32)                                                              #cc_c;
+    _GenBuffers              : proc(n : i32, buffer : ^u32)                                                                  #cc_c;
+    _GenVertexArrays         : proc(count: i32, buffers: ^u32)                                                               #cc_c;
+    _EnableVertexAttribArray : proc(index: u32)                                                                              #cc_c;
+    _VertexAttribPointer     : proc(index: u32, size: i32, type: i32, normalized: bool, stride: u32, pointer: rawptr)        #cc_c;
+    _BindVertexArray         : proc(buffer: u32)                                                                             #cc_c;
+    _Uniform1i               : proc(loc: i32, v0: i32)                                                                       #cc_c;
+    _Uniform2i               : proc(loc: i32, v0, v1: i32)                                                                   #cc_c;
+    _Uniform3i               : proc(loc: i32, v0, v1, v2: i32)                                                               #cc_c;
+    _Uniform4i               : proc(loc: i32, v0, v1, v2, v3: i32)                                                           #cc_c;
+    _Uniform1f               : proc(loc: i32, v0: f32)                                                                       #cc_c;
+    _Uniform2f               : proc(loc: i32, v0, v1: f32)                                                                   #cc_c;
+    _Uniform3f               : proc(loc: i32, v0, v1, v2: f32)                                                               #cc_c;
+    _Uniform4f               : proc(loc: i32, v0, v1, v2, v3: f32)                                                           #cc_c;
+    _UniformMatrix4fv        : proc(loc: i32, count: u32, transpose: i32, value: ^f32)                                       #cc_c;
+    _GetUniformLocation      : proc(program: u32, name: ^byte) -> i32                                                        #cc_c;
+    _GetAttribLocation       : proc(program: u32, name: ^byte) -> i32                                                        #cc_c;
+    _DrawElements            : proc(mode: i32, count: i32, type_: i32, indices: rawptr)                                      #cc_c;
+    _DrawArrays              : proc(mode: i32, first : i32, count : i32)                                                     #cc_c;
+    _UseProgram              : proc(program: u32)                                                                            #cc_c;
+    _LinkProgram             : proc(program: u32)                                                                            #cc_c;
+    _ActiveTexture           : proc(texture: i32)                                                                            #cc_c;
+    _BlendEquationSeparate   : proc(modeRGB : i32, modeAlpha : i32)                                                          #cc_c;
+    _BlendEquation           : proc(mode : i32)                                                                              #cc_c;
+    _AttachShader            : proc(program, shader: u32)                                                                    #cc_c;
+    _CreateProgram           : proc() -> u32                                                                                 #cc_c;
+    _ShaderSource            : proc(shader: u32, count: u32, str: ^^byte, length: ^i32)                                      #cc_c;
+    _CreateShader            : proc(shader_type: i32) -> u32                                                                 #cc_c;
+    _CompileShader           : proc(shader: u32)                                                                             #cc_c;
+    _DebugMessageControl     : proc(source : i32, type : i32, severity : i32, count : i32, ids : ^u32, enabled : bool)       #cc_c;
+    _DebugMessageCallback    : proc(callback : DebugMessageCallbackProc, userParam : rawptr)                                 #cc_c;
+    _GetShaderiv             : proc(shader : u32, pname : i32, params : ^i32)                                                #cc_c;
+    _GetShaderInfoLog        : proc(shader : u32, maxLength : i32, length : ^i32, infoLog : ^byte)                           #cc_c;
+    _GetStringi              : proc(name : i32, index : u32) -> ^byte                                                        #cc_c;
+    _BindFragDataLocation    : proc(program : u32, colorNumber : u32, name : ^byte)                                          #cc_c;
+    _PolygonMode             : proc(face : i32, mode : i32)                                                                  #cc_c;
+    _GenerateMipmap          : proc(target : i32)                                                                            #cc_c;
+    _Enable                  : proc(cap: i32)                                                                                #cc_c;
+    _DepthFunc               : proc(func: i32)                                                                               #cc_c;
+    _GetString               : proc(name : i32) -> ^byte                                                                     #cc_c;
+    _TexImage2D              : proc(target, level, internal_format, width, height, border, format, _type: i32, data: rawptr) #cc_c;
+    _TexParameteri           : proc(target, pname, param: i32)                                                               #cc_c;
+    _BindTexture             : proc(target: i32, texture: u32)                                                               #cc_c;
+    _GenTextures             : proc(count: i32, result: ^u32)                                                                #cc_c;
+    _BlendFunc               : proc(sfactor : i32, dfactor: i32)                                                             #cc_c;
+    _GetIntegerv             : proc(name: i32, v: ^i32)                                                                      #cc_c;
+    _Disable                 : proc(cap: i32)                                                                                #cc_c;
+    _Clear                   : proc(mask: i32)                                                                               #cc_c;
 
+    // Here because we're trying to get out the max version number before we have finished creating our context. Which we need to load out of the DLL apperently.
+    _GetIntegervStatic   :: proc(name: i32, v: ^i32)                                                                     #foreign lib "glGetIntegerv";
+    // BUG: Figure out why we crash if we late-bind these
+    Viewport       :: proc(x : i32, y : i32, width : i32, height : i32)                                                  #foreign lib "glViewport";
+    ClearColor     :: proc(red : f32, blue : f32, green : f32, alpha : f32)                                              #foreign lib "glClearColor";
+    Scissor        :: proc(x : i32, y : i32, width : i32, height : i32)                                                  #foreign lib "glScissor";
 
 Init :: proc() {
     libString := "opengl32.dll\x00";
@@ -673,4 +682,13 @@ Init :: proc() {
     set_proc_address(lib, ^_Enable,                  "glEnable",                  type_info_of_val(_Enable)                 );
     set_proc_address(lib, ^_DepthFunc,               "glDepthFunc",               type_info_of_val(_DepthFunc)              );
     set_proc_address(lib, ^_BindFragDataLocation,    "glBindFragDataLocation",    type_info_of_val(_BindFragDataLocation)   );
+    set_proc_address(lib, ^_GetString,               "glGetString",               type_info_of_val(_GetString)              );
+    set_proc_address(lib, ^_TexImage2D,              "glTexImage2D",              type_info_of_val(_TexImage2D)             );
+    set_proc_address(lib, ^_TexParameteri,           "glTexParameteri",           type_info_of_val(_TexParameteri)          );
+    set_proc_address(lib, ^_BindTexture,             "glBindTexture",             type_info_of_val(_BindTexture)            );
+    set_proc_address(lib, ^_GenTextures,             "glGenTextures",             type_info_of_val(_GenTextures)            );
+    set_proc_address(lib, ^_BlendFunc,               "glBlendFunc",               type_info_of_val(_BlendFunc)              );
+    set_proc_address(lib, ^_GetIntegerv,             "glGetIntegerv",             type_info_of_val(_GetIntegerv)            );
+    set_proc_address(lib, ^_Disable,                 "glDisable",                 type_info_of_val(_Disable)                );
+    set_proc_address(lib, ^_Clear,                   "glClear",                   type_info_of_val(_Clear)                  );
 }
