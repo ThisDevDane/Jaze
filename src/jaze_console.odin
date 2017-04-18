@@ -1,28 +1,30 @@
 #import "fmt.odin";
+#import win32 "sys/windows.odin";
 #import "odimgui/src/imgui.odin";
 #import debugWnd "jaze_debug_windows.odin";
 
 _BUF_SIZE :: 1024;
 
-CommandProc :: #type proc(args : string);
+CommandProc :: #type proc(args : []string);
 
-TestCommand :: proc(args : string) {
-    Log("TESTING");
-    Log("TESTING2");
-    Log("TESTING3");
-}
 
 LogData :: struct {
     InputBuf : [256]byte,
     Items    : [dynamic]string,
     History  : [dynamic]string,
-    Log      : [dynamic]string,
+    Log      : [dynamic]LogItem,
     Commands : map[string]CommandProc,
 
     ScrollToBottom : bool,
+    HistoryPos : int, 
 }
 
-_InternalData : LogData;
+LogItem :: struct {
+    Text : string,
+    Time : win32.Systemtime,
+}
+
+_InternalData := LogData{};
 
 LogLevel :: enum {
     Normal,
@@ -40,8 +42,9 @@ Log :: proc(fmt_ : string, args : ..any) {
 }
 
 _InternalLog :: proc(fmt_ : string, level : LogLevel, args : ..any) {
-    buf : [_BUF_SIZE]byte;
+    buf  : [_BUF_SIZE]byte;
     buf2 : [_BUF_SIZE]byte;
+    buf3 : [_BUF_SIZE]byte;
     levelStr : string;
     match level {
         case LogLevel.Normal : {
@@ -55,11 +58,36 @@ _InternalLog :: proc(fmt_ : string, level : LogLevel, args : ..any) {
     newFmt  := fmt.sprintf(buf[..0], "%s%s", levelStr, fmt_);
     tempStr := fmt.sprintf(buf2[..0], newFmt, ..args);
     append(_InternalData.Items, _StringDup(tempStr));
-    append(_InternalData.Log,   _StringDup(tempStr));
+    item := LogItem{};
+    item.Text = _StringDup(tempStr);
+
+    ft : win32.Filetime;
+    st : win32.Systemtime;
+    win32.GetSystemTimeAsFileTime(^ft);
+    win32.FileTimeToSystemTime(^ft, ^st);
+
+    item.Time = st;
+
+    append(_InternalData.Log,   item);
+    _InternalData.ScrollToBottom = true;
 }
 
 AddCommand :: proc(name : string p : CommandProc) {
     _InternalData.Commands[name] = p;
+}
+
+LogConsoleData :: proc(args : []string) {
+    Log("InputBuf: [%d]%s:", len(_InternalData.InputBuf), cast(string)_InternalData.InputBuf[..]);
+    Log("Commands: %v", _InternalData.Commands);
+    Log("ScrollToBottom: %t", _InternalData.ScrollToBottom);
+    Log("HistoryPos: %d", _InternalData.HistoryPos);
+}
+
+HelpCommand :: proc(args : []string) {
+    Log("Available Commands: ");
+    for val, key in _InternalData.Commands {
+        Log("\t%s", key);
+    }
 }
 
 DrawLog :: proc(show : ^bool) {
@@ -67,10 +95,10 @@ DrawLog :: proc(show : ^bool) {
     imgui.BeginChild("Items", imgui.Vec2{0, 0}, true, 0);
     {
         for t in _InternalData.Log {
-            if t[..len(_ERROR_STR)] == _ERROR_STR {
-                imgui.TextColored(imgui.Vec4{1, 0, 0, 1}, t);
+            if t.Text[..len(_ERROR_STR)] == _ERROR_STR {
+                imgui.TextColored(imgui.Vec4{1, 0, 0, 1}, "[%d-%d-%d:%d]%s", t.Time.hour, t.Time.minute, t.Time.second, t.Time.millisecond, t.Text);
             } else {
-                imgui.Text(t);
+                imgui.Text("[%d-%d-%d:%d]%s", t.Time.hour, t.Time.minute, t.Time.second, t.Time.millisecond, t.Text);
             }
         }
     }
@@ -85,7 +113,10 @@ DrawConsole :: proc(show : ^bool) {
             if imgui.BeginMenu("Misc", true) {
                 if imgui.MenuItem("Show Log", "", false, len(_InternalData.Log) > 0) {
                     debugWnd.ToggleWindow("ShowLogWindow");
-                }                
+                }      
+                if imgui.MenuItem("Log Console Data", "", false, true) {
+                    LogConsoleData(nil);
+                }            
                 if imgui.MenuItem("Clear", "", false, len(_InternalData.Items) > 0) {
                     ClearConsole();
                 }
@@ -114,7 +145,7 @@ DrawConsole :: proc(show : ^bool) {
 
         TEXT_FLAGS :: imgui.GuiInputTextFlags.EnterReturnsTrue | imgui.GuiInputTextFlags.CallbackCompletion | imgui.GuiInputTextFlags.CallbackHistory;
         
-        if imgui.InputText("Input", _InternalData.InputBuf[..], TEXT_FLAGS, nil, nil) {
+        if imgui.InputText("Input", _InternalData.InputBuf[..], TEXT_FLAGS, _TextEditCallback, nil) {
             InputEnter(_InternalData.InputBuf[..]);
         }
         imgui.SameLine(0, -1);
@@ -134,14 +165,14 @@ InputEnter :: proc(input : []byte) {
        input[0] != ' ' {
         i := _FindStringNull(input[..]);
         str := cast(string)input[..i];
-        append(_InternalData.Items, _StringDup(str));
+        Log(str);
         append(_InternalData.History, _StringDup(str));
-        append(_InternalData.Log, _StringDup(str));
         if !ExecuteCommand(str) {
             LogError("%s is not a command", _PullCommandName(str));
         }
         input[0] = 0;
         _InternalData.ScrollToBottom = true;
+        _InternalData.HistoryPos = 0;
     }
 }
 
@@ -155,10 +186,65 @@ ClearConsole :: proc() {
 ExecuteCommand :: proc(cmdString : string) -> bool {
     name := _PullCommandName(cmdString);
     if cmd, ok := _InternalData.Commands[name]; ok {
-        cmd(cmdString);
+        args : [dynamic]string;
+        if len(cmdString) != len(name) {
+            p := 0;
+            newStr := cmdString[len(name)+1..];
+            for r, i in newStr {
+                if r == ' ' {
+                    append(args, newStr[p..i]);
+                    p = i+1;
+                }
+
+                if i == len(newStr)-1 {
+                    append(args, newStr[p..i+1]);
+                }
+            }
+        }
+        cmd(args[..]);
         return true;
     }
     return false;
+}
+
+_TextEditCallback :: proc(data : ^imgui.GuiTextEditCallbackData) -> i32 #cc_c {
+    match data.EventFlag {
+        case imgui.GuiInputTextFlags.CallbackHistory : {
+            prev := _InternalData.HistoryPos;
+
+            if data.EventKey == imgui.GuiKey.UpArrow {
+                if _InternalData.HistoryPos == 0 {
+                    _InternalData.HistoryPos = len(_InternalData.History);
+                } else {
+                    _InternalData.HistoryPos--;
+                }
+            } else if data.EventKey == imgui.GuiKey.DownArrow {
+                if _InternalData.HistoryPos != 0 {
+                    _InternalData.HistoryPos++;
+                    if _InternalData.HistoryPos > len(_InternalData.History) {
+                        _InternalData.HistoryPos = 0;
+                    }
+                }
+            }
+
+            if prev != _InternalData.HistoryPos {
+                pos := _InternalData.HistoryPos > 0 ? _InternalData.HistoryPos-1 : -1;  
+                str := fmt.sprintf(slice_ptr(data.Buf, data.BufSize)[..0], "%s", pos < 0 ? "" : _InternalData.History[pos]);
+                strlen := cast(i32)len(str)-1;
+                data.BufTextLen = strlen;
+                data.CursorPos = strlen;
+                data.SelectionStart = strlen;
+                data.SelectionEnd = strlen;
+                data.BufDirty = true;
+            }
+        }
+
+        case imgui.GuiInputTextFlags.CallbackCompletion : {
+
+        }
+    }
+
+    return 0;
 }
 
 _PullCommandName :: proc(s : string) -> string {

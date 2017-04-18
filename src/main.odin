@@ -16,7 +16,7 @@
 #import time "jaze_time.odin";
 #import catalog "jaze_catalog.odin";
 #import asset "jaze_asset.odin";
-#import log "jaze_log.odin";
+#import console "jaze_console.odin";
 
 ProgramRunning : bool;
 ShowDebugMenu : bool = true;
@@ -314,8 +314,8 @@ RenderDebugUI :: proc(vars : ^Win32Vars_t) {
     debugWnd.TryShowWindow("ShowTimeData",          debugWnd.ShowTimeDataWindow);
     debugWnd.TryShowWindow("ShowCatalogWindow",     debugWnd.ShowCatalogWindow);
     debugWnd.TryShowWindow("ShowDebugWindowStates", debugWnd.ShowDebugWindowStates);
-    debugWnd.TryShowWindow("ShowConsoleWindow",     log.DrawConsole);
-    debugWnd.TryShowWindow("ShowLogWindow",         log.DrawLog);
+    debugWnd.TryShowWindow("ShowConsoleWindow",     console.DrawConsole);
+    debugWnd.TryShowWindow("ShowLogWindow",         console.DrawLog);
 
     if debugWnd.GetWindowState("ShowTestWindow") {
         b := debugWnd.GetWindowState("ShowTestWindow");
@@ -359,7 +359,8 @@ main :: proc() {
 
     render.Init(shaderCat, textureCat);
 
-    log.AddCommand("Test", log.TestCommand);
+    console.AddCommand("LogCData", console.LogConsoleData);
+    console.AddCommand("Help", console.HelpCommand);
 
     for ProgramRunning {
         msg : win32.Msg;
