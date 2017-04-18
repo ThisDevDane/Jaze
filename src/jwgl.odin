@@ -1,6 +1,6 @@
 #import win32 "sys/windows.odin";
 #import win32wgl "sys/wgl.odin";
-#import gl "jaze_gl.odin";
+#import "gl.odin";
 #import "fmt.odin";
 #import "strings.odin";
 

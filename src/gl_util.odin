@@ -1,6 +1,6 @@
 #import "fmt.odin";
 #import "strings.odin";
-#import gl "jaze_gl.odin";
+#import "gl.odin";
 
 CreateAndCompileShader :: proc(type : gl.ShaderTypes, source : string) -> (gl.Shader, bool) {
     shader : gl.Shader;

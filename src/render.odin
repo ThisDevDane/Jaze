@@ -2,14 +2,14 @@
 #import "math.odin";
 #import "os.odin";
 #import "strings.odin";
-#import gl "jaze_gl.odin";
-#import glUtil "jaze_gl_util.odin";
-#import time "jaze_time.odin";
-#import catalog "jaze_catalog.odin";
-#import ja "jaze_asset.odin";
+#import "gl.odin";
+#import glUtil "gl_util.odin";
+#import "time.odin";
+#import "catalog.odin";
+#import ja "asset.odin";
 #import rnd "pcg.odin";
 #import "odimgui/src/imgui.odin";
-#import debugWnd "jaze_debug_windows.odin";
+#import debugWnd "debug_windows.odin";
 
 mainProgram : gl.Program; 
 vao : gl.VAO;

@@ -1,11 +1,11 @@
 #import "fmt.odin";
-#import gl "jaze_gl.odin";
-#import xinput "jaze_xinput.odin";
+#import "gl.odin";
+#import "xinput.odin";
 #import "odimgui/src/imgui.odin";
 #import "main.odin";
-#import time "jaze_time.odin";
-#import catalog "jaze_catalog.odin";
-#import ja "jaze_asset.odin";
+#import "time.odin";
+#import "catalog.odin";
+#import ja "asset.odin";
 
 STD_WINDOW :: /*imgui.GuiWindowFlags.ShowBorders |*/  imgui.GuiWindowFlags.NoCollapse;
 

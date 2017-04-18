@@ -1,7 +1,7 @@
 #import "fmt.odin";
 #import win32 "sys/windows.odin";
 #import "odimgui/src/imgui.odin";
-#import debugWnd "jaze_debug_windows.odin";
+#import debugWnd "debug_windows.odin";
 
 _BUF_SIZE :: 1024;
 

@@ -1,4 +1,4 @@
-#import gl "jaze_gl.odin";
+#import "gl.odin";
 
 FileInfo_t :: struct {
     Name : string,

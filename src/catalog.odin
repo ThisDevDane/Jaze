@@ -2,10 +2,10 @@
 #import "os.odin";
 #import "strings.odin";
 #import win32 "sys/windows.odin";
-#import j32 "jaze_win32.odin";
-#import ja "jaze_asset.odin";
-#import gl "jaze_gl.odin";
-#import glUtil "jaze_gl_util.odin";
+#import j32 "jwin32.odin";
+#import ja "asset.odin";
+#import "gl.odin";
+#import glUtil "gl_util.odin";
 #import stbi "stb_image.odin";
 
 Err :: int;

@@ -4,24 +4,24 @@
 #import "strings.odin";
 #import "math.odin";
 
-#import defines "jaze_defines.odin";
+#import "defines.odin";
 #import "odimgui/src/imgui.odin";
-#import j32 "jaze_win32.odin";
-#import gl "jaze_gl.odin";
-#import wgl "jaze_wgl.odin";
-#import debugWnd "jaze_debug_windows.odin";
-#import jimgui "jaze_imgui.odin";
-#import xinput "jaze_xinput.odin";
-#import render "jaze_render.odin";
-#import time "jaze_time.odin";
-#import catalog "jaze_catalog.odin";
-#import asset "jaze_asset.odin";
-#import console "jaze_console.odin";
+#import "jwin32.odin";
+#import "gl.odin";
+#import wgl "jwgl.odin";
+#import debugWnd"debug_windows.odin";
+#import "jimgui.odin";
+#import "xinput.odin";
+#import "render.odin";
+#import "time.odin";
+#import "catalog.odin";
+#import "asset.odin";
+#import "console.odin";
 
 ProgramRunning : bool;
 ShowDebugMenu : bool = true;
 GlobalWin32VarsPtr : ^Win32Vars_t;
-GlobalWindowPosition : j32.WINDOWPLACEMENT;
+GlobalWindowPosition : win32.Window_Placement;
 
 Win32Vars_t :: struct {
     AppHandle    : win32.Hinstance,
@@ -167,8 +167,8 @@ WindowProc :: proc(hwnd: win32.Hwnd,
             PostQuitMessage(0);
         }
 
-        case j32.WM_MOUSEWHEEL : {
-            delta := cast(i16)j32.HIWORD(wparam);
+        case win32.WM_MOUSEWHEEL : {
+            delta := cast(i16)win32.HIWORD(wparam);
             if(delta > 1) {
                 jimgui.State.MouseWheelDelta += 1;
             }
@@ -180,10 +180,10 @@ WindowProc :: proc(hwnd: win32.Hwnd,
         } 
 
         case WM_SIZE : {
-            gl.Viewport(0, 0, cast(i32)j32.LOWORD(lparam), cast(i32)j32.HIWORD(lparam));
+            gl.Viewport(0, 0, cast(i32)win32.LOWORD(lparam), cast(i32)win32.HIWORD(lparam));
             if GlobalWin32VarsPtr != nil {
-                GlobalWin32VarsPtr.WindowSize.x = cast(f32)j32.LOWORD(lparam);
-                GlobalWin32VarsPtr.WindowSize.y = cast(f32)j32.HIWORD(lparam);
+                GlobalWin32VarsPtr.WindowSize.x = cast(f32)win32.LOWORD(lparam);
+                GlobalWin32VarsPtr.WindowSize.y = cast(f32)win32.HIWORD(lparam);
             }
 
             io := imgui.GetIO();
@@ -222,25 +222,25 @@ OpenGLDebugCallback :: proc(source : gl.DebugSource, type : gl.DebugType, id : i
 }
 
 ToggleFullscreen :: proc(wnd : win32.Hwnd) {
-    Style : u32 = cast(u32)j32.GetWindowLongPtr(wnd, j32.GWL_STYLE);
+    Style : u32 = cast(u32)win32.GetWindowLongPtrA(wnd, win32.GWL_STYLE);
     if(Style & win32.WS_OVERLAPPEDWINDOW == win32.WS_OVERLAPPEDWINDOW) {
-        monitorInfo : j32.MONITORINFO;
-        monitorInfo.Size = size_of(j32.MONITORINFO);
+        monitorInfo : win32.Monitor_Info;
+        monitorInfo.size = size_of(win32.Monitor_Info);
 
-        j32.GetWindowPlacement(wnd, ^GlobalWindowPosition);
-        j32.GetMonitorInfo(j32.MonitorFromWindow(wnd, j32.MONITOR_DEFAULTTOPRIMARY), ^monitorInfo);
-        j32.SetWindowLongPtr(wnd, j32.GWL_STYLE, cast(i64)Style & ~win32.WS_OVERLAPPEDWINDOW);
-        j32.SetWindowPos(wnd, j32.HWND_TOP,
-                              monitorInfo.Monitor.left, monitorInfo.Monitor.top,
-                              monitorInfo.Monitor.right - monitorInfo.Monitor.left,
-                              monitorInfo.Monitor.bottom - monitorInfo.Monitor.top,
-                              j32.SWP_FRAMECHANGED | j32.SWP_NOOWNERZORDER);
+        win32.GetWindowPlacement(wnd, ^GlobalWindowPosition);
+        win32.GetMonitorInfoA(win32.MonitorFromWindow(wnd, win32.MONITOR_DEFAULTTOPRIMARY), ^monitorInfo);
+        win32.SetWindowLongPtrA(wnd, win32.GWL_STYLE, cast(i64)Style & ~win32.WS_OVERLAPPEDWINDOW);
+        win32.SetWindowPos(wnd, win32.Hwnd_TOP,
+                              monitorInfo.monitor.left, monitorInfo.monitor.top,
+                              monitorInfo.monitor.right - monitorInfo.monitor.left,
+                              monitorInfo.monitor.bottom - monitorInfo.monitor.top,
+                              win32.SWP_FRAMECHANGED | win32.SWP_NOOWNERZORDER);
     } else {
-        j32.SetWindowLongPtr(wnd, j32.GWL_STYLE, cast(i64)(Style | win32.WS_OVERLAPPEDWINDOW));
-        j32.SetWindowPlacement(wnd, ^GlobalWindowPosition);
-        j32.SetWindowPos(wnd, nil, 0, 0, 0, 0,
-                              j32.SWP_NOMOVE | j32.SWP_NOSIZE | j32.SWP_NOZORDER |
-                              j32.SWP_NOOWNERZORDER | j32.SWP_FRAMECHANGED);
+        win32.SetWindowLongPtrA(wnd, win32.GWL_STYLE, cast(i64)(Style | win32.WS_OVERLAPPEDWINDOW));
+        win32.SetWindowPlacement(wnd, ^GlobalWindowPosition);
+        win32.SetWindowPos(wnd, nil, 0, 0, 0, 0,
+                              win32.SWP_NOMOVE | win32.SWP_NOSIZE | win32.SWP_NOZORDER |
+                              win32.SWP_NOOWNERZORDER | win32.SWP_FRAMECHANGED);
     }       
 }
 
@@ -325,7 +325,7 @@ RenderDebugUI :: proc(vars : ^Win32Vars_t) {
 }
 
 main :: proc() {
-    GlobalWindowPosition.Length = size_of(j32.WINDOWPLACEMENT);
+    GlobalWindowPosition.length = size_of(win32.Window_Placement);
     win32vars := Win32Vars_t{};
     GlobalWin32VarsPtr = ^win32vars;
     win32vars.AppHandle = win32.GetModuleHandleA(nil);
@@ -370,7 +370,7 @@ main :: proc() {
                     ProgramRunning = false;
                 }
 
-                case j32.WM_SYSKEYDOWN : {
+                case win32.WM_SYSKEYDOWN : {
                     if cast(win32.Key_Code)msg.wparam == win32.Key_Code.RETURN {
                         ToggleFullscreen(win32vars.WindowHandle);
                     }

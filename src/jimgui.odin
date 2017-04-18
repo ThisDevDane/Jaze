@@ -1,8 +1,8 @@
 #load "odimgui/src/imgui.odin";
 #import win32 "sys/windows.odin";
 #import "fmt.odin";
-#import gl "jaze_gl.odin";
-#import glUtil "jaze_gl_util.odin";
+#import "gl.odin";
+#import glUtil "gl_util.odin";
 
 State_t :: struct {
     //Misc

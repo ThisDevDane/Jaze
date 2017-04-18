@@ -4,9 +4,9 @@
 #import "fmt.odin";
 #import "strings.odin";
 #import "math.odin";
-#load "jaze_gl_enums.odin";
+#load "gl_enums.odin";
 
-#import console "jaze_console.odin";
+#import "console.odin";
 
 TRUE  :: 1;
 FALSE :: 0;
