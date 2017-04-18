@@ -132,10 +132,15 @@ PrepareAttribArray :: proc(attribList : [dynamic]Attrib) -> [dynamic]i32 {
     return array;
 }
 
-CreateContextAttribsARB : proc(hdc : win32.Hdc, shareContext : win32wgl.Hglrc, attribList : ^i32) -> win32wgl.Hglrc #cc_c;
-ChoosePixelFormatARB : proc(hdc : win32.Hdc, piAttribIList : ^i32, pfAttribFList : ^f32, nMaxFormats : u32, piFormats : ^i32, nNumFormats : ^u32) -> win32.Bool #cc_c;
-SwapIntervalEXT : proc(interval : i32) -> bool #cc_c;
-GetExtensionsStringARB : proc(win32.Hdc) -> ^byte #cc_c;
+CreateContextAttribsARB_t :: #type proc(hdc : win32.Hdc, shareContext : win32wgl.Hglrc, attribList : ^i32) -> win32wgl.Hglrc #cc_c;
+ChoosePixelFormatARB_t    :: #type proc(hdc : win32.Hdc, piAttribIList : ^i32, pfAttribFList : ^f32, nMaxFormats : u32, piFormats : ^i32, nNumFormats : ^u32) -> win32.Bool #cc_c;
+SwapIntervalEXT_t         :: #type proc(interval : i32) -> bool #cc_c;
+GetExtensionsStringARB_t  :: #type proc(win32.Hdc) -> ^byte #cc_c;
+
+CreateContextAttribsARB : CreateContextAttribsARB_t;
+ChoosePixelFormatARB    : ChoosePixelFormatARB_t;
+SwapIntervalEXT         : SwapIntervalEXT_t;
+GetExtensionsStringARB  : GetExtensionsStringARB_t;
 
 TryGetExtensionList :: struct {
     Exts : map[string]rawptr,
