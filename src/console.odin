@@ -146,6 +146,7 @@ DrawConsole :: proc(show : ^bool) {
         TEXT_FLAGS :: imgui.GuiInputTextFlags.EnterReturnsTrue | imgui.GuiInputTextFlags.CallbackCompletion | imgui.GuiInputTextFlags.CallbackHistory;
         
         if imgui.InputText("Input", _InternalData.InputBuf[..], TEXT_FLAGS, _TextEditCallback, nil) {
+            imgui.SetKeyboardFocusHere(-1);
             InputEnter(_InternalData.InputBuf[..]);
         }
         imgui.SameLine(0, -1);
