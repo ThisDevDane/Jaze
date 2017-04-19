@@ -5,6 +5,7 @@
 [Pp]ackages/
 *.7z
 nohup.out
+*.jlog
 
 # Created by https://www.gitignore.io/api/windows,visualstudio
 

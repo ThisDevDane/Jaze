@@ -1,4 +1,5 @@
 #import "fmt.odin";
+#import "os.odin";
 #import win32 "sys/windows.odin";
 #import "odimgui/src/imgui.odin";
 #import debugWnd "debug_windows.odin";
@@ -17,6 +18,7 @@ LogData :: struct {
 
     ScrollToBottom : bool,
     HistoryPos : int, 
+    LogFileName : string,
 }
 
 LogItem :: struct {
@@ -70,7 +72,34 @@ _InternalLog :: proc(fmt_ : string, level : LogLevel, args : ..any) {
 
     append(_InternalData.Log,   item);
     _InternalData.ScrollToBottom = true;
+    _UpdateLogFile();
 }
+
+_UpdateLogFile :: proc() {
+    if len(_InternalData.LogFileName) <= 0 {
+        ft : win32.Filetime;
+        st : win32.Systemtime;
+        win32.GetSystemTimeAsFileTime(^ft);
+        win32.FileTimeToSystemTime(^ft, ^st);
+
+        buf := make([]byte, 255);
+        _InternalData.LogFileName = fmt.sprintf(buf[..0], "%d-%d-%d_%d%d%d.jlog", 
+                                                st.day, st.month, st.year, 
+                                                st.hour, st.minute, st.second);
+    }
+
+    h, _ := os.open(_InternalData.LogFileName, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0);
+    os.seek(h, 0, 2);
+    for log in _InternalData.Log {
+        buf : [_BUF_SIZE]byte;
+        str := fmt.sprintf(buf[..0], "[%2d:%2d:%2d-%3d]%s\n", log.Time.hour,   log.Time.minute, 
+                                                          log.Time.second, log.Time.millisecond, 
+                                                          log.Text);
+        os.write(h, cast([]byte)str);
+        os.seek(h, 0, 2);
+    }
+    os.close(h);   
+} 
 
 AddCommand :: proc(name : string p : CommandProc) {
     _InternalData.Commands[name] = p;
@@ -96,9 +125,9 @@ DrawLog :: proc(show : ^bool) {
     {
         for t in _InternalData.Log {
             if t.Text[..len(_ERROR_STR)] == _ERROR_STR {
-                imgui.TextColored(imgui.Vec4{1, 0, 0, 1}, "[%d-%d-%d:%d]%s", t.Time.hour, t.Time.minute, t.Time.second, t.Time.millisecond, t.Text);
+                imgui.TextColored(imgui.Vec4{1, 0, 0, 1}, "[%2d:%2d:%2d-%3d]%s", t.Time.hour, t.Time.minute, t.Time.second, t.Time.millisecond, t.Text);
             } else {
-                imgui.Text("[%d-%d-%d:%d]%s", t.Time.hour, t.Time.minute, t.Time.second, t.Time.millisecond, t.Text);
+                imgui.Text("[%2d:%2d:%2d-%3d]%s", t.Time.hour, t.Time.minute, t.Time.second, t.Time.millisecond, t.Text);
             }
         }
     }
