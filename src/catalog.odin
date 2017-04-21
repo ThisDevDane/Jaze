@@ -6,6 +6,7 @@
 #import ja "asset.odin";
 #import "gl.odin";
 #import glUtil "gl_util.odin";
+#import "console.odin";
 #import stbi "stb_image.odin";
 
 Err :: int;
@@ -239,6 +240,12 @@ Find :: proc(catalog : ^Catalog, assetName : string) -> (^ja.Asset, Err) {
 
                 case ja.Asset.Shader : {
                     LoadShader(e, catalog);
+                }
+
+                case ja.Asset.Sound : 
+                case ja.Asset.ShaderProgram :
+                default : {
+                    console.LogError("Can't load asset of type: %T, yet...", e);
                 }
             }
         }

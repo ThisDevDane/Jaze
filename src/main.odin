@@ -4,7 +4,6 @@
 #import "strings.odin";
 #import "math.odin";
 
-#import "defines.odin";
 #import "odimgui/src/imgui.odin";
 #import "jwin32.odin";
 #import "gl.odin";
@@ -17,6 +16,7 @@
 #import "catalog.odin";
 #import "asset.odin";
 #import "console.odin";
+#import "entity.odin";
 
 ProgramRunning : bool;
 ShowDebugMenu : bool = true;
@@ -330,6 +330,12 @@ RenderDebugUI :: proc(vars : ^Win32Vars_t) {
     }
 }
 
+ChangeWindowTitle :: proc(window : win32.Hwnd, fmt_ : string, args : ..any) {
+    buf : [1024]byte;
+    fmt.sprintf(buf[..0], fmt_, ..args);
+    win32.SetWindowTextA(window, ^buf[0]);
+}
+
 main :: proc() {
     GlobalWindowPosition.length = size_of(win32.Window_Placement);
     win32vars := Win32Vars_t{};
@@ -344,9 +350,8 @@ main :: proc() {
     gl.DebugMessageControl(gl.DebugSource.DontCare, gl.DebugType.DontCare, gl.DebugSeverity.Notification, 0, nil, false);
     gl.GetInfo(^win32vars.Ogl);
     wgl.GetInfo(^win32vars.Ogl, win32vars.DeviceCtx);
-    TitleBuf : [1024]byte;
-    fmt.sprint(TitleBuf[..0], "Jaze ", win32vars.Ogl.VersionString);
-    win32.SetWindowTextA(win32vars.WindowHandle, ^TitleBuf[0]);
+
+    ChangeWindowTitle(win32vars.WindowHandle, "Jaze %s", win32vars.Ogl.VersionString);
 
     gl.ClearColor(1, 0, 1, 1);
     jimgui.Init(win32vars.WindowHandle);
@@ -393,21 +398,7 @@ main :: proc() {
                     if cast(win32.Key_Code)msg.wparam == win32.Key_Code.ESCAPE {
                         win32.PostQuitMessage(0);
                     }
-
-
-
-                    /*if cast(win32.Key_Code)msg.wparam == win32.Key_Code.TAB {
-                        style := imgui.GetStyle();
-                        style.Alpha = 0.1;
-                    } */
                 } 
-
-                /*case win32.WM_KEYUP : {
-                    if cast(win32.Key_Code)msg.wparam == win32.Key_Code.TAB {
-                        style := imgui.GetStyle();
-                        style.Alpha = 1.0;
-                    } 
-                }*/
             }
 
             win32.TranslateMessage(^msg);
@@ -416,24 +407,22 @@ main :: proc() {
 
         time.Update();
 
-        fmt.sprintf(TitleBuf[..0], "Jaze %s | dt: %.5f sdt: %.5f ss: %.1f", win32vars.Ogl.VersionString, time.GetUnscaledDeltaTime(), time.GetDeltaTime(), time.GetTimeSinceStart());
-        win32.SetWindowTextA(win32vars.WindowHandle, ^TitleBuf[0]);
+        ChangeWindowTitle(win32vars.WindowHandle, "Jaze %s | dt: %.5f sdt: %.5f ss: %.1f", win32vars.Ogl.VersionString, time.GetUnscaledDeltaTime(), 
+                                                                                           time.GetDeltaTime(), time.GetTimeSinceStart());
 
-    when defines.DEBUG {
+
         if ShowDebugMenu {
             jimgui.BeginNewFrame(time.GetUnscaledDeltaTime());
             RenderDebugUI(^win32vars);
         }
-    }
+
 
         gl.Clear(gl.ClearFlags.COLOR_BUFFER | gl.ClearFlags.DEPTH_BUFFER);
 
         render.Draw(win32vars.WindowSize);        
-    when defines.DEBUG {
         if ShowDebugMenu {
             imgui.Render();
         }
-    }
 
         win32.SwapBuffers(win32vars.DeviceCtx);
     }
