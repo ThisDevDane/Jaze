@@ -8,7 +8,7 @@
 #import "catalog.odin";
 #import ja "asset.odin";
 #import rnd "pcg.odin";
-#import "odimgui/src/imgui.odin";
+#import "imgui.odin";
 #import debugWnd "debug_windows.odin";
 
 mainProgram : gl.Program; 

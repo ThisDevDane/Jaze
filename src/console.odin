@@ -1,7 +1,7 @@
 #import "fmt.odin";
 #import "os.odin";
 #import win32 "sys/windows.odin";
-#import "odimgui/src/imgui.odin";
+#import "imgui.odin";
 #import debugWnd "debug_windows.odin";
 
 _BUF_SIZE :: 1024;

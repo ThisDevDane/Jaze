@@ -1,4 +1,4 @@
-#foreign_library "cimgui.lib";
+#foreign_library "../external/cimgui.lib";
 #import "fmt.odin";
 #import "strings.odin";
  

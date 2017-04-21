@@ -1,4 +1,4 @@
-#load "odimgui/src/imgui.odin";
+#load "imgui.odin";
 #import win32 "sys/windows.odin";
 #import "fmt.odin";
 #import "gl.odin";

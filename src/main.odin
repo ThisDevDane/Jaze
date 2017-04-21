@@ -4,7 +4,7 @@
 #import "strings.odin";
 #import "math.odin";
 
-#import "odimgui/src/imgui.odin";
+#import "imgui.odin";
 #import "jwin32.odin";
 #import "gl.odin";
 #import wgl "jwgl.odin";

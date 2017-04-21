@@ -1,5 +1,5 @@
 #import debugWnd "debug_windows.odin";
-#import "odimgui/src/imgui.odin";
+#import "imgui.odin";
 #import "main.odin";
 #import "console.odin";
 
