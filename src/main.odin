@@ -8,7 +8,8 @@
 #import "jwin32.odin";
 #import "gl.odin";
 #import wgl "jwgl.odin";
-#import debugWnd"debug_windows.odin";
+#import debugWnd "debug_windows.odin";
+#import "debug.odin";
 #import "jimgui.odin";
 #import "xinput.odin";
 #import "render.odin";
@@ -201,7 +202,7 @@ WindowProc :: proc(hwnd: win32.Hwnd,
                 imgui.Text("%d, %d", cast(i32)GlobalWin32VarsPtr.WindowSize.x, cast(i32)GlobalWin32VarsPtr.WindowSize.y);
                 imgui.End();
                 imgui.PopStyleVar(1);
-                RenderDebugUI(GlobalWin32VarsPtr);
+                debug.RenderDebugUI(GlobalWin32VarsPtr);
                 gl.Clear(gl.ClearFlags.COLOR_BUFFER | gl.ClearFlags.DEPTH_BUFFER);
                 imgui.Render();
                 win32.SwapBuffers(GlobalWin32VarsPtr.DeviceCtx);
@@ -224,7 +225,7 @@ WindowProc :: proc(hwnd: win32.Hwnd,
 }
 
 OpenGLDebugCallback :: proc(source : gl.DebugSource, type : gl.DebugType, id : i32, severity : gl.DebugSeverity, length : i32, message : ^byte, userParam : rawptr) #cc_c {
-    fmt.printf("[%v | %v | %v] %s \n", source, type, severity, strings.to_odin_string(message));
+    console.Log("[%v | %v | %v] %s \n", source, type, severity, strings.to_odin_string(message));
 }
 
 ToggleFullscreen :: proc(wnd : win32.Hwnd) {
@@ -237,97 +238,17 @@ ToggleFullscreen :: proc(wnd : win32.Hwnd) {
         win32.GetMonitorInfoA(win32.MonitorFromWindow(wnd, win32.MONITOR_DEFAULTTOPRIMARY), ^monitorInfo);
         win32.SetWindowLongPtrA(wnd, win32.GWL_STYLE, cast(i64)Style & ~win32.WS_OVERLAPPEDWINDOW);
         win32.SetWindowPos(wnd, win32.Hwnd_TOP,
-                              monitorInfo.monitor.left, monitorInfo.monitor.top,
-                              monitorInfo.monitor.right - monitorInfo.monitor.left,
-                              monitorInfo.monitor.bottom - monitorInfo.monitor.top,
-                              win32.SWP_FRAMECHANGED | win32.SWP_NOOWNERZORDER);
+                                monitorInfo.monitor.left, monitorInfo.monitor.top,
+                                monitorInfo.monitor.right - monitorInfo.monitor.left,
+                                monitorInfo.monitor.bottom - monitorInfo.monitor.top,
+                                win32.SWP_FRAMECHANGED | win32.SWP_NOOWNERZORDER);
     } else {
         win32.SetWindowLongPtrA(wnd, win32.GWL_STYLE, cast(i64)(Style | win32.WS_OVERLAPPEDWINDOW));
         win32.SetWindowPlacement(wnd, ^GlobalWindowPosition);
         win32.SetWindowPos(wnd, nil, 0, 0, 0, 0,
-                              win32.SWP_NOMOVE | win32.SWP_NOSIZE | win32.SWP_NOZORDER |
-                              win32.SWP_NOOWNERZORDER | win32.SWP_FRAMECHANGED);
+                                win32.SWP_NOMOVE | win32.SWP_NOSIZE | win32.SWP_NOZORDER |
+                                win32.SWP_NOOWNERZORDER | win32.SWP_FRAMECHANGED);
     }       
-}
-
-RenderDebugUI :: proc(vars : ^Win32Vars_t) {
-
-    MakeMenuItem :: proc(title : string, id : string) {
-        MakeMenuItem(title, "", id);
-    }
-
-    MakeMenuItem :: proc(title : string, shortcut : string, id : string) {
-        if imgui.MenuItem(title, shortcut, false, true) {
-            debugWnd.ToggleWindow(id);
-        }
-    }
-
-    imgui.PushStyleColor(imgui.GuiCol.MenuBarBg, imgui.Vec4{0.35, 0.35, 0.35, 0.78});
-    imgui.BeginMainMenuBar();
-   
-    if imgui.BeginMenu("Data", true) {
-        MakeMenuItem("OpenGL Info", "ShowOpenGLInfo");
-        MakeMenuItem("Win32Var Info", "ShowWin32VarInfo");
-        
-        if imgui.BeginMenu("XInput", true) {
-            MakeMenuItem("Info", "ShowXinputInfo");
-            MakeMenuItem("State", "ShowXinputState");
-            imgui.EndMenu();
-        }
-
-        MakeMenuItem("Time Data", "ShowTimeData");
-        imgui.EndMenu();
-    }
-
-    if imgui.BeginMenu("Asset", true) {
-        MakeMenuItem("Catalogs", "ShowCatalogWindow");
-        imgui.EndMenu();
-    }
-
-    if imgui.BeginMenu("Misc", true) {
-        MakeMenuItem("Camera Settings", "ShowCameraSettings");
-        MakeMenuItem("Console", "Alt+C", "ShowConsoleWindow");
-        MakeMenuItem("Debug Window States", "ShowDebugWindowStates");
-        MakeMenuItem("Show Test Window", "ShowTestWindow");
-
-        imgui.Separator();
-        if imgui.MenuItem("Toggle Fullscreen", "Alt+Enter", false, true) {
-            ToggleFullscreen(vars.WindowHandle);
-        }
-        
-        if imgui.MenuItem("Exit", "Escape", false, true) {
-            ProgramRunning = false;
-        }
-        imgui.EndMenu();
-    }
-    imgui.EndMainMenuBar();
-    imgui.PopStyleColor(1);
-
-    if debugWnd.GetWindowState("ShowOpenGLInfo") {
-        b := debugWnd.GetWindowState("ShowOpenGLInfo");
-        debugWnd.OpenGLInfo(^vars.Ogl, ^b);
-        debugWnd.SetWindowState("ShowOpenGLInfo", b);
-    }
-
-    if debugWnd.GetWindowState("ShowWin32VarInfo") {
-        b := debugWnd.GetWindowState("ShowWin32VarInfo");
-        debugWnd.Win32VarsInfo(vars, ^b);
-        debugWnd.SetWindowState("ShowWin32VarInfo", b);
-    }
-
-    debugWnd.TryShowWindow("ShowXinputInfo",        debugWnd.ShowXinputInfoWindow);
-    debugWnd.TryShowWindow("ShowXinputState",       debugWnd.ShowXinputStateWindow);
-    debugWnd.TryShowWindow("ShowTimeData",          debugWnd.ShowTimeDataWindow);
-    debugWnd.TryShowWindow("ShowCatalogWindow",     debugWnd.ShowCatalogWindow);
-    debugWnd.TryShowWindow("ShowDebugWindowStates", debugWnd.ShowDebugWindowStates);
-    debugWnd.TryShowWindow("ShowConsoleWindow",     console.DrawConsole);
-    debugWnd.TryShowWindow("ShowLogWindow",         console.DrawLog);
-
-    if debugWnd.GetWindowState("ShowTestWindow") {
-        b := debugWnd.GetWindowState("ShowTestWindow");
-        imgui.ShowTestWindow(^b);
-        debugWnd.SetWindowState("ShowTestWindow", b);
-    }
 }
 
 ChangeWindowTitle :: proc(window : win32.Hwnd, fmt_ : string, args : ..any) {
@@ -410,10 +331,9 @@ main :: proc() {
         ChangeWindowTitle(win32vars.WindowHandle, "Jaze %s | dt: %.5f sdt: %.5f ss: %.1f", win32vars.Ogl.VersionString, time.GetUnscaledDeltaTime(), 
                                                                                            time.GetDeltaTime(), time.GetTimeSinceStart());
 
-
         if ShowDebugMenu {
             jimgui.BeginNewFrame(time.GetUnscaledDeltaTime());
-            RenderDebugUI(^win32vars);
+            debug.RenderDebugUI(^win32vars);
         }
 
 
