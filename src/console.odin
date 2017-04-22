@@ -30,10 +30,12 @@ _InternalData := LogData{};
 
 LogLevel :: enum {
     Normal,
+    ConsoleInput,
     Error,
 }
 
-_ERROR_STR :: "[Error]: ";
+_ERROR_STR  :: "[Error]: ";
+_CINPUT_STR :: "\\\\: ";
 
 LogError :: proc(fmt_ : string, args : ..any) {
     _InternalLog(fmt_, LogLevel.Error, ..args);
@@ -55,6 +57,10 @@ _InternalLog :: proc(fmt_ : string, level : LogLevel, args : ..any) {
 
         case LogLevel.Error : {
             levelStr = _ERROR_STR;
+        }
+
+        case LogLevel.ConsoleInput : {
+            levelStr = _CINPUT_STR;
         }
     }
     newFmt  := fmt.sprintf(buf[..0], "%s%s", levelStr, fmt_);
@@ -105,18 +111,15 @@ AddCommand :: proc(name : string p : CommandProc) {
     _InternalData.Commands[name] = p;
 }
 
-LogConsoleData :: proc(args : []string) {
-    Log("InputBuf: [%d]%s:", len(_InternalData.InputBuf), cast(string)_InternalData.InputBuf[..]);
-    Log("Commands: %v", _InternalData.Commands);
-    Log("ScrollToBottom: %t", _InternalData.ScrollToBottom);
-    Log("HistoryPos: %d", _InternalData.HistoryPos);
-}
-
-HelpCommand :: proc(args : []string) {
+DefaultHelpCommand :: proc(args : []string) {
     Log("Available Commands: ");
     for val, key in _InternalData.Commands {
         Log("\t%s", key);
     }
+}
+
+DefaultClearCommand :: proc(args : []string) {
+    ClearConsole();
 }
 
 DrawLog :: proc(show : ^bool) {
@@ -126,6 +129,8 @@ DrawLog :: proc(show : ^bool) {
         for t in _InternalData.Log {
             if t.Text[..len(_ERROR_STR)] == _ERROR_STR {
                 imgui.TextColored(imgui.Vec4{1, 0, 0, 1}, "[%2d:%2d:%2d-%3d]%s", t.Time.hour, t.Time.minute, t.Time.second, t.Time.millisecond, t.Text);
+            } else if t.Text[..len(_CINPUT_STR)] == _CINPUT_STR {
+                imgui.TextColored(imgui.Vec4{0.7, 0.7, 0.7, 1}, "[%2d:%2d:%2d-%3d]%s", t.Time.hour, t.Time.minute, t.Time.second, t.Time.millisecond, t.Text);
             } else {
                 imgui.Text("[%2d:%2d:%2d-%3d]%s", t.Time.hour, t.Time.minute, t.Time.second, t.Time.millisecond, t.Text);
             }
@@ -142,10 +147,7 @@ DrawConsole :: proc(show : ^bool) {
             if imgui.BeginMenu("Misc", true) {
                 if imgui.MenuItem("Show Log", "", false, len(_InternalData.Log) > 0) {
                     debugWnd.ToggleWindow("ShowLogWindow");
-                }      
-                if imgui.MenuItem("Log Console Data", "", false, true) {
-                    LogConsoleData(nil);
-                }            
+                }              
                 if imgui.MenuItem("Clear", "", false, len(_InternalData.Items) > 0) {
                     ClearConsole();
                 }
@@ -160,6 +162,8 @@ DrawConsole :: proc(show : ^bool) {
             for t in _InternalData.Items {
                 if t[..len(_ERROR_STR)] == _ERROR_STR {
                     imgui.TextColored(imgui.Vec4{1, 0, 0, 1}, t);
+                } else if t[..len(_CINPUT_STR)] == _CINPUT_STR {
+                    imgui.TextColored(imgui.Vec4{0.7, 0.7, 0.7, 1}, t);
                 } else {
                     imgui.Text(t);
                 }
@@ -195,7 +199,7 @@ InputEnter :: proc(input : []byte) {
        input[0] != ' ' {
         i := _FindStringNull(input[..]);
         str := cast(string)input[..i];
-        Log(str);
+        _InternalLog(str, LogLevel.ConsoleInput);
         append(_InternalData.History, _StringDup(str));
         if !ExecuteCommand(str) {
             LogError("%s is not a command", _PullCommandName(str));

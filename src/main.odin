@@ -289,8 +289,8 @@ main :: proc() {
 
     render.Init(shaderCat, textureCat);
 
-    console.AddCommand("LogCData", console.LogConsoleData);
-    console.AddCommand("Help", console.HelpCommand);
+    console.AddCommand("Help", console.DefaultHelpCommand);
+    console.AddCommand("Clear", console.DefaultClearCommand);
 
     for ProgramRunning {
         msg : win32.Msg;
