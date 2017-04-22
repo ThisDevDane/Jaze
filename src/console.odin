@@ -93,8 +93,8 @@ _UpdateLogFile :: proc() {
     for log in _InternalData.Log {
         buf : [_BUF_SIZE]byte;
         str := fmt.sprintf(buf[..0], "[%2d:%2d:%2d-%3d]%s\n", log.Time.hour,   log.Time.minute, 
-                                                          log.Time.second, log.Time.millisecond, 
-                                                          log.Text);
+                                                              log.Time.second, log.Time.millisecond, 
+                                                              log.Text);
         os.write(h, cast([]byte)str);
         os.seek(h, 0, 2);
     }
