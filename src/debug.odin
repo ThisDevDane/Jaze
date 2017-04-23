@@ -2,6 +2,7 @@
 #import "imgui.odin";
 #import "main.odin";
 #import "console.odin";
+#import wgl "jwgl.odin";
 
 RenderDebugUI :: proc(vars : ^main.Win32Vars_t) {
 
@@ -34,6 +35,17 @@ RenderDebugUI :: proc(vars : ^main.Win32Vars_t) {
 
     if imgui.BeginMenu("Asset", true) {
         MakeMenuItem("Catalogs", "ShowCatalogWindow");
+        imgui.EndMenu();
+    }
+
+    if imgui.BeginMenu("Visual", true) {
+        if imgui.Checkbox("Toggle Adaptive VSync", ^main.AdaptiveVSync) {
+            if main.AdaptiveVSync {
+                wgl.SwapIntervalEXT(-1);
+            } else {
+                wgl.SwapIntervalEXT(0);
+            }
+        }
         imgui.EndMenu();
     }
 

@@ -560,7 +560,11 @@ Image :: proc(user_texture_id : TextureID, size : Vec2, uv0 : Vec2, uv1 : Vec2, 
 
 
 ImageButton                                             :: proc(user_texture_id : TextureID, size : Vec2, uv0 : Vec2, uv1 : Vec2, frame_padding : i32, bg_col : Vec4, tint_col : Vec4) -> bool                                                                                 #foreign cimgui "igImageButton";
-Checkbox                                                :: proc(label : c_string, v : ^bool) -> bool                                                                                                                                                                           #foreign cimgui "igCheckbox";
+Checkbox :: proc(label : string, v : ^bool) -> bool {
+    ImCheckbox :: proc(label : c_string, v : ^bool) -> bool #foreign cimgui "igCheckbox";
+    str := strings.new_c_string(label); defer free(str);
+    return ImCheckbox(str, v);
+}
 CheckboxFlags                                           :: proc(label : c_string, flags : ^u32, flags_value : u32) -> bool                                                                                                                                                   #foreign cimgui "igCheckboxFlags";
 RadioButtonBool                                         :: proc(label : c_string, active : bool) -> bool                                                                                                                                                                       #foreign cimgui "igRadioButtonBool";
 RadioButton                                             :: proc(label : c_string, v : ^i32, v_button : i32) -> bool                                                                                                                                                            #foreign cimgui "igRadioButton";

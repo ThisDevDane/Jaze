@@ -23,7 +23,7 @@ ProgramRunning : bool;
 ShowDebugMenu : bool = true;
 GlobalWin32VarsPtr : ^Win32Vars_t;
 GlobalWindowPosition : win32.Window_Placement;
-
+AdaptiveVSync : bool = true;
 Win32Vars_t :: struct {
     AppHandle    : win32.Hinstance,
     WindowHandle : win32.Hwnd,
@@ -328,8 +328,14 @@ main :: proc() {
 
         time.Update();
 
-        ChangeWindowTitle(win32vars.WindowHandle, "Jaze %s | dt: %.5f sdt: %.5f ss: %.1f", win32vars.Ogl.VersionString, time.GetUnscaledDeltaTime(), 
-                                                                                           time.GetDeltaTime(), time.GetTimeSinceStart());
+        pos : win32.Point;
+        win32.GetCursorPos(^pos);
+        win32.ScreenToClient(win32vars.WindowHandle, ^pos);
+        ChangeWindowTitle(win32vars.WindowHandle, "Jaze %s | dt: %.5f sdt: %.5f ss: %.1f | <%d, %d> | <%.0f, %.0f>", 
+                                                                                           win32vars.Ogl.VersionString, time.GetUnscaledDeltaTime(), 
+                                                                                           time.GetDeltaTime(), time.GetTimeSinceStart(),
+                                                                                           pos.x, pos.y,
+                                                                                           win32vars.WindowSize.x, win32vars.WindowSize.y);
 
         if ShowDebugMenu {
             jimgui.BeginNewFrame(time.GetUnscaledDeltaTime());
@@ -339,7 +345,7 @@ main :: proc() {
 
         gl.Clear(gl.ClearFlags.COLOR_BUFFER | gl.ClearFlags.DEPTH_BUFFER);
 
-        render.Draw(win32vars.WindowSize);        
+        render.Draw(win32vars.WindowHandle, win32vars.WindowSize);        
         if ShowDebugMenu {
             imgui.Render();
         }
