@@ -114,6 +114,23 @@ Clear :: proc(mask : ClearFlags) {
     _Clear(cast(i32)mask);
 }
 
+BufferData :: proc(target : BufferTargets, data : []f32, usage : BufferDataUsage) {
+    if _BufferData != nil {
+        _BufferData(cast(i32)target, size_of_val(data), ^data[0], cast(i32)usage);
+    } else {
+        console.Log("%s isn't loaded!", #procedure);
+    }     
+}
+
+BufferData :: proc(target : BufferTargets, data : []u32, usage : BufferDataUsage) {
+    if _BufferData != nil {
+        _BufferData(cast(i32)target, size_of_val(data), ^data[0], cast(i32)usage);
+    } else {
+        console.Log("%s isn't loaded!", #procedure);
+    }     
+}
+
+
 BufferData :: proc(target : BufferTargets, size : i32, data : rawptr, usage : BufferDataUsage) {
     if _BufferData != nil {
         _BufferData(cast(i32)target, size, data, cast(i32)usage);

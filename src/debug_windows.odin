@@ -1,7 +1,7 @@
 #import "fmt.odin";
 #import "gl.odin";
 #import "xinput.odin";
-#import "odimgui/src/imgui.odin";
+#import "imgui.odin";
 #import "main.odin";
 #import "time.odin";
 #import "catalog.odin";
