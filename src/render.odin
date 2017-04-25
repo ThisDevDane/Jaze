@@ -5,6 +5,8 @@
 #import "gl.odin";
 #import glUtil "gl_util.odin";
 #import "time.odin";
+#import "main.odin";
+#import "console.odin";
 #import "catalog.odin";
 #import ja "asset.odin";
 #import rnd "pcg.odin";
@@ -18,117 +20,147 @@ textures : [dynamic]gl.Texture;
 back : gl.Texture;
 
 pos := [..]math.Vec3 {
-    {0,  1, 0},
-    {10, 0, 0}, 
+    {0, 0, 0},
+    {2, 0, 0}, 
 };
 
-scale : f32 = 10;
-near : f32 = 0.1;
-far : f32 = 500;
-
-cameraPos := math.Vec3{0, 0, 15};
+Camera : Camera_t;
+Camera_t :: struct {
+    Pos  : math.Vec3,
+    Zoom : f32,
+    Near : f32,
+    Far  : f32,
+}
 
 basicProgram : gl.Program;
 basicvao : gl.VAO;
 
-Draw :: proc(handle : win32.Hwnd, window : math.Vec2) { 
+CameraWindow :: proc() {
+     if debugWnd.GetWindowState("ShowCameraSettings") {
+        b := debugWnd.GetWindowState("ShowCameraSettings");
+        imgui.Begin("Camera Settings", ^b, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
+        {
+            imgui.DragFloat("Scale",  ^Camera.Zoom,  0.1, 0, 0, "%.2f", 1);
+            imgui.DragFloat("Near", ^Camera.Near, 0.1, 0, 0, "%.2f", 1);
+            imgui.DragFloat("Far",  ^Camera.Far,  0.1, 0, 0, "%.2f", 1);
+            imgui.Separator();
+            pos : [3]f32;
+            pos[0] = Camera.Pos.x;
+            pos[1] = Camera.Pos.y;
+            pos[2] = Camera.Pos.z;
+            imgui.DragFloat3("Pos", ^pos, 0.1, 0, 0, "%.2f", 1);
+            Camera.Pos.x = pos[0];
+            Camera.Pos.y = pos[1];
+            Camera.Pos.z = pos[2];
+        }
+        imgui.End();
+        debugWnd.SetWindowState("ShowCameraSettings", b);
+    }
+}
+
+CalculateOrtho :: proc(window : math.Vec2, scaleFactor : math.Vec2, far, near : f32) -> math.Mat4 {
+    w :f32= (window.x);
+    h :f32= (window.y);
+    l :f32= -(w/ 2);
+    r := w / 2;
+    t :f32= -(h / 2);
+    b := h / 2;
+    proj  := math.ortho3d(l, r, t, b, far, near);
+    return math.scale(proj, math.Vec3{scaleFactor.x, scaleFactor.y, 1.0});
+}
+
+CreateViewMatrixFromCamera :: proc(camera : Camera_t) -> math.Mat4 {
+    view := math.mat4_translate(-camera.Pos);
+    view = math.scale(view, math.Vec3{camera.Zoom, camera.Zoom, 1});
+    return view;
+}
+
+Draw :: proc(area : main.DrawArea, mousePos : win32.Point, window : math.Vec2, scaleFactor : math.Vec2, virtual : math.Vec2) { 
     gl.Enable(gl.Capabilities.DepthTest);
     gl.Enable(gl.Capabilities.Blend);
     gl.DepthFunc(gl.DepthFuncs.Lequal);
     gl.BlendFunc(gl.BlendFactors.SrcAlpha, gl.BlendFactors.OneMinusSrcAlpha);  
 
-    if debugWnd.GetWindowState("ShowCameraSettings") {
-        b := debugWnd.GetWindowState("ShowCameraSettings");
-        imgui.Begin("Camera Settings", ^b, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
-        {
-            imgui.DragFloat("Scale",  ^scale,  0.1, 0, 0, "%.2f", 1);
-            imgui.DragFloat("Near", ^near, 0.1, 0, 0, "%.2f", 1);
-            imgui.DragFloat("Far",  ^far,  0.1, 0, 0, "%.2f", 1);
-            imgui.Separator();
-            pos : [3]f32;
-            pos[0] = cameraPos.x;
-            pos[1] = cameraPos.y;
-            pos[2] = cameraPos.z;
-            imgui.DragFloat3("Pos", ^pos, 0.1, 0, 0, "%.2f", 1);
-            cameraPos.x = pos[0];
-            cameraPos.y = pos[1];
-            cameraPos.z = pos[2];
-        }
-        imgui.End();
-        debugWnd.SetWindowState("ShowCameraSettings", b);
-    }
+    CameraWindow();
     
     gl.UseProgram(mainProgram);
     gl.BindVertexArray(mainvao);
 
-    view  := math.mat4_translate(-cameraPos);
-    //proj  := math.perspective(math.to_radians(45), window.x / window.y, near, far);
-    ratio := window.x / window.y;
-    w :f32= (scale * ratio) * 0.5;
-    h :f32= (scale) * 0.5;
-
-    l :f32= -w;
-    r := w;
-    t :f32= -h;
-    b := h;
-
-    proj  := math.ortho3d(l, r, t, b, far, near);
-
-
-
+    view := CreateViewMatrixFromCamera(Camera);
+    proj := CalculateOrtho(window, scaleFactor, Camera.Far, Camera.Near);
 
     gl.UniformMatrix4fv(mainProgram.Uniforms["View"],  view,  false);
     gl.UniformMatrix4fv(mainProgram.Uniforms["Proj"],  proj,  false);
 
-    gl.BindTexture(gl.TextureTargets.Texture2D, back);
-    tr := math.mat4_translate(math.Vec3{0, 0, 0});
-    model := math.scale(tr, math.Vec3{24, 22, 1});
-    gl.UniformMatrix4fv(mainProgram.Uniforms["Model"], model, false);
-    gl.DrawElements(gl.DrawModes.Triangles, 6, gl.DrawElementsType.UInt, nil);
+
+    TestRender :: proc(program : gl.Program, pos : math.Vec3, angle : f32, scale : math.Vec3) {
+        matScale := math.scale(math.mat4_identity(), scale);
+        rotation := math.mat4_rotate(math.Vec3{0, 0, 1}, math.to_radians(angle));
+        model := math.mul(matScale, rotation);
+        offset := math.mat4_translate(math.Vec3{-0.5, -0.5, 0});
+        model = math.mul(model, offset);
+        translation := math.mat4_translate(pos);
+        model = math.mul(translation, model);
+
+        gl.UniformMatrix4fv(program.Uniforms["Model"], model, false);
+
+        gl.DrawElements(gl.DrawModes.Triangles, 6, gl.DrawElementsType.UInt, nil);
+    }
     
     for p, i in pos {
         gl.BindTexture(gl.TextureTargets.Texture2D, textures[i]);
-        t := math.mat4_translate(p);
-        model := math.scale(t, math.Vec3{0.7, 1, 1});
-        gl.UniformMatrix4fv(mainProgram.Uniforms["Model"], model, false);
-        gl.DrawElements(gl.DrawModes.Triangles, 6, gl.DrawElementsType.UInt, nil);
+        TestRender(mainProgram, p, 0, math.Vec3{1, 1, 1});
     }
 
+    gl.UseProgram(basicProgram);
+    gl.BindVertexArray(basicvao);
+    gl.UniformMatrix4fv(basicProgram.Uniforms["View"],  view,  false);
+    gl.UniformMatrix4fv(basicProgram.Uniforms["Proj"],  proj,  false);
 
 
-    {
-        gl.UseProgram(basicProgram);
-        gl.BindVertexArray(basicvao);
-        gl.UniformMatrix4fv(basicProgram.Uniforms["View"],  view,  false);
-        gl.UniformMatrix4fv(basicProgram.Uniforms["Proj"],  proj,  false);
-        
-        mousePos : win32.Point;
-        win32.GetCursorPos(^mousePos);
-        win32.ScreenToClient(handle, ^mousePos);
-        pos := math.Vec4{cast(f32)mousePos.x, cast(f32)mousePos.y, 0, 0};
-        {
-            pos.x = ((pos.x / window.x) * 2.0 - 1.0)* w + cameraPos.x;
-            pos.y = ((pos.y / window.y) * 2.0 - 1.0)* h + cameraPos.y;
-            pos.y = -pos.y;
-        }
-
-        off := math.mat4_translate(math.Vec3{-0.5, -0.5, 0});
-        t := math.mat4_translate(math.Vec3{pos.x, pos.y, 0});
-        model := math.mul(off, t);
-        gl.UniformMatrix4fv(basicProgram.Uniforms["Model"], model, false);
-        gl.Uniform(basicProgram.Uniforms["Color"], cast(f32)1.0, 0.0, 0.0, 1.0);
-        gl.DrawElements(gl.DrawModes.Triangles, 6, gl.DrawElementsType.UInt, nil);
-
-        model = math.scale(math.mat4_identity(), math.Vec3{0.1, 0.1, 0.1});
-        model = math.mul(model, off);
-        gl.UniformMatrix4fv(basicProgram.Uniforms["Model"], model, false);
-        gl.Uniform(basicProgram.Uniforms["Color"], cast(f32)0.0, 1.0, 0.0, 1.0);
-        gl.DrawElements(gl.DrawModes.Triangles, 6, gl.DrawElementsType.UInt, nil);
-
+    MapToRange :: proc(t : f32, min : f32, max : f32) -> f32 {
+        return (t - min) / (max - min);
     }
+
+    ScreenToWorld :: proc(screenPos : math.Vec2, proj, view : math.Mat4, area : main.DrawArea) -> math.Vec3 {
+        m := math.mul(proj, view);
+        m = math.inverse(m);
+        u := MapToRange(screenPos.x, cast(f32)area.X, cast(f32)area.X + cast(f32)area.Width);
+        v := MapToRange(screenPos.y, cast(f32)area.Y, cast(f32)area.Y + cast(f32)area.Height);
+        p := math.Vec4{u * 2 - 1,
+                       v * 2 - 1,
+                       0, 1};
+        p = math.mul(m, p);
+
+        p.w = 1.0 / p.w;
+        p.x *= p.w;
+        p.y *= p.w;
+        p.z *= p.w;
+        return math.Vec3{p.x, -p.y, 0};
+    }
+
+    //gl.Uniform(basicProgram.Uniforms["Color"], cast(f32)1.0, 0.0, 0.0, 1.0);
+    
+    gl.Uniform(basicProgram.Uniforms["Color"], cast(f32)0.0, 1.0, 0.0, 1.0);
+    TestRender(basicProgram, math.Vec3{1, 0, 0}, 45, math.Vec3{0.5, 0.5, 0.5});
+
+    gl.UseProgram(mainProgram);
+    gl.BindVertexArray(mainvao);
+    gl.UniformMatrix4fv(mainProgram.Uniforms["View"],  view,  false);
+    gl.UniformMatrix4fv(mainProgram.Uniforms["Proj"],  proj,  false);
+    gl.BindTexture(gl.TextureTargets.Texture2D, textures[0]);
+    TestRender(mainProgram, 
+               ScreenToWorld(math.Vec2{cast(f32)mousePos.x, cast(f32)mousePos.y}, proj, view, area), 
+               45, math.Vec3{0.2, 0.2, 0.2});
 }
 
+
+
 Init :: proc(shaderCat : ^catalog.Catalog, textureCat : ^catalog.Catalog) {
+    Camera.Pos = math.Vec3{0, 0, 15};
+    Camera.Zoom = 100;
+    Camera.Near = 0.1;
+    Camera.Far = 50;
     Test(shaderCat, textureCat);
     Test2(shaderCat);
 }
@@ -180,8 +212,8 @@ Test2 :: proc(shaderCat : ^catalog.Catalog) {
 Test :: proc(shaderCat : ^catalog.Catalog, textureCat : ^catalog.Catalog) {
     vertexAsset, ok1 := catalog.Find(shaderCat, "test_vert");
     fragAsset, ok2 := catalog.Find(shaderCat, "test_frag");
-    kickAsset, ok3 := catalog.Find(textureCat, "player_kick");
-    holdAsset, ok4 := catalog.Find(textureCat, "player_hold1");
+    kickAsset, ok3 := catalog.Find(textureCat, "test22");
+    holdAsset, ok4 := catalog.Find(textureCat, "test22");
     backAsset, ok5 := catalog.Find(textureCat, "back");
 
     if ok1 != catalog.ERR_SUCCESS || ok2 != catalog.ERR_SUCCESS || ok3 != catalog.ERR_SUCCESS {

@@ -27,9 +27,11 @@ EngineContext_t :: struct {
     AdaptiveVSync : bool,
     WindowPlacement : win32.Window_Placement,
 
-    VirtualWidth : i32,
-    VirtualHeight : i32,
+    VirtualScreen : math.Vec2,
     VirtualAspectRatio : f32,
+
+    ScaleFactor : math.Vec2,
+
     GameDrawArea : DrawArea,
 }
 
@@ -63,7 +65,7 @@ CreateWindow :: proc (instance : win32.Hinstance, ) -> win32.Hwnd {
     }
 
     windowStyle : u32 = WS_OVERLAPPEDWINDOW|WS_VISIBLE;
-    clientRect := Rect{0,0,1280,720};
+    clientRect := Rect{0,0,1024,768};
     AdjustWindowRect(^clientRect, windowStyle, 0);
     windowHandle := CreateWindowExA(0,
                                     wndClass.class_name,
@@ -315,9 +317,9 @@ main :: proc() {
     EngineContext.ShowDebugMenu = true;
     EngineContext.AdaptiveVSync = true;
 
-    EngineContext.VirtualWidth = 1920;
-    EngineContext.VirtualHeight = 1080;
-    EngineContext.VirtualAspectRatio = cast(f32)EngineContext.VirtualWidth / cast(f32)EngineContext.VirtualHeight;
+    EngineContext.VirtualScreen.x = 1280;
+    EngineContext.VirtualScreen.y = 720;
+    EngineContext.VirtualAspectRatio = EngineContext.VirtualScreen.x / EngineContext.VirtualScreen.y;
 
     time.Init();
 
@@ -371,19 +373,29 @@ main :: proc() {
         pos : win32.Point;
         win32.GetCursorPos(^pos);
         win32.ScreenToClient(win32vars.WindowHandle, ^pos);
-        ChangeWindowTitle(win32vars.WindowHandle, "Jaze %s | dt: %.5f sdt: %.5f ss: %.1f | <%d, %d> | <%.0f, %.0f>", 
+        ChangeWindowTitle(win32vars.WindowHandle, "Jaze %s | dt: %.5f sdt: %.5f ss: %.1f | <%d, %d> | <%.0f, %.0f> | <%d, %d, %d, %d>", 
                                                                                            win32vars.Ogl.VersionString, time.GetUnscaledDeltaTime(), 
                                                                                            time.GetDeltaTime(), time.GetTimeSinceStart(),
                                                                                            pos.x, pos.y,
-                                                                                           win32vars.WindowSize.x, win32vars.WindowSize.y);
+                                                                                           win32vars.WindowSize.x, win32vars.WindowSize.y,
+                                                                                           EngineContext.GameDrawArea.X, EngineContext.GameDrawArea.Y,
+                                                                                           EngineContext.GameDrawArea.Width, EngineContext.GameDrawArea.Height);
         gl.ClearColor(0, 0, 0, 1);
         gl.Clear(gl.ClearFlags.COLOR_BUFFER | gl.ClearFlags.DEPTH_BUFFER);
 
         rect : win32.Rect;
         win32.GetClientRect(win32vars.WindowHandle, ^rect);
-        res := CalculateViewport(rect.right, rect.bottom, EngineContext.VirtualAspectRatio);
+        EngineContext.GameDrawArea = CalculateViewport(rect.right, 
+                                                       rect.bottom, 
+                                                       EngineContext.VirtualAspectRatio);
 
-        gl.Scissor(res.X, res.Y, res.Width, res.Height);
+        EngineContext.ScaleFactor.x = cast(f32)rect.right / cast(f32)EngineContext.VirtualScreen.x;
+        EngineContext.ScaleFactor.y = cast(f32)rect.bottom / cast(f32)EngineContext.VirtualScreen.y;
+
+        gl.Scissor(EngineContext.GameDrawArea.X, 
+                   EngineContext.GameDrawArea.Y, 
+                   EngineContext.GameDrawArea.Width, 
+                   EngineContext.GameDrawArea.Height);
 
         gl.ClearColor(1, 0, 1, 1);
         gl.Clear(gl.ClearFlags.COLOR_BUFFER);
@@ -393,9 +405,11 @@ main :: proc() {
             debug.RenderDebugUI(^win32vars);
         }
 
+        mousePos : win32.Point;
+        win32.GetCursorPos(^mousePos);
+        win32.ScreenToClient(win32vars.WindowHandle, ^mousePos);
 
-
-        render.Draw(win32vars.WindowHandle, win32vars.WindowSize);        
+        render.Draw(EngineContext.GameDrawArea, mousePos, win32vars.WindowSize, EngineContext.ScaleFactor, EngineContext.VirtualScreen);
         if EngineContext.ShowDebugMenu {
             imgui.Render();
         }

@@ -4,7 +4,8 @@
 #import "imgui.odin";
 #import debugWnd "debug_windows.odin";
 
-OUTPUT_TO_CLI :: false;
+OUTPUT_TO_CLI  :: false;
+OUTPUT_TO_FILE :: false;
 
 _BUF_SIZE :: 1024;
 
@@ -85,7 +86,9 @@ _InternalLog :: proc(fmt_ : string, level : LogLevel, args : ..any) {
 
     append(_InternalData.Log,   item);
     _InternalData.ScrollToBottom = true;
-    _UpdateLogFile();
+    when OUTPUT_TO_FILE {
+        _UpdateLogFile();
+    }
 }
 
 _UpdateLogFile :: proc() {
