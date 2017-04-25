@@ -39,8 +39,8 @@ RenderDebugUI :: proc(vars : ^main.Win32Vars_t) {
     }
 
     if imgui.BeginMenu("Visual", true) {
-        if imgui.Checkbox("Toggle Adaptive VSync", ^main.AdaptiveVSync) {
-            if main.AdaptiveVSync {
+        if imgui.Checkbox("Toggle Adaptive VSync", ^main.EngineContext.AdaptiveVSync) {
+            if main.EngineContext.AdaptiveVSync {
                 wgl.SwapIntervalEXT(-1);
             } else {
                 wgl.SwapIntervalEXT(0);
@@ -60,7 +60,7 @@ RenderDebugUI :: proc(vars : ^main.Win32Vars_t) {
 
         
         if imgui.MenuItem("Exit", "Escape", false, true) {
-            main.ProgramRunning = false;
+            main.EngineContext.ProgramRunning = false;
         }
         imgui.EndMenu();
     }

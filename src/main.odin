@@ -19,11 +19,28 @@
 #import "console.odin";
 #import "entity.odin";
 
-ProgramRunning : bool;
-ShowDebugMenu : bool = true;
+EngineContext : ^EngineContext_t;
+
+EngineContext_t :: struct {
+    ProgramRunning : bool,
+    ShowDebugMenu : bool,
+    AdaptiveVSync : bool,
+    WindowPlacement : win32.Window_Placement,
+
+    VirtualWidth : i32,
+    VirtualHeight : i32,
+    VirtualAspectRatio : f32,
+    GameDrawArea : DrawArea,
+}
+
+DrawArea :: struct {
+    X : i32,
+    Y : i32,
+    Width : i32,
+    Height : i32,
+}
+
 GlobalWin32VarsPtr : ^Win32Vars_t;
-GlobalWindowPosition : win32.Window_Placement;
-AdaptiveVSync : bool = true;
 Win32Vars_t :: struct {
     AppHandle    : win32.Hinstance,
     WindowHandle : win32.Hwnd,
@@ -224,25 +241,14 @@ WindowProc :: proc(hwnd: win32.Hwnd,
     return result;
 }
 
-BackbufferWidth : i32 = 1280;
-BackbufferHeight : i32 = 720;
-TargetAspectRatio := cast(f32)BackbufferWidth / cast(f32)BackbufferHeight;
-
-GameDrawArea :: struct {
-    X : i32,
-    Y : i32,
-    Width : i32,
-    Height : i32,
-}
-
-CalculateViewport :: proc(newWidth : i32, newHeight : i32) -> GameDrawArea {
-    res : GameDrawArea;
+CalculateViewport :: proc(newWidth : i32, newHeight : i32, targetAspectRatio : f32) -> DrawArea {
+    res : DrawArea;
     res.Width = newWidth;
-    res.Height = cast(i32)(cast(f32)res.Width / TargetAspectRatio + 0.5);
+    res.Height = cast(i32)(cast(f32)res.Width / targetAspectRatio + 0.5);
 
     if newHeight < res.Height {
         res.Height = newHeight;
-        res.Width = cast(i32)(cast(f32)res.Height * TargetAspectRatio + 0.5);
+        res.Width = cast(i32)(cast(f32)res.Height * targetAspectRatio + 0.5);
     }
 
     res.X = (newWidth / 2) - (res.Width / 2);
@@ -256,13 +262,13 @@ OpenGLDebugCallback :: proc(source : gl.DebugSource, type : gl.DebugType, id : i
     console.Log("[%v | %v | %v] %s \n", source, type, severity, strings.to_odin_string(message));
 }
 
-ToggleFullscreen :: proc(wnd : win32.Hwnd) {
+ToggleFullscreen :: proc(wnd : win32.Hwnd, WindowPlacement : ^win32.Window_Placement) {
     Style : u32 = cast(u32)win32.GetWindowLongPtrA(wnd, win32.GWL_STYLE);
     if(Style & win32.WS_OVERLAPPEDWINDOW == win32.WS_OVERLAPPEDWINDOW) {
         monitorInfo : win32.Monitor_Info;
         monitorInfo.size = size_of(win32.Monitor_Info);
 
-        win32.GetWindowPlacement(wnd, ^GlobalWindowPosition);
+        win32.GetWindowPlacement(wnd, WindowPlacement);
         win32.GetMonitorInfoA(win32.MonitorFromWindow(wnd, win32.MONITOR_DEFAULTTOPRIMARY), ^monitorInfo);
         win32.SetWindowLongPtrA(wnd, win32.GWL_STYLE, cast(i64)Style & ~win32.WS_OVERLAPPEDWINDOW);
         win32.SetWindowPos(wnd, win32.Hwnd_TOP,
@@ -272,7 +278,7 @@ ToggleFullscreen :: proc(wnd : win32.Hwnd) {
                                 win32.SWP_FRAMECHANGED | win32.SWP_NOOWNERZORDER);
     } else {
         win32.SetWindowLongPtrA(wnd, win32.GWL_STYLE, cast(i64)(Style | win32.WS_OVERLAPPEDWINDOW));
-        win32.SetWindowPlacement(wnd, ^GlobalWindowPosition);
+        win32.SetWindowPlacement(wnd, WindowPlacement);
         win32.SetWindowPos(wnd, nil, 0, 0, 0, 0,
                                 win32.SWP_NOMOVE | win32.SWP_NOSIZE | win32.SWP_NOZORDER |
                                 win32.SWP_NOOWNERZORDER | win32.SWP_FRAMECHANGED);
@@ -286,7 +292,9 @@ ChangeWindowTitle :: proc(window : win32.Hwnd, fmt_ : string, args : ..any) {
 }
 
 main :: proc() {
-    GlobalWindowPosition.length = size_of(win32.Window_Placement);
+    EngineContext = new(EngineContext_t);
+
+    EngineContext.WindowPlacement.length = size_of(win32.Window_Placement);
     win32vars := Win32Vars_t{};
     GlobalWin32VarsPtr = ^win32vars;
     win32vars.AppHandle = win32.GetModuleHandleA(nil);
@@ -303,7 +311,13 @@ main :: proc() {
     ChangeWindowTitle(win32vars.WindowHandle, "Jaze %s", win32vars.Ogl.VersionString);
 
     jimgui.Init(win32vars.WindowHandle);
-    ProgramRunning = true;
+    EngineContext.ProgramRunning = true;
+    EngineContext.ShowDebugMenu = true;
+    EngineContext.AdaptiveVSync = true;
+
+    EngineContext.VirtualWidth = 1920;
+    EngineContext.VirtualHeight = 1080;
+    EngineContext.VirtualAspectRatio = cast(f32)EngineContext.VirtualWidth / cast(f32)EngineContext.VirtualHeight;
 
     time.Init();
 
@@ -319,17 +333,17 @@ main :: proc() {
     console.AddCommand("Help", console.DefaultHelpCommand);
     console.AddCommand("Clear", console.DefaultClearCommand);
 
-    for ProgramRunning {
+    for EngineContext.ProgramRunning {
         msg : win32.Msg;
         for win32.PeekMessageA(^msg, nil, 0, 0, win32.PM_REMOVE) == win32.TRUE {
             match msg.message {
                 case win32.WM_QUIT : {
-                    ProgramRunning = false;
+                    EngineContext.ProgramRunning = false;
                 }
 
                 case win32.WM_SYSKEYDOWN : {
                     if cast(win32.Key_Code)msg.wparam == win32.Key_Code.RETURN {
-                        ToggleFullscreen(win32vars.WindowHandle);
+                        ToggleFullscreen(win32vars.WindowHandle, ^EngineContext.WindowPlacement);
                     }
 
                     if cast(win32.Key_Code)msg.wparam == win32.Key_Code.C {
@@ -337,7 +351,7 @@ main :: proc() {
                     }
 
                     if msg.wparam == 0xC0 {
-                        ShowDebugMenu = !ShowDebugMenu;
+                        EngineContext.ShowDebugMenu = !EngineContext.ShowDebugMenu;
                     }
                     continue;
                 }
@@ -367,14 +381,14 @@ main :: proc() {
 
         rect : win32.Rect;
         win32.GetClientRect(win32vars.WindowHandle, ^rect);
-        res := CalculateViewport(rect.right, rect.bottom);
+        res := CalculateViewport(rect.right, rect.bottom, EngineContext.VirtualAspectRatio);
 
         gl.Scissor(res.X, res.Y, res.Width, res.Height);
 
         gl.ClearColor(1, 0, 1, 1);
         gl.Clear(gl.ClearFlags.COLOR_BUFFER);
 
-        if ShowDebugMenu {
+        if EngineContext.ShowDebugMenu {
             jimgui.BeginNewFrame(time.GetUnscaledDeltaTime());
             debug.RenderDebugUI(^win32vars);
         }
@@ -382,7 +396,7 @@ main :: proc() {
 
 
         render.Draw(win32vars.WindowHandle, win32vars.WindowSize);        
-        if ShowDebugMenu {
+        if EngineContext.ShowDebugMenu {
             imgui.Render();
         }
 
