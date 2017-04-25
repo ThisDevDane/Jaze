@@ -69,8 +69,8 @@ Draw :: proc(handle : win32.Hwnd, window : math.Vec2) {
 
     l :f32= -w;
     r := w;
-    t :f32= h;
-    b := -h;
+    t :f32= -h;
+    b := h;
 
     proj  := math.ortho3d(l, r, t, b, far, near);
 
@@ -119,7 +119,7 @@ Draw :: proc(handle : win32.Hwnd, window : math.Vec2) {
         gl.Uniform(basicProgram.Uniforms["Color"], cast(f32)1.0, 0.0, 0.0, 1.0);
         gl.DrawElements(gl.DrawModes.Triangles, 6, gl.DrawElementsType.UInt, nil);
 
-        model = math.scale(math.mat4_identity(), math.Vec3{1, 1, 1});
+        model = math.scale(math.mat4_identity(), math.Vec3{0.1, 0.1, 0.1});
         model = math.mul(model, off);
         gl.UniformMatrix4fv(basicProgram.Uniforms["Model"], model, false);
         gl.Uniform(basicProgram.Uniforms["Color"], cast(f32)0.0, 1.0, 0.0, 1.0);

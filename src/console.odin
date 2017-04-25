@@ -4,6 +4,8 @@
 #import "imgui.odin";
 #import debugWnd "debug_windows.odin";
 
+OUTPUT_TO_CLI :: false;
+
 _BUF_SIZE :: 1024;
 
 CommandProc :: #type proc(args : []string);
@@ -66,6 +68,11 @@ _InternalLog :: proc(fmt_ : string, level : LogLevel, args : ..any) {
     newFmt  := fmt.sprintf(buf[..0], "%s%s", levelStr, fmt_);
     tempStr := fmt.sprintf(buf2[..0], newFmt, ..args);
     append(_InternalData.Items, _StringDup(tempStr));
+
+    when OUTPUT_TO_CLI {
+        fmt.printf("%s\n", tempStr);
+    }
+
     item := LogItem{};
     item.Text = _StringDup(tempStr);
 

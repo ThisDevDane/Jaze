@@ -221,6 +221,8 @@ RenderProc :: proc(data : ^DrawData) #cc_c {
     //draw_data->ScaleClipRects(io.DisplayFramebufferScale);
 
     //@TODO(Hoej): BACKUP STATE!
+    lastViewport : [4]i32;
+    gl.GetInteger(gl.GetIntegerNames.Viewport, ^lastViewport[0]);
 
     gl.Enable(gl.Capabilities.Blend);
     gl.BlendFunc(gl.BlendFactors.SrcAlpha, gl.BlendFactors.OneMinusSrcAlpha);
@@ -265,6 +267,6 @@ RenderProc :: proc(data : ^DrawData) #cc_c {
     }
 
     //TODO: Restore state
-
     gl.Scissor(0, 0, width, height);
+    gl.Viewport(lastViewport[0], lastViewport[1], lastViewport[2], lastViewport[3]);
 }

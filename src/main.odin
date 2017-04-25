@@ -187,7 +187,7 @@ WindowProc :: proc(hwnd: win32.Hwnd,
         } 
 
         case WM_SIZE : {
-            gl.Viewport(0, 0, cast(i32)win32.LOWORD(lparam), cast(i32)win32.HIWORD(lparam));
+            //gl.Viewport(0, 0, cast(i32)win32.LOWORD(lparam), cast(i32)win32.HIWORD(lparam));
             if GlobalWin32VarsPtr != nil {
                 GlobalWin32VarsPtr.WindowSize.x = cast(f32)win32.LOWORD(lparam);
                 GlobalWin32VarsPtr.WindowSize.y = cast(f32)win32.HIWORD(lparam);
@@ -222,6 +222,34 @@ WindowProc :: proc(hwnd: win32.Hwnd,
     }
     
     return result;
+}
+
+BackbufferWidth : i32 = 1280;
+BackbufferHeight : i32 = 720;
+TargetAspectRatio := cast(f32)BackbufferWidth / cast(f32)BackbufferHeight;
+
+GameDrawArea :: struct {
+    X : i32,
+    Y : i32,
+    Width : i32,
+    Height : i32,
+}
+
+CalculateViewport :: proc(newWidth : i32, newHeight : i32) -> GameDrawArea {
+    res : GameDrawArea;
+    res.Width = newWidth;
+    res.Height = cast(i32)(cast(f32)res.Width / TargetAspectRatio + 0.5);
+
+    if newHeight < res.Height {
+        res.Height = newHeight;
+        res.Width = cast(i32)(cast(f32)res.Height * TargetAspectRatio + 0.5);
+    }
+
+    res.X = (newWidth / 2) - (res.Width / 2);
+    res.Y = (newHeight / 2) - (res.Height / 2);
+
+    gl.Viewport(res.X, res.Y, res.Width, res.Height);
+    return res;
 }
 
 OpenGLDebugCallback :: proc(source : gl.DebugSource, type : gl.DebugType, id : i32, severity : gl.DebugSeverity, length : i32, message : ^byte, userParam : rawptr) #cc_c {
@@ -274,7 +302,6 @@ main :: proc() {
 
     ChangeWindowTitle(win32vars.WindowHandle, "Jaze %s", win32vars.Ogl.VersionString);
 
-    gl.ClearColor(1, 0, 1, 1);
     jimgui.Init(win32vars.WindowHandle);
     ProgramRunning = true;
 
@@ -325,7 +352,6 @@ main :: proc() {
             win32.TranslateMessage(^msg);
             win32.DispatchMessageA(^msg);
         }
-
         time.Update();
 
         pos : win32.Point;
@@ -336,6 +362,17 @@ main :: proc() {
                                                                                            time.GetDeltaTime(), time.GetTimeSinceStart(),
                                                                                            pos.x, pos.y,
                                                                                            win32vars.WindowSize.x, win32vars.WindowSize.y);
+        gl.ClearColor(0, 0, 0, 1);
+        gl.Clear(gl.ClearFlags.COLOR_BUFFER | gl.ClearFlags.DEPTH_BUFFER);
+
+        rect : win32.Rect;
+        win32.GetClientRect(win32vars.WindowHandle, ^rect);
+        res := CalculateViewport(rect.right, rect.bottom);
+
+        gl.Scissor(res.X, res.Y, res.Width, res.Height);
+
+        gl.ClearColor(1, 0, 1, 1);
+        gl.Clear(gl.ClearFlags.COLOR_BUFFER);
 
         if ShowDebugMenu {
             jimgui.BeginNewFrame(time.GetUnscaledDeltaTime());
@@ -343,7 +380,6 @@ main :: proc() {
         }
 
 
-        gl.Clear(gl.ClearFlags.COLOR_BUFFER | gl.ClearFlags.DEPTH_BUFFER);
 
         render.Draw(win32vars.WindowHandle, win32vars.WindowSize);        
         if ShowDebugMenu {

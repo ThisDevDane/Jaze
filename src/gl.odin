@@ -476,6 +476,14 @@ GetInteger :: proc(name : GetIntegerNames) -> i32 {
     }
 }
 
+GetInteger :: proc(name : GetIntegerNames, res : ^i32) {
+    if _GetIntegerv != nil { 
+        _GetIntegerv(cast(i32)name, res);
+    } else {
+        console.Log("%s isn't loaded!", #procedure);
+    }
+}
+
 Enable  :: proc(cap : Capabilities) {
     if _Enable != nil {
         _Enable(cast(i32)cap);
