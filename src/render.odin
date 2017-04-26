@@ -21,12 +21,13 @@ back : gl.Texture;
 
 pos := [..]math.Vec3 {
     {0, 0, 0},
-    {2, 0, 0}, 
+    {2, 1, 0}, 
 };
 
 Camera : Camera_t;
 Camera_t :: struct {
     Pos  : math.Vec3,
+    Rot  : f32,
     Zoom : f32,
     Near : f32,
     Far  : f32,
@@ -40,9 +41,10 @@ CameraWindow :: proc() {
         b := debugWnd.GetWindowState("ShowCameraSettings");
         imgui.Begin("Camera Settings", ^b, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
         {
-            imgui.DragFloat("Scale",  ^Camera.Zoom,  0.1, 0, 0, "%.2f", 1);
-            imgui.DragFloat("Near", ^Camera.Near, 0.1, 0, 0, "%.2f", 1);
-            imgui.DragFloat("Far",  ^Camera.Far,  0.1, 0, 0, "%.2f", 1);
+            imgui.DragFloat("Scale",  ^Camera.Zoom,  0.05, 0, 0, "%.2f", 1);
+            imgui.DragFloat("Near", ^Camera.Near, 0.05, 0, 0, "%.2f", 1);
+            imgui.DragFloat("Far",  ^Camera.Far,  0.05, 0, 0, "%.2f", 1);
+            imgui.DragFloat("//Rotation",  ^Camera.Rot,  0.05, 0, 0, "%.2f", 1);
             imgui.Separator();
             pos : [3]f32;
             pos[0] = Camera.Pos.x;
@@ -59,20 +61,22 @@ CameraWindow :: proc() {
 }
 
 CalculateOrtho :: proc(window : math.Vec2, scaleFactor : math.Vec2, far, near : f32) -> math.Mat4 {
-    w :f32= (window.x);
-    h :f32= (window.y);
-    l :f32= -(w/ 2);
+    w := (window.x);
+    h := (window.y);
+    l := -(w/ 2);
     r := w / 2;
-    t :f32= -(h / 2);
-    b := h / 2;
+    b := -(h / 2);
+    t := h / 2;
     proj  := math.ortho3d(l, r, t, b, far, near);
     return math.scale(proj, math.Vec3{scaleFactor.x, scaleFactor.y, 1.0});
 }
 
 CreateViewMatrixFromCamera :: proc(camera : Camera_t) -> math.Mat4 {
-    view := math.mat4_translate(-camera.Pos);
-    view = math.scale(view, math.Vec3{camera.Zoom, camera.Zoom, 1});
-    return view;
+    view := math.scale(math.mat4_identity(), math.Vec3{camera.Zoom, camera.Zoom, 1});
+    //rot := math.mat4_rotate(math.Vec3{0, 0, 1}, math.to_radians(camera.Rot));
+    //view = math.mul(view, rot);
+    tr := math.mat4_translate(-camera.Pos);
+    return math.mul(view, tr);
 }
 
 Draw :: proc(area : main.DrawArea, mousePos : win32.Point, window : math.Vec2, scaleFactor : math.Vec2, virtual : math.Vec2) { 
@@ -91,7 +95,6 @@ Draw :: proc(area : main.DrawArea, mousePos : win32.Point, window : math.Vec2, s
 
     gl.UniformMatrix4fv(mainProgram.Uniforms["View"],  view,  false);
     gl.UniformMatrix4fv(mainProgram.Uniforms["Proj"],  proj,  false);
-
 
     TestRender :: proc(program : gl.Program, pos : math.Vec3, angle : f32, scale : math.Vec3) {
         matScale := math.scale(math.mat4_identity(), scale);
@@ -117,26 +120,21 @@ Draw :: proc(area : main.DrawArea, mousePos : win32.Point, window : math.Vec2, s
     gl.UniformMatrix4fv(basicProgram.Uniforms["View"],  view,  false);
     gl.UniformMatrix4fv(basicProgram.Uniforms["Proj"],  proj,  false);
 
-
     MapToRange :: proc(t : f32, min : f32, max : f32) -> f32 {
         return (t - min) / (max - min);
     }
 
-    ScreenToWorld :: proc(screenPos : math.Vec2, proj, view : math.Mat4, area : main.DrawArea) -> math.Vec3 {
-        m := math.mul(proj, view);
-        m = math.inverse(m);
+    ScreenToWorld :: proc(screenPos : math.Vec2, proj, view : math.Mat4, area : main.DrawArea, cam : Camera_t) -> math.Vec3 {
         u := MapToRange(screenPos.x, cast(f32)area.X, cast(f32)area.X + cast(f32)area.Width);
         v := MapToRange(screenPos.y, cast(f32)area.Y, cast(f32)area.Y + cast(f32)area.Height);
         p := math.Vec4{u * 2 - 1,
                        v * 2 - 1,
-                       0, 1};
-        p = math.mul(m, p);
+                       -1, 1};
 
-        p.w = 1.0 / p.w;
-        p.x *= p.w;
-        p.y *= p.w;
-        p.z *= p.w;
-        return math.Vec3{p.x, -p.y, 0};
+        p = math.mul(math.inverse(proj), p);
+        p = math.Vec4{p.x, p.y, -1, 0};
+        world := math.mul(math.inverse(view), p);
+        return math.Vec3{world.x + cam.Pos.x, -world.y + cam.Pos.y, 0}; 
     }
 
     //gl.Uniform(basicProgram.Uniforms["Color"], cast(f32)1.0, 0.0, 0.0, 1.0);
@@ -150,7 +148,7 @@ Draw :: proc(area : main.DrawArea, mousePos : win32.Point, window : math.Vec2, s
     gl.UniformMatrix4fv(mainProgram.Uniforms["Proj"],  proj,  false);
     gl.BindTexture(gl.TextureTargets.Texture2D, textures[0]);
     TestRender(mainProgram, 
-               ScreenToWorld(math.Vec2{cast(f32)mousePos.x, cast(f32)mousePos.y}, proj, view, area), 
+               ScreenToWorld(math.Vec2{cast(f32)mousePos.x, cast(f32)mousePos.y}, proj, view, area, Camera), 
                45, math.Vec3{0.2, 0.2, 0.2});
 }
 
@@ -161,6 +159,7 @@ Init :: proc(shaderCat : ^catalog.Catalog, textureCat : ^catalog.Catalog) {
     Camera.Zoom = 100;
     Camera.Near = 0.1;
     Camera.Far = 50;
+    Camera.Rot = 45;
     Test(shaderCat, textureCat);
     Test2(shaderCat);
 }
