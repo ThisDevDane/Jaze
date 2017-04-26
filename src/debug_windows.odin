@@ -60,6 +60,19 @@ _ShowID : gl.Texture = 1;
     imgui.End();
 }
 
+StatOverlay :: proc(show : ^bool) {
+    imgui.SetNextWindowPos(imgui.Vec2{5, 25}, 0);
+    imgui.PushStyleColor(imgui.GuiCol.WindowBg, imgui.Vec4{0.23, 0.23, 0.23, 0.4});
+    imgui.Begin("Stat Overlay", show, imgui.GuiWindowFlags.NoMove | imgui.GuiWindowFlags.NoTitleBar | imgui.GuiWindowFlags.NoResize | imgui.GuiWindowFlags.NoSavedSettings); 
+    {
+        io := imgui.GetIO();
+        imgui.Text("Framerate: %.0ffps (%fms) ", io.Framerate, 1000.0 / io.Framerate);
+        imgui.Separator();
+    }   
+    imgui.End();
+    imgui.PopStyleColor(1);
+}
+
 OpenGLExtensions :: proc(name : string, extensions : [dynamic]string, show : ^bool) {
     imgui.Begin(name, show, STD_WINDOW); 
     {

@@ -5,8 +5,12 @@
 #import wgl "jwgl.odin";
 
 RenderDebugUI :: proc(vars : ^main.Win32Vars_t) {
+   MakeMenuBar();
+   TryToRenderWindows(vars);
+}
 
-    MakeMenuItem :: proc(title : string, id : string) {
+MakeMenuBar :: proc() {
+     MakeMenuItem :: proc(title : string, id : string) {
         MakeMenuItem(title, "", id);
     }
 
@@ -46,6 +50,13 @@ RenderDebugUI :: proc(vars : ^main.Win32Vars_t) {
                 wgl.SwapIntervalEXT(0);
             }
         }
+        {
+            b := debugWnd.GetWindowState("ShowStatOverlay");
+            if imgui.Checkbox("Toggle Stat Overlay", ^b) {
+                debugWnd.SetWindowState("ShowStatOverlay", b);
+            }
+        }
+        
         imgui.EndMenu();
     }
 
@@ -66,7 +77,9 @@ RenderDebugUI :: proc(vars : ^main.Win32Vars_t) {
     }
     imgui.EndMainMenuBar();
     imgui.PopStyleColor(1);
+}
 
+TryToRenderWindows :: proc(vars : ^main.Win32Vars_t) {
     if debugWnd.GetWindowState("ShowOpenGLInfo") {
         b := debugWnd.GetWindowState("ShowOpenGLInfo");
         debugWnd.OpenGLInfo(^vars.Ogl, ^b);
@@ -84,6 +97,7 @@ RenderDebugUI :: proc(vars : ^main.Win32Vars_t) {
     debugWnd.TryShowWindow("ShowTimeData",          debugWnd.ShowTimeDataWindow);
     debugWnd.TryShowWindow("ShowCatalogWindow",     debugWnd.ShowCatalogWindow);
     debugWnd.TryShowWindow("ShowDebugWindowStates", debugWnd.ShowDebugWindowStates);
+    debugWnd.TryShowWindow("ShowStatOverlay",       debugWnd.StatOverlay);
     debugWnd.TryShowWindow("ShowConsoleWindow",     console.DrawConsole);
     debugWnd.TryShowWindow("ShowLogWindow",         console.DrawLog);
 
