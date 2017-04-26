@@ -51,7 +51,7 @@ Win32Vars_t :: struct {
     Ogl          : gl.OpenGLVars_t,
 }
 
-CreateWindow :: proc (instance : win32.Hinstance, ) -> win32.Hwnd {
+CreateWindow :: proc (instance : win32.Hinstance) -> win32.Hwnd {
     using win32;
     wndClass : WndClassExA;
     wndClass.size = size_of(WndClassExA);
@@ -293,34 +293,73 @@ ChangeWindowTitle :: proc(window : win32.Hwnd, fmt_ : string, args : ..any) {
     win32.SetWindowTextA(window, ^buf[0]);
 }
 
+MessageLoop :: proc(ctx : ^EngineContext_t, win32vars : Win32Vars_t){
+    msg : win32.Msg;
+    for win32.PeekMessageA(^msg, nil, 0, 0, win32.PM_REMOVE) == win32.TRUE {
+        match msg.message {
+            case win32.WM_QUIT : {
+                ctx.ProgramRunning = false;
+            }
+
+            case win32.WM_SYSKEYDOWN : {
+                if cast(win32.Key_Code)msg.wparam == win32.Key_Code.RETURN {
+                    ToggleFullscreen(win32vars.WindowHandle, ^ctx.WindowPlacement);
+                }
+
+                if cast(win32.Key_Code)msg.wparam == win32.Key_Code.C {
+                    debugWnd.ToggleWindow("ShowConsoleWindow");
+                }
+
+                if msg.wparam == 0xC0 {
+                    ctx.ShowDebugMenu = !ctx.ShowDebugMenu;
+                }
+                continue;
+            }
+
+            case win32.WM_KEYDOWN : {
+                if cast(win32.Key_Code)msg.wparam == win32.Key_Code.ESCAPE {
+                    win32.PostQuitMessage(0);
+                }
+            } 
+        }
+
+        win32.TranslateMessage(^msg);
+        win32.DispatchMessageA(^msg);
+    }
+}
+
 main :: proc() {
     EngineContext = new(EngineContext_t);
 
     EngineContext.WindowPlacement.length = size_of(win32.Window_Placement);
     win32vars := Win32Vars_t{};
-    GlobalWin32VarsPtr = ^win32vars;
-    win32vars.AppHandle = win32.GetModuleHandleA(nil);
-    win32vars.WindowHandle = CreateWindow(win32vars.AppHandle); 
-    win32vars.DeviceCtx = win32.GetDC(win32vars.WindowHandle);
-    win32vars.Ogl.Ctx = CreateOpenGLContext(^win32vars, true);
-    gl.Init();
-    gl.DebugMessageCallback(OpenGLDebugCallback, nil);
-    gl.Enable(gl.Capabilities.DebugOutputSynchronous);
-    gl.DebugMessageControl(gl.DebugSource.DontCare, gl.DebugType.DontCare, gl.DebugSeverity.Notification, 0, nil, false);
-    gl.GetInfo(^win32vars.Ogl);
-    wgl.GetInfo(^win32vars.Ogl, win32vars.DeviceCtx);
+    {
+        GlobalWin32VarsPtr = ^win32vars;
+        win32vars.AppHandle = win32.GetModuleHandleA(nil);
+        win32vars.WindowHandle = CreateWindow(win32vars.AppHandle); 
+        win32vars.DeviceCtx = win32.GetDC(win32vars.WindowHandle);
+        win32vars.Ogl.Ctx = CreateOpenGLContext(^win32vars, true);
+    }
+    {
+        gl.Init();
+        gl.DebugMessageCallback(OpenGLDebugCallback, nil);
+        gl.Enable(gl.Capabilities.DebugOutputSynchronous);
+        gl.DebugMessageControl(gl.DebugSource.DontCare, gl.DebugType.DontCare, gl.DebugSeverity.Notification, 0, nil, false);
+        gl.GetInfo(^win32vars.Ogl);
+        wgl.GetInfo(^win32vars.Ogl, win32vars.DeviceCtx);
+    }
+    {
+        EngineContext.ProgramRunning = true;
+        EngineContext.ShowDebugMenu = true;
+        EngineContext.AdaptiveVSync = true;
 
-    ChangeWindowTitle(win32vars.WindowHandle, "Jaze %s", win32vars.Ogl.VersionString);
+        EngineContext.VirtualScreen.x = 1280;
+        EngineContext.VirtualScreen.y = 720;
+        EngineContext.VirtualAspectRatio = EngineContext.VirtualScreen.x / EngineContext.VirtualScreen.y;
+    }
 
     jimgui.Init(win32vars.WindowHandle);
-    EngineContext.ProgramRunning = true;
-    EngineContext.ShowDebugMenu = true;
-    EngineContext.AdaptiveVSync = true;
-
-    EngineContext.VirtualScreen.x = 1280;
-    EngineContext.VirtualScreen.y = 720;
-    EngineContext.VirtualAspectRatio = EngineContext.VirtualScreen.x / EngineContext.VirtualScreen.y;
-
+    ChangeWindowTitle(win32vars.WindowHandle, "Jaze %s", win32vars.Ogl.VersionString);
     time.Init();
 
     wgl.SwapIntervalEXT(-1);
@@ -336,38 +375,8 @@ main :: proc() {
     console.AddCommand("Clear", console.DefaultClearCommand);
 
     for EngineContext.ProgramRunning {
-        msg : win32.Msg;
-        for win32.PeekMessageA(^msg, nil, 0, 0, win32.PM_REMOVE) == win32.TRUE {
-            match msg.message {
-                case win32.WM_QUIT : {
-                    EngineContext.ProgramRunning = false;
-                }
+        MessageLoop(EngineContext, win32vars);
 
-                case win32.WM_SYSKEYDOWN : {
-                    if cast(win32.Key_Code)msg.wparam == win32.Key_Code.RETURN {
-                        ToggleFullscreen(win32vars.WindowHandle, ^EngineContext.WindowPlacement);
-                    }
-
-                    if cast(win32.Key_Code)msg.wparam == win32.Key_Code.C {
-                        debugWnd.ToggleWindow("ShowConsoleWindow");
-                    }
-
-                    if msg.wparam == 0xC0 {
-                        EngineContext.ShowDebugMenu = !EngineContext.ShowDebugMenu;
-                    }
-                    continue;
-                }
-
-                case win32.WM_KEYDOWN : {
-                    if cast(win32.Key_Code)msg.wparam == win32.Key_Code.ESCAPE {
-                        win32.PostQuitMessage(0);
-                    }
-                } 
-            }
-
-            win32.TranslateMessage(^msg);
-            win32.DispatchMessageA(^msg);
-        }
         time.Update();
 
         pos : win32.Point;
@@ -410,6 +419,7 @@ main :: proc() {
         win32.ScreenToClient(win32vars.WindowHandle, ^mousePos);
 
         render.Draw(EngineContext.GameDrawArea, mousePos, win32vars.WindowSize, EngineContext.ScaleFactor, EngineContext.VirtualScreen);
+        
         if EngineContext.ShowDebugMenu {
             imgui.Render();
         }
