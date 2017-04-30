@@ -223,29 +223,7 @@ WindowProc :: proc(hwnd: win32.Hwnd,
                    lparam: win32.Lparam) -> win32.Lresult #cc_c {
     using win32;
     result : Lresult = 0;
-    match(msg) {
-        case WM_DESTROY : {
-            PostQuitMessage(0);
-        }
-
-        case win32.WM_MOUSEWHEEL : {
-            delta := i16(win32.HIWORD(wparam));
-            if(delta > 1) {
-                jimgui.State.MouseWheelDelta += 1;
-            }
-            if(delta < 1) {
-                jimgui.State.MouseWheelDelta -= 1;
-            }
-
-            result = 1;
-        } 
-
-        case WM_CHAR : {
-            imgui.GuiIO_AddInputCharacter(u16(wparam)); 
-            result = 1;
-        }
-        break;
-
+    match(msg) {       
         default : {
             result = DefWindowProcA(hwnd, msg, wparam, lparam);
         }
@@ -332,6 +310,26 @@ MessageLoop :: proc(ctx : ^EngineContext_t, win32vars : Win32Vars_t){
                     win32.PostQuitMessage(0);
                 }
             } 
+
+            case win32.WM_CHAR : {
+                imgui.GuiIO_AddInputCharacter(u16(msg.wparam)); 
+            }
+            break;
+
+            case win32.WM_MOUSEWHEEL : {
+                delta := i16(win32.HIWORD(msg.wparam));
+                if(delta > 1) {
+                    jimgui.State.MouseWheelDelta += 1;
+                }
+                if(delta < 1) {
+                    jimgui.State.MouseWheelDelta -= 1;
+                }
+            } 
+
+            case win32.WM_DESTROY : {
+                win32.PostQuitMessage(0);
+            }
+
         }
 
         win32.TranslateMessage(&msg);
@@ -391,13 +389,15 @@ main :: proc() {
         pos : win32.Point;
         win32.GetCursorPos(&pos);
         win32.ScreenToClient(EngineContext.win32.WindowHandle, &pos);
-        ChangeWindowTitle(EngineContext.win32.WindowHandle, "Jaze %s | dt: %.5f sdt: %.5f ss: %.1f | <%d, %d> | <%.0f, %.0f> | <%d, %d, %d, %d>", 
-                                                                                           EngineContext.win32.Ogl.VersionString, time.GetUnscaledDeltaTime(), 
-                                                                                           time.GetDeltaTime(), time.GetTimeSinceStart(),
-                                                                                           pos.x, pos.y,
-                                                                                           EngineContext.win32.WindowSize.x, EngineContext.win32.WindowSize.y,
-                                                                                           EngineContext.GameDrawArea.X, EngineContext.GameDrawArea.Y,
-                                                                                           EngineContext.GameDrawArea.Width, EngineContext.GameDrawArea.Height);
+/*        ChangeWindowTitle(EngineContext.win32.WindowHandle, "Jaze %s | dt: %.5f sdt: %.5f ss: %.1f | <%d, %d> | <%.0f, %.0f> | <%d, %d, %d, %d>", 
+                                                               EngineContext.win32.Ogl.VersionString, 
+                                                               time.GetUnscaledDeltaTime(), 
+                                                               time.GetDeltaTime(), 
+                                                               time.GetTimeSinceStart(),
+                                                               pos.x, pos.y,
+                                                               EngineContext.win32.WindowSize.x, EngineContext.win32.WindowSize.y,
+                                                               EngineContext.GameDrawArea.X, EngineContext.GameDrawArea.Y,
+                                                               EngineContext.GameDrawArea.Width, EngineContext.GameDrawArea.Height);*/
         gl.ClearColor(0, 0, 0, 1);
         gl.Clear(gl.ClearFlags.COLOR_BUFFER | gl.ClearFlags.DEPTH_BUFFER);
 
@@ -405,6 +405,7 @@ main :: proc() {
         win32.GetClientRect(EngineContext.win32.WindowHandle, &rect);
         EngineContext.win32.WindowSize.x = f32(rect.right);
         EngineContext.win32.WindowSize.y = f32(rect.bottom);
+
         EngineContext.GameDrawArea = CalculateViewport(rect.right, 
                                                        rect.bottom, 
                                                        EngineContext.VirtualAspectRatio);
