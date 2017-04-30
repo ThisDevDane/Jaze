@@ -4,9 +4,9 @@
 #import "console.odin";
 #import wgl "jwgl.odin";
 
-RenderDebugUI :: proc(vars : ^main.Win32Vars_t) {
+RenderDebugUI :: proc(Ctx : ^main.EngineContext_t) {
    MakeMenuBar();
-   TryToRenderWindows(vars);
+   TryToRenderWindows(Ctx);
 }
 
 MakeMenuBar :: proc() {
@@ -79,16 +79,16 @@ MakeMenuBar :: proc() {
     imgui.PopStyleColor(1);
 }
 
-TryToRenderWindows :: proc(vars : ^main.Win32Vars_t) {
+TryToRenderWindows :: proc(Ctx : ^main.EngineContext_t) {
     if debugWnd.GetWindowState("ShowOpenGLInfo") {
         b := debugWnd.GetWindowState("ShowOpenGLInfo");
-        debugWnd.OpenGLInfo(&vars.Ogl, &b);
+        debugWnd.OpenGLInfo(&Ctx.win32.Ogl, &b);
         debugWnd.SetWindowState("ShowOpenGLInfo", b);
     }
 
     if debugWnd.GetWindowState("ShowWin32VarInfo") {
         b := debugWnd.GetWindowState("ShowWin32VarInfo");
-        debugWnd.Win32VarsInfo(vars, &b);
+        debugWnd.Win32VarsInfo(&Ctx.win32, &b);
         debugWnd.SetWindowState("ShowWin32VarInfo", b);
     }
 

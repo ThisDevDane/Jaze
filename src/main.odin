@@ -426,7 +426,7 @@ main :: proc() {
 
         if EngineContext.ShowDebugMenu {
             jimgui.BeginNewFrame(time.GetUnscaledDeltaTime(), EngineContext.win32.WindowSize, math.Vec2{f32(mousePos.x), f32(mousePos.y)});
-            debug.RenderDebugUI(&EngineContext.win32);
+            debug.RenderDebugUI(EngineContext);
         }
 
 
