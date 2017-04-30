@@ -225,6 +225,10 @@ WindowProc :: proc(hwnd: win32.Hwnd,
     using win32;
     result : Lresult = 0;
     match(msg) {       
+        case WM_DESTROY : {
+            PostQuitMessage(0);
+        }
+
         default : {
             result = DefWindowProcA(hwnd, msg, wparam, lparam);
         }
@@ -327,9 +331,6 @@ MessageLoop :: proc(ctx : ^EngineContext_t){
                 }
             } 
 
-            case win32.WM_DESTROY : {
-                win32.PostQuitMessage(0);
-            }
 
         }
 
