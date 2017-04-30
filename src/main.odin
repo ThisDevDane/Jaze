@@ -33,13 +33,6 @@ EngineContext_t :: struct {
     win32 : Win32Vars_t,
 }
 
-DrawArea :: struct {
-    X : i32,
-    Y : i32,
-    Width : i32,
-    Height : i32,
-}
-
 Win32Vars_t :: struct {
     AppHandle    : win32.Hinstance,
     WindowHandle : win32.Hwnd,
@@ -47,6 +40,14 @@ Win32Vars_t :: struct {
     DeviceCtx    : win32.Hdc,
     Ogl          : gl.OpenGLVars_t,
 }
+
+DrawArea :: struct {
+    X : i32,
+    Y : i32,
+    Width : i32,
+    Height : i32,
+}
+
 
 CreateWindow :: proc (instance : win32.Hinstance) -> win32.Hwnd {
     using win32;
@@ -58,7 +59,7 @@ CreateWindow :: proc (instance : win32.Hinstance) -> win32.Hwnd {
     wndClass.class_name = strings.new_c_string("jaze_class");
 
     if RegisterClassExA(&wndClass) == 0 {
-        panic("Could Not Register Class");
+        panic("Could not register main window class");
     }
 
     windowStyle : u32 = WS_OVERLAPPEDWINDOW|WS_VISIBLE;
@@ -77,7 +78,7 @@ CreateWindow :: proc (instance : win32.Hinstance) -> win32.Hwnd {
                                     instance,
                                     nil);
     if windowHandle == nil {
-        panic("Could Not Create Window");
+        panic("Could not create main window");
     }
 
     return windowHandle;
@@ -90,9 +91,9 @@ GetMaxGLVersion :: proc() -> (i32, i32) {
                                        win32.WS_OVERLAPPED, 
                                        win32.CW_USEDEFAULT, win32.CW_USEDEFAULT, win32.CW_USEDEFAULT, win32.CW_USEDEFAULT,
                                        nil, nil, nil, nil);
-    fmt.println(wndHandle);
-    fmt.println(win32.GetLastError());
-    assert(wndHandle != nil);
+    if wndHandle == nil {
+        panic("Could not create opengl version checker window");
+    }
     deviceCtx := win32.GetDC(wndHandle);
     assert(deviceCtx != nil);
 
@@ -153,7 +154,9 @@ CreateOpenGLContext :: proc (DeviceCtx : win32.Hdc, modern : bool) -> win32wgl.H
                            win32.WS_OVERLAPPED, 
                            win32.CW_USEDEFAULT, win32.CW_USEDEFAULT, win32.CW_USEDEFAULT, win32.CW_USEDEFAULT,
                            nil, nil, nil, nil);
-            assert(wndHandle != nil);
+            if wndHandle == nil {
+                panic("Could not create opengl loader window");
+            }
             wndDc := win32.GetDC(wndHandle);
             assert(wndDc != nil);
             temp := DeviceCtx;
