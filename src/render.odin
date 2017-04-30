@@ -79,7 +79,7 @@ CreateViewMatrixFromCamera :: proc(camera : Camera_t) -> math.Mat4 {
     return math.mul(view, tr);
 }
 
-Draw :: proc(area : main.DrawArea, mousePos : win32.Point, window : math.Vec2, scaleFactor : math.Vec2, virtual : math.Vec2) { 
+Draw :: proc(ctx : ^main.EngineContext_t) { 
     gl.Enable(gl.Capabilities.DepthTest);
     gl.Enable(gl.Capabilities.Blend);
     gl.DepthFunc(gl.DepthFuncs.Lequal);
@@ -91,7 +91,7 @@ Draw :: proc(area : main.DrawArea, mousePos : win32.Point, window : math.Vec2, s
     gl.BindVertexArray(mainvao);
 
     view := CreateViewMatrixFromCamera(Camera);
-    proj := CalculateOrtho(window, scaleFactor, Camera.Far, Camera.Near);
+    proj := CalculateOrtho(ctx.win32.WindowSize, ctx.ScaleFactor, Camera.Far, Camera.Near);
 
     gl.UniformMatrix4fv(mainProgram.Uniforms["View"],  view,  false);
     gl.UniformMatrix4fv(mainProgram.Uniforms["Proj"],  proj,  false);
@@ -148,7 +148,7 @@ Draw :: proc(area : main.DrawArea, mousePos : win32.Point, window : math.Vec2, s
     gl.UniformMatrix4fv(mainProgram.Uniforms["Proj"],  proj,  false);
     gl.BindTexture(gl.TextureTargets.Texture2D, textures[0]);
     TestRender(mainProgram, 
-               ScreenToWorld(math.Vec2{f32(mousePos.x), f32(mousePos.y)}, proj, view, area, Camera), 
+               ScreenToWorld(ctx.MousePos, proj, view, ctx.GameDrawArea, Camera), 
                f32(time.GetTimeSinceStart() * 100.0),
                math.Vec3{0.2, 0.2, 0.2});
 }

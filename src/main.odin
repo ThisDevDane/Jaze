@@ -31,6 +31,7 @@ EngineContext_t :: struct {
     ScaleFactor : math.Vec2,
     GameDrawArea : DrawArea,
     win32 : Win32Vars_t,
+    MousePos : math.Vec2,
 }
 
 Win32Vars_t :: struct {
@@ -282,7 +283,7 @@ ChangeWindowTitle :: proc(window : win32.Hwnd, fmt_ : string, args : ..any) {
     win32.SetWindowTextA(window, &buf[0]);
 }
 
-MessageLoop :: proc(ctx : ^EngineContext_t, win32vars : Win32Vars_t){
+MessageLoop :: proc(ctx : ^EngineContext_t){
     msg : win32.Msg;
     for win32.PeekMessageA(&msg, nil, 0, 0, win32.PM_REMOVE) == win32.TRUE {
         match msg.message {
@@ -292,7 +293,7 @@ MessageLoop :: proc(ctx : ^EngineContext_t, win32vars : Win32Vars_t){
 
             case win32.WM_SYSKEYDOWN : {
                 if win32.Key_Code(msg.wparam) == win32.Key_Code.RETURN {
-                    ToggleFullscreen(win32vars.WindowHandle, &ctx.WindowPlacement);
+                    ToggleFullscreen(ctx.win32.WindowHandle, &ctx.WindowPlacement);
                 }
 
                 if win32.Key_Code(msg.wparam) == win32.Key_Code.C {
@@ -383,7 +384,7 @@ main :: proc() {
     console.AddCommand("Clear", console.DefaultClearCommand);
 
     for EngineContext.ProgramRunning {
-        MessageLoop(EngineContext, EngineContext.win32);
+        MessageLoop(EngineContext);
         time.Update();
 
         pos : win32.Point;
@@ -424,14 +425,15 @@ main :: proc() {
         mousePos : win32.Point;
         win32.GetCursorPos(&mousePos);
         win32.ScreenToClient(EngineContext.win32.WindowHandle, &mousePos);
+        EngineContext.MousePos = math.Vec2{f32(mousePos.x), f32(mousePos.y)};
 
         if EngineContext.ShowDebugMenu {
-            jimgui.BeginNewFrame(time.GetUnscaledDeltaTime(), EngineContext.win32.WindowSize, math.Vec2{f32(mousePos.x), f32(mousePos.y)});
+            jimgui.BeginNewFrame(time.GetUnscaledDeltaTime(), EngineContext.win32.WindowSize, EngineContext.MousePos);
             debug.RenderDebugUI(EngineContext);
         }
 
 
-        render.Draw(EngineContext.GameDrawArea, mousePos, EngineContext.win32.WindowSize, EngineContext.ScaleFactor, EngineContext.VirtualScreen);
+        render.Draw(EngineContext);
         
         if EngineContext.ShowDebugMenu {
             imgui.Render();
