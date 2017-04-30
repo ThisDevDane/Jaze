@@ -39,18 +39,18 @@ basicvao : gl.VAO;
 CameraWindow :: proc() {
      if debugWnd.GetWindowState("ShowCameraSettings") {
         b := debugWnd.GetWindowState("ShowCameraSettings");
-        imgui.Begin("Camera Settings", ^b, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
+        imgui.Begin("Camera Settings", &b, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
         {
-            imgui.DragFloat("Scale",  ^Camera.Zoom,  0.05, 0, 0, "%.2f", 1);
-            imgui.DragFloat("Near", ^Camera.Near, 0.05, 0, 0, "%.2f", 1);
-            imgui.DragFloat("Far",  ^Camera.Far,  0.05, 0, 0, "%.2f", 1);
-            imgui.DragFloat("//Rotation",  ^Camera.Rot,  0.05, 0, 0, "%.2f", 1);
+            imgui.DragFloat("Scale",  &Camera.Zoom,  0.05, 0, 0, "%.2f", 1);
+            imgui.DragFloat("Near", &Camera.Near, 0.05, 0, 0, "%.2f", 1);
+            imgui.DragFloat("Far",  &Camera.Far,  0.05, 0, 0, "%.2f", 1);
+            imgui.DragFloat("//Rotation",  &Camera.Rot,  0.05, 0, 0, "%.2f", 1);
             imgui.Separator();
             pos : [3]f32;
             pos[0] = Camera.Pos.x;
             pos[1] = Camera.Pos.y;
             pos[2] = Camera.Pos.z;
-            imgui.DragFloat3("Pos", ^pos, 0.1, 0, 0, "%.2f", 1);
+            imgui.DragFloat3("Pos", &pos, 0.1, 0, 0, "%.2f", 1);
             Camera.Pos.x = pos[0];
             Camera.Pos.y = pos[1];
             Camera.Pos.z = pos[2];
@@ -125,8 +125,8 @@ Draw :: proc(area : main.DrawArea, mousePos : win32.Point, window : math.Vec2, s
     }
 
     ScreenToWorld :: proc(screenPos : math.Vec2, proj, view : math.Mat4, area : main.DrawArea, cam : Camera_t) -> math.Vec3 {
-        u := MapToRange(screenPos.x, cast(f32)area.X, cast(f32)area.X + cast(f32)area.Width);
-        v := MapToRange(screenPos.y, cast(f32)area.Y, cast(f32)area.Y + cast(f32)area.Height);
+        u := MapToRange(screenPos.x, f32(area.X), f32(area.X + area.Width));
+        v := MapToRange(screenPos.y, f32(area.Y), f32(area.Y + area.Height));
         p := math.Vec4{u * 2 - 1,
                        v * 2 - 1,
                        -1, 1};
@@ -139,8 +139,8 @@ Draw :: proc(area : main.DrawArea, mousePos : win32.Point, window : math.Vec2, s
 
     //gl.Uniform(basicProgram.Uniforms["Color"], cast(f32)1.0, 0.0, 0.0, 1.0);
     
-    gl.Uniform(basicProgram.Uniforms["Color"], cast(f32)0.0, 1.0, 0.0, 1.0);
-    TestRender(basicProgram, math.Vec3{1, 0, 0}, cast(f32)time.GetTimeSinceStart() * 20.0, math.Vec3{0.5, 0.5, 0.5});
+    gl.Uniform(basicProgram.Uniforms["Color"], 0.0, 1.0, 0.0, 1.0);
+    TestRender(basicProgram, math.Vec3{1, 0, 0}, f32(time.GetTimeSinceStart() * 20.0), math.Vec3{0.5, 0.5, 0.5});
 
     gl.UseProgram(mainProgram);
     gl.BindVertexArray(mainvao);
@@ -148,8 +148,8 @@ Draw :: proc(area : main.DrawArea, mousePos : win32.Point, window : math.Vec2, s
     gl.UniformMatrix4fv(mainProgram.Uniforms["Proj"],  proj,  false);
     gl.BindTexture(gl.TextureTargets.Texture2D, textures[0]);
     TestRender(mainProgram, 
-               ScreenToWorld(math.Vec2{cast(f32)mousePos.x, cast(f32)mousePos.y}, proj, view, area, Camera), 
-               cast(f32)time.GetTimeSinceStart() * 100.0,
+               ScreenToWorld(math.Vec2{f32(mousePos.x), f32(mousePos.y)}, proj, view, area, Camera), 
+               f32(time.GetTimeSinceStart() * 100.0),
                math.Vec3{0.2, 0.2, 0.2});
 }
 
@@ -168,8 +168,8 @@ Init :: proc(shaderCat : ^catalog.Catalog, textureCat : ^catalog.Catalog) {
 Test2 :: proc(shaderCat : ^catalog.Catalog) {
     vertexAsset, ok1 := catalog.Find(shaderCat, "basic_vert");
     fragAsset, ok2 := catalog.Find(shaderCat, "basic_frag");
-    vertex := union_cast(^ja.Asset.Shader)vertexAsset;
-    frag := union_cast(^ja.Asset.Shader)fragAsset;
+    vertex := vertexAsset.(^ja.Asset.Shader);
+    frag := fragAsset.(^ja.Asset.Shader);
 
     basicProgram = glUtil.CreateProgram(vertex^, frag^);
     gl.UseProgram(basicProgram);
@@ -194,8 +194,8 @@ Test2 :: proc(shaderCat : ^catalog.Catalog) {
         1, 2, 3,
     };
 
-    gl.BufferData(gl.BufferTargets.Array, size_of_val(vertices), ^vertices[0], gl.BufferDataUsage.StaticDraw);
-    gl.BufferData(gl.BufferTargets.ElementArray, size_of_val(elements), ^elements[0], gl.BufferDataUsage.StaticDraw);
+    gl.BufferData(gl.BufferTargets.Array, size_of_val(vertices), &vertices[0], gl.BufferDataUsage.StaticDraw);
+    gl.BufferData(gl.BufferTargets.ElementArray, size_of_val(elements), &elements[0], gl.BufferDataUsage.StaticDraw);
 
     basicProgram.Uniforms["Model"] = gl.GetUniformLocation(basicProgram, "Model");
     basicProgram.Uniforms["View"]  = gl.GetUniformLocation(basicProgram, "View");
@@ -204,8 +204,8 @@ Test2 :: proc(shaderCat : ^catalog.Catalog) {
     basicProgram.Uniforms["Color"]  = gl.GetUniformLocation(basicProgram, "Color");
 
     basicProgram.Attributes["VertPos"] = gl.GetAttribLocation(basicProgram, "VertPos");
-    gl.VertexAttribPointer(cast(u32)mainProgram.Attributes["VertPos"], 3, gl.VertexAttribDataType.Float, false, 3 * size_of(f32), nil);
-    gl.EnableVertexAttribArray(cast(u32)mainProgram.Attributes["VertPos"]);
+    gl.VertexAttribPointer(u32(mainProgram.Attributes["VertPos"]), 3, gl.VertexAttribDataType.Float, false, 3 * size_of(f32), nil);
+    gl.EnableVertexAttribArray(u32(mainProgram.Attributes["VertPos"]));
     gl.BindFragDataLocation(mainProgram, 0, "out_color");
 }
 
@@ -215,16 +215,15 @@ Test :: proc(shaderCat : ^catalog.Catalog, textureCat : ^catalog.Catalog) {
     kickAsset, ok3 := catalog.Find(textureCat, "test22");
     holdAsset, ok4 := catalog.Find(textureCat, "test22");
     backAsset, ok5 := catalog.Find(textureCat, "back");
-
     if ok1 != catalog.ERR_SUCCESS || ok2 != catalog.ERR_SUCCESS || ok3 != catalog.ERR_SUCCESS {
         panic("FUCK COULDN'T FIND YA SHADERS M8");
     }
 
-    vertex := union_cast(^ja.Asset.Shader)vertexAsset;
-    frag := union_cast(^ja.Asset.Shader)fragAsset;
-    kick := union_cast(^ja.Asset.Texture)kickAsset;
-    hold := union_cast(^ja.Asset.Texture)holdAsset;
-    back = (union_cast(^ja.Asset.Texture)backAsset).GLID;
+    vertex := vertexAsset.(^ja.Asset.Shader);
+    frag :=   fragAsset.(^ja.Asset.Shader);
+    kick :=   kickAsset.(^ja.Asset.Texture);
+    hold :=   holdAsset.(^ja.Asset.Texture);
+    back = backAsset.(^ja.Asset.Texture).GLID;
     append(textures, hold.GLID);
     append(textures, kick.GLID);
     mainProgram = gl.CreateProgram();
@@ -260,8 +259,8 @@ Test :: proc(shaderCat : ^catalog.Catalog, textureCat : ^catalog.Catalog) {
     };
 
 
-    gl.BufferData(gl.BufferTargets.Array, size_of_val(vertices), ^vertices[0], gl.BufferDataUsage.StaticDraw);
-    gl.BufferData(gl.BufferTargets.ElementArray, size_of_val(elements), ^elements[0], gl.BufferDataUsage.StaticDraw);
+    gl.BufferData(gl.BufferTargets.Array, size_of_val(vertices), &vertices[0], gl.BufferDataUsage.StaticDraw);
+    gl.BufferData(gl.BufferTargets.ElementArray, size_of_val(elements), &elements[0], gl.BufferDataUsage.StaticDraw);
 
     //mainProgram.Uniforms["color"] = gl.GetUniformLocation(mainProgram, "color");
     mainProgram.Uniforms["Model"] = gl.GetUniformLocation(mainProgram, "Model");
@@ -270,9 +269,9 @@ Test :: proc(shaderCat : ^catalog.Catalog, textureCat : ^catalog.Catalog) {
 
     mainProgram.Attributes["Position"] = gl.GetAttribLocation(mainProgram, "Position");
     mainProgram.Attributes["UV"] = gl.GetAttribLocation(mainProgram, "UV");
-    gl.VertexAttribPointer(cast(u32)mainProgram.Attributes["Position"], 3, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), nil);
-    gl.VertexAttribPointer(cast(u32)mainProgram.Attributes["UV"],       2, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), cast(rawptr)cast(int)(3 * size_of(f32)));
-    gl.EnableVertexAttribArray(cast(u32)mainProgram.Attributes["Position"]);
-    gl.EnableVertexAttribArray(cast(u32)mainProgram.Attributes["UV"]);
+    gl.VertexAttribPointer(u32(mainProgram.Attributes["Position"]), 3, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), nil);
+    gl.VertexAttribPointer(u32(mainProgram.Attributes["UV"]),       2, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), rawptr(int(3 * size_of(f32))));
+    gl.EnableVertexAttribArray(u32(mainProgram.Attributes["Position"]));
+    gl.EnableVertexAttribArray(u32(mainProgram.Attributes["UV"]));
     gl.BindFragDataLocation(mainProgram, 0, "OutColor");
 }

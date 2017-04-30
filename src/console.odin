@@ -66,8 +66,10 @@ _InternalLog :: proc(fmt_ : string, level : LogLevel, args : ..any) {
             levelStr = _CINPUT_STR;
         }
     }
-    newFmt  := fmt.sprintf(buf[..0], "%s%s", levelStr, fmt_);
-    tempStr := fmt.sprintf(buf2[..0], newFmt, ..args);
+    c := fmt.bprintf(buf[..], "%s%s", levelStr, fmt_);
+    newFmt  := string(buf[0..c]);
+    c = fmt.bprintf(buf2[..], newFmt, ..args);
+    tempStr := string(buf2[0..c]);
     append(_InternalData.Items, _StringDup(tempStr));
 
     when OUTPUT_TO_CLI {
@@ -79,8 +81,8 @@ _InternalLog :: proc(fmt_ : string, level : LogLevel, args : ..any) {
 
     ft : win32.Filetime;
     st : win32.Systemtime;
-    win32.GetSystemTimeAsFileTime(^ft);
-    win32.FileTimeToSystemTime(^ft, ^st);
+    win32.GetSystemTimeAsFileTime(&ft);
+    win32.FileTimeToSystemTime(&ft, &st);
 
     item.Time = st;
 
@@ -95,23 +97,25 @@ _UpdateLogFile :: proc() {
     if len(_InternalData.LogFileName) <= 0 {
         ft : win32.Filetime;
         st : win32.Systemtime;
-        win32.GetSystemTimeAsFileTime(^ft);
-        win32.FileTimeToSystemTime(^ft, ^st);
+        win32.GetSystemTimeAsFileTime(&ft);
+        win32.FileTimeToSystemTime(&ft, &st);
 
         buf := make([]byte, 255);
-        _InternalData.LogFileName = fmt.sprintf(buf[..0], "%d-%d-%d_%d%d%d.jlog", 
+        c := fmt.bprintf(buf[..], "%d-%d-%d_%d%d%d.jlog", 
                                                 st.day, st.month, st.year, 
                                                 st.hour, st.minute, st.second);
+        _InternalData.LogFileName = string(buf[0..c]);
     }
 
     h, _ := os.open(_InternalData.LogFileName, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0);
     os.seek(h, 0, 2);
     for log in _InternalData.Log {
         buf : [_BUF_SIZE]byte;
-        str := fmt.sprintf(buf[..0], "[%2d:%2d:%2d-%3d]%s\n", log.Time.hour,   log.Time.minute, 
+        c := fmt.bprintf(buf[..], "[%2d:%2d:%2d-%3d]%s\n", log.Time.hour,   log.Time.minute, 
                                                               log.Time.second, log.Time.millisecond, 
                                                               log.Text);
-        os.write(h, cast([]byte)str);
+        str := string(buf[0..c]);
+        os.write(h, []byte(str));
         os.seek(h, 0, 2);
     }
     os.close(h);   
@@ -137,9 +141,9 @@ DrawLog :: proc(show : ^bool) {
     imgui.BeginChild("Items", imgui.Vec2{0, 0}, true, 0);
     {
         for t in _InternalData.Log {
-            if t.Text[..len(_ERROR_STR)] == _ERROR_STR {
+            if t.Text[0..<len(_ERROR_STR)] == _ERROR_STR {
                 imgui.TextColored(imgui.Vec4{1, 0, 0, 1}, "[%2d:%2d:%2d-%3d]%s", t.Time.hour, t.Time.minute, t.Time.second, t.Time.millisecond, t.Text);
-            } else if t.Text[..len(_CINPUT_STR)] == _CINPUT_STR {
+            } else if t.Text[0..<len(_CINPUT_STR)] == _CINPUT_STR {
                 imgui.TextColored(imgui.Vec4{0.7, 0.7, 0.7, 1}, "[%2d:%2d:%2d-%3d]%s", t.Time.hour, t.Time.minute, t.Time.second, t.Time.millisecond, t.Text);
             } else {
                 imgui.Text("[%2d:%2d:%2d-%3d]%s", t.Time.hour, t.Time.minute, t.Time.second, t.Time.millisecond, t.Text);
@@ -170,9 +174,9 @@ DrawConsole :: proc(show : ^bool) {
         imgui.BeginChild("Buffer", imgui.Vec2{-1, -40}, true, 0);
         {
             for t in _InternalData.Items {
-                if t[..len(_ERROR_STR)] == _ERROR_STR {
+                if t[0..<len(_ERROR_STR)] == _ERROR_STR {
                     imgui.TextColored(imgui.Vec4{1, 0, 0, 1}, t);
-                } else if t[..len(_CINPUT_STR)] == _CINPUT_STR {
+                } else if t[0..<len(_CINPUT_STR)] == _CINPUT_STR {
                     imgui.TextColored(imgui.Vec4{0.7, 0.7, 0.7, 1}, t);
                 } else {
                     imgui.Text(t);
@@ -208,7 +212,7 @@ InputEnter :: proc(input : []byte) {
     if input[0] != 0 &&
        input[0] != ' ' {
         i := _FindStringNull(input[..]);
-        str := cast(string)input[..i];
+        str := string(input[0..<i]);
         _InternalLog(str, LogLevel.ConsoleInput);
         append(_InternalData.History, _StringDup(str));
         if !ExecuteCommand(str) {
@@ -273,8 +277,9 @@ _TextEditCallback :: proc(data : ^imgui.GuiTextEditCallbackData) -> i32 #cc_c {
 
             if prev != _InternalData.HistoryPos {
                 pos := _InternalData.HistoryPos > 0 ? _InternalData.HistoryPos-1 : -1;  
-                str := fmt.sprintf(slice_ptr(data.Buf, data.BufSize)[..0], "%s", pos < 0 ? "" : _InternalData.History[pos]);
-                strlen := cast(i32)len(str)-1;
+                c := fmt.bprintf(slice_ptr(data.Buf, data.BufSize)[..], "%s", pos < 0 ? "" : _InternalData.History[pos]);
+                str := string(slice_ptr(data.Buf, data.BufSize)[0..c]);
+                strlen := i32(len(str)-1);
                 data.BufTextLen = strlen;
                 data.CursorPos = strlen;
                 data.SelectionStart = strlen;
@@ -294,7 +299,7 @@ _TextEditCallback :: proc(data : ^imgui.GuiTextEditCallbackData) -> i32 #cc_c {
 _PullCommandName :: proc(s : string) -> string {
     for r, i in s {
         if r == ' ' {
-            return s[..i];
+            return s[0..<i];
         }
     }
 
@@ -303,8 +308,8 @@ _PullCommandName :: proc(s : string) -> string {
 
 _StringDup :: proc(s : string) -> string {
     data := make([]byte, len(s)+1);
-    copy(data, cast([]byte)s[..]);
-    return cast(string)data;    
+    copy(data, []byte(s[..]));
+    return string(data);    
 }
 
 _FindStringNull :: proc(s : []byte) -> int {

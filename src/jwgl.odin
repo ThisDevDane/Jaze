@@ -33,35 +33,35 @@ CONTEXT_PROFILE_MASK_ARB_VALUES :: enum i32 {
 DRAW_TO_WINDOW_ARB :: proc(value : bool) -> Attrib {
     res : Attrib;
     res.type = 0x2001;
-    res.value = cast(i32)value;
+    res.value = i32(value);
     return res;
 }
 
 DOUBLE_BUFFER_ARB  :: proc(value : bool) -> Attrib {
     res : Attrib;
     res.type = 0x2011;
-    res.value = cast(i32)value;
+    res.value = i32(value);
     return res;
 }
 
 SUPPORT_OPENGL_ARB :: proc(value : bool) -> Attrib {
     res : Attrib;
     res.type = 0x2010;
-    res.value = cast(i32)value;
+    res.value = i32(value);
     return res;
 }
 
 ACCELERATION_ARB   :: proc(value : ACCELERATION_ARB_VALUES) -> Attrib {
     res : Attrib;
     res.type = 0x2003;
-    res.value = cast(i32)value;
+    res.value = i32(value);
     return res;
 }
 
 PIXEL_TYPE_ARB     :: proc(value : PIXEL_TYPE_ARB_VALUES) -> Attrib {
     res : Attrib;
     res.type = 0x2013;
-    res.value = cast(i32)value;
+    res.value = i32(value);
     return res;
 }
 
@@ -89,7 +89,7 @@ DEPTH_BITS_ARB :: proc(value : i32) -> Attrib {
 FRAMEBUFFER_SRGB_CAPABLE_ARB :: proc(value : bool) -> Attrib {
     res : Attrib;
     res.type = 0x20A9;
-    res.value = cast(i32)value;
+    res.value = i32(value);
     return res;
 }
 
@@ -110,14 +110,14 @@ CONTEXT_MINOR_VERSION_ARB :: proc(value : i32) -> Attrib {
 CONTEXT_FLAGS_ARB :: proc(value : CONTEXT_FLAGS_ARB_VALUES) -> Attrib {
     res : Attrib;
     res.type = 0x2094;
-    res.value = cast(i32)value;
+    res.value =i32(value);
     return res;
 }
 
 CONTEXT_PROFILE_MASK_ARB :: proc(value : CONTEXT_PROFILE_MASK_ARB_VALUES) -> Attrib {
     res : Attrib;
     res.type = 0x9126;
-    res.value = cast(i32)value;
+    res.value =i32(value);
     return res;
 }
 
@@ -158,7 +158,7 @@ LoadExtensions :: proc(GLContext : win32wgl.Hglrc, WindowDC : win32.Hdc, list : 
             txt := strings.new_c_string(name); defer free(txt);
             res := win32wgl.GetProcAddress(txt);
             assert(res != nil);
-            (cast(^(proc() #cc_c))p)^ = res;
+            ^(proc() #cc_c)(p)^ = res;
         }
 
         for val, key in list.Exts {

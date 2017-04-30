@@ -14,10 +14,10 @@ CreateAndCompileShader :: proc(type : gl.ShaderTypes, source : string) -> (gl.Sh
     if success == 0 {
         logSize := gl.GetShaderValue(shader, gl.GetShaderNames.InfoLogLength);
         logBytes := make([]byte, logSize);
-        gl._GetShaderInfoLog(cast(u32)shader, logSize, ^logSize, ^logBytes[0]);
+        gl._GetShaderInfoLog(u32(shader), logSize, &logSize, &logBytes[0]);
 
         console.Log("------ Shader Error(%s) ---", type);
-        console.Log(strings.to_odin_string(^logBytes[0])); 
+        console.Log(strings.to_odin_string(&logBytes[0])); 
         console.Log("--------------------------");
         //DeleteShader(shader.ID);
         return shader, false;

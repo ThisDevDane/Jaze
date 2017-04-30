@@ -13,17 +13,17 @@ TimeData :: struct {
 _Time := TimeData{};
 
 Init :: proc() {
-    win32.QueryPerformanceFrequency(^_Time.pfFreq);
-    win32.QueryPerformanceCounter(^_Time.pfOld);
+    win32.QueryPerformanceFrequency(&_Time.pfFreq);
+    win32.QueryPerformanceCounter(&_Time.pfOld);
     _Time.TimeScale = 1;
 }
 
 Update :: proc() {
     newTime : i64;
-    win32.QueryPerformanceCounter(^newTime);
-    _Time.DeltaTime = cast(f64)(newTime - _Time.pfOld);
+    win32.QueryPerformanceCounter(&newTime);
+    _Time.DeltaTime = f64((newTime - _Time.pfOld));
     _Time.pfOld = newTime;
-    _Time.DeltaTime /= cast(f64)_Time.pfFreq;
+    _Time.DeltaTime /= f64(_Time.pfFreq);
 
     _Time.TimeSinceStart += _Time.DeltaTime;
     _Time.FrameCountSinceStart++;

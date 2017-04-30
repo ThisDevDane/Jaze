@@ -53,7 +53,7 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
         texture.FileInfo = file;
         texture.LoadedFromDisk = false;
         c_str := strings.new_c_string(file.Path); defer free(c_str);
-        stbi.info(c_str, ^texture.Width, ^texture.Height, ^texture.Comp);
+        stbi.info(c_str, &texture.Width, &texture.Height, &texture.Comp);
         asset^ = texture;
         res.Items[asset.FileInfo.Name] = asset;
     }
@@ -93,12 +93,12 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
             last := 0;
             for i := 0; i < strlen; i++ {
                 if acceptedExtensions[i] == ',' {
-                    append(res.AcceptedExtensions, acceptedExtensions[last..i]);
+                    append(res.AcceptedExtensions, acceptedExtensions[last..<i]);
                     last = i+1;
                 }
 
                 if i == strlen-1 {
-                    append(res.AcceptedExtensions, acceptedExtensions[last..i+1]);
+                    append(res.AcceptedExtensions, acceptedExtensions[last..<i+1]);
                 }
             } 
         }
@@ -112,25 +112,26 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
         res := new(Catalog);
         res.Name = identifier;
         buf := make([]byte, j32.MAX_PATH);
-        res.Path = fmt.sprintf(buf[..0], "%s%s", path, path[len(path)-1] == '/' ? "" : "/");
+        c := fmt.bprintf(buf[..], "%s%s", path, path[len(path)-1] == '/' ? "" : "/");
+        res.Path = string(buf[0..c]);
         res.Kind = kind;
         ExtractAcceptedExtensions(res, acceptedExtensions);
         data := j32.FindData{};
-        fmt.sprintf(buf[..0], "%s%s", path, path[len(path)-1] == '\\' ? "*" : "\\*");
-        fileH := j32.FindFirstFile(^buf[0], ^data);
+        fmt.bprintf(buf[..], "%s%s", path, path[len(path)-1] == '\\' ? "*" : "\\*");
+        fileH := j32.FindFirstFile(&buf[0], &data);
 
         if fileH != win32.INVALID_HANDLE {
-            for j32.FindNextFile(fileH, ^data) == win32.TRUE {
+            for j32.FindNextFile(fileH, &data) == win32.TRUE {
                 if _IsDirectory(data.FileAttributes) {
                     continue;
                 }
                 nameBuf := make([]byte, len(data.FileName));
                 copy(nameBuf, data.FileName[..]);
-                str := strings.to_odin_string(^nameBuf[0]);
+                str := strings.to_odin_string(&nameBuf[0]);
                 for ext in res.AcceptedExtensions {
                     if _GetFileExtension(str) == ext {                        
                         file := _CreateFileInfo(res.Path, str, data);
-                        res.MaxSize += cast(uint)file.Size;
+                        res.MaxSize += uint(file.Size);
                         match kind {
                             case Kind.Texture : {
                                 AddTexture(res, file);
@@ -142,6 +143,11 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
 
                             case Kind.Sound : {
                                 AddSound(res, file);
+                            }
+
+                            default : {
+                                fmt.println(kind);
+                                panic("FUCK");
                             }
                         }
 
@@ -170,7 +176,7 @@ Find :: proc(catalog : ^Catalog, assetName : string) -> (^ja.Asset, Err) {
         if e.GLID == 0 {
             c_str := strings.new_c_string(e.FileInfo.Path); defer free(c_str);
             w, h, c : i32;
-            data := stbi.load(c_str, ^w, ^h, ^c, 0); defer stbi.image_free(data);
+            data := stbi.load(c_str, &w, &h, &c, 0); defer stbi.image_free(data);
             e.Width = w;
             e.Height = h;
             e.Comp = c;
@@ -218,8 +224,8 @@ Find :: proc(catalog : ^Catalog, assetName : string) -> (^ja.Asset, Err) {
             e.LoadedFromDisk = true;
             data, _ := os.read_entire_file(e.FileInfo.Path);
             e.Data = data;
-            e.Source = strings.to_odin_string(^data[0]);
-            cat.CurrentSize += cast(uint)len(data);
+            e.Source = strings.to_odin_string(&data[0]);
+            cat.CurrentSize += uint(len(data));
         }
 
         if e.GLID == 0 {
@@ -262,7 +268,7 @@ _GetFileExtension :: proc(filename : string) -> string {
 
     for i := strLen-1; i > 0; i-- {
         if filename[i] == '.' {
-            res := filename[i..strLen];
+            res := filename[i..<strLen];
             if res == "." {
                 return "";
             } else {
@@ -277,11 +283,11 @@ _GetFileExtension :: proc(filename : string) -> string {
 _GetFileNameWithoutExtension :: proc(filename : string) -> string {
     extlen := len(_GetFileExtension(filename));
     namelen := len(filename);
-    return filename[..(namelen-extlen)];
+    return filename[0..<(namelen-extlen)];
 }
 
 _IsDirectory :: proc(attr : u32) -> bool {
-   return (cast(i32)attr != j32.INVALID_FILE_ATTRIBUTES) && 
+   return (i32(attr) != j32.INVALID_FILE_ATTRIBUTES) && 
           ((attr & j32.FILE_ATTRIBUTE_DIRECTORY) == j32.FILE_ATTRIBUTE_DIRECTORY);
 }
 
@@ -290,9 +296,10 @@ _CreateFileInfo :: proc(path : string filename : string, data : j32.FindData) ->
     file.Name = _GetFileNameWithoutExtension(filename);
     file.Ext  = _GetFileExtension(filename);
     pathBuf := make([]byte, j32.MAX_PATH);
-    file.Path = fmt.sprintf(pathBuf[..0], "%s%s", path, filename);
+    c := fmt.bprintf(pathBuf[..], "%s%s", path, filename);
+    file.Path = string(pathBuf[0..c]);
     MAXDWORD :: 0xffffffff;
-    file.Size =  cast(u64)(cast(u64)data.FileSizeHigh * cast(u64)(MAXDWORD+1)) + cast(u64)data.FileSizeLow;
+    file.Size =  u64(data.FileSizeHigh) * u64(MAXDWORD+1) + u64(data.FileSizeLow);
     return file;
 }
 

@@ -29,7 +29,7 @@ ToggleWindow :: proc(str : string) {
 TryShowWindow :: proc(id : string, p : proc(b : ^bool)) {
     if GetWindowState(id) {
         b := GetWindowState(id);
-        p(^b);
+        p(&b);
         SetWindowState(id, b);
     }
 }
@@ -85,7 +85,7 @@ OpenGLExtensions :: proc(name : string, extensions : [dynamic]string, show : ^bo
 
 OpenGLTextureOverview :: proc(show : ^bool) {
     _CalculateMaxColumns :: proc(w : f32, csize : f32, max : i32) -> i32 {
-        Columns : i32 = cast(i32)(w / csize);
+        Columns := i32(w / csize);
         if Columns > max {
             Columns = max;
         }
@@ -98,17 +98,17 @@ OpenGLTextureOverview :: proc(show : ^bool) {
 
     imgui.Begin("Loaded Textures", show, STD_WINDOW);
     {
-        imgui.DragFloat("Preview Size:", ^_PreviewSize.x, 0.2, 20, 100, "%.0f", 1);
+        imgui.DragFloat("Preview Size:", &_PreviewSize.x, 0.2, 20, 100, "%.0f", 1);
         imgui.Separator();
         _PreviewSize.y = _PreviewSize.x;
         size : imgui.Vec2;
-        imgui.GetWindowSize(^size);
-        Columns := _CalculateMaxColumns(size.x, _PreviewSize.x + 24, cast(i32)len(gl.DebugInfo.LoadedTextures));
+        imgui.GetWindowSize(&size);
+        Columns := _CalculateMaxColumns(size.x, _PreviewSize.x + 24, i32(len(gl.DebugInfo.LoadedTextures)));
         imgui.BeginChild("", imgui.Vec2{0, 0}, false, 0);
         {
             imgui.Columns(Columns, nil, false);
             for id in gl.DebugInfo.LoadedTextures {
-                imgui.Image(cast(imgui.TextureID)cast(uint)id, _PreviewSize, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0.91, 0.4, 0.23, 1});
+                imgui.Image(imgui.TextureID(uint(id)), _PreviewSize, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0.91, 0.4, 0.23, 1});
                 if imgui.IsItemHovered() {
                     imgui.BeginTooltip();
                     {
@@ -130,8 +130,8 @@ OpenGLTextureOverview :: proc(show : ^bool) {
     imgui.Begin("Texture View", nil, STD_WINDOW | imgui.GuiWindowFlags.NoScrollbar);
     {
         size : imgui.Vec2;
-        imgui.GetWindowSize(^size);
-        imgui.Image(cast(imgui.TextureID)cast(uint)_ShowID, imgui.Vec2{size.x-16, size.y-35}, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0.91, 0.4, 0.23, 0});
+        imgui.GetWindowSize(&size);
+        imgui.Image(imgui.TextureID(uint(_ShowID)), imgui.Vec2{size.x-16, size.y-35}, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0.91, 0.4, 0.23, 0});
     }
     imgui.End();
 }
@@ -213,13 +213,13 @@ OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
 
     if GetWindowState("OpenGLShowExtensions") {
         b := GetWindowState("OpenGLShowExtensions");
-        OpenGLExtensions("Extensions##Ext", vars.Extensions, ^b);
+        OpenGLExtensions("Extensions##Ext", vars.Extensions, &b);
         SetWindowState("OpenGLShowExtensions", b);
     }
 
     if GetWindowState("OpenGLShowWGLExtensions") {
         b := GetWindowState("OpenGLShowWGLExtensions");
-        OpenGLExtensions("WGL Extensions", vars.WglExtensions, ^b);
+        OpenGLExtensions("WGL Extensions", vars.WglExtensions, &b);
         SetWindowState("OpenGLShowWGLExtensions", b);
     }
 
@@ -229,10 +229,10 @@ OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
 Win32VarsInfo :: proc(vars : ^main.Win32Vars_t, show : ^bool) {
     imgui.Begin("Win32Vars Info", show, STD_WINDOW);
     {
-        imgui.Text("Application Handle:    0x%X", cast(int)vars.AppHandle);
-        imgui.Text("Window Handle:         0x%X", cast(int)vars.WindowHandle);
+        imgui.Text("Application Handle:    0x%X", int(vars.AppHandle));
+        imgui.Text("Window Handle:         0x%X", int(vars.WindowHandle));
         imgui.Text("Window Size:           {%.3f, %.3f}", vars.WindowSize.x, vars.WindowSize.y);
-        imgui.Text("Device Context Handle: 0x%X", cast(int)vars.DeviceCtx);
+        imgui.Text("Device Context Handle: 0x%X", int(vars.DeviceCtx));
     }
     imgui.End();
 }
@@ -256,7 +256,7 @@ ShowXinputInfoWindow :: proc(show : ^bool) {
     imgui.Begin("XInput Info", show, STD_WINDOW);
     {
         imgui.Text("Version: %s", xinput.Version);
-        imgui.Text("Lib Address: 0x%x", cast(int)xinput.DebugInfo.LibAddress);
+        imgui.Text("Lib Address: 0x%x", int(xinput.DebugInfo.LibAddress));
         imgui.Text("Number of functions loaded: %d/%d", xinput.DebugInfo.NumberOfFunctionsLoadedSuccessed, xinput.DebugInfo.NumberOfFunctionsLoaded); 
         if imgui.CollapsingHeader("Loaded Functions", 0) {
             imgui.BeginChild("Functions", imgui.Vec2{0, 150}, true, 0);
@@ -274,7 +274,7 @@ ShowXinputInfoWindow :: proc(show : ^bool) {
 
         imgui.Columns(2, nil, true);
         for i in 0..4 { //I WANT TO DO THIS Pl0x for(user in xinput.Users) 
-            cap, err := xinput.GetCapabilities(cast(xinput.User)i);
+            cap, err := xinput.GetCapabilities(xinput.User(i));
             _PrintGamepadName(i, err);
             if err == xinput.Success {
                 imgui.Text("Capabilites:");
@@ -315,7 +315,7 @@ ShowXinputStateWindow :: proc(show : ^bool) {
     {
         imgui.Columns(2, nil, true);
         for i in 0..4 {
-            state, err := xinput.GetState(cast(xinput.User)i);
+            state, err := xinput.GetState(xinput.User(i));
             _PrintGamepadName(i, err);
             if err == xinput.Success {
                 imgui.Indent(10.0);
@@ -325,7 +325,7 @@ ShowXinputStateWindow :: proc(show : ^bool) {
                     imgui.Indent(10.0);
                     {
                         IsButtonPressed :: proc(state : xinput.State, b : xinput.Buttons) -> bool {
-                            return state.Gamepad.Buttons & cast(u16)b == cast(u16)b;
+                            return state.Gamepad.Buttons & u16(b) == u16(b);
                         }
 
                         imgui.Text("DpadUp:        %t", IsButtonPressed(state, xinput.Buttons.DpadUp)       );
@@ -348,8 +348,8 @@ ShowXinputStateWindow :: proc(show : ^bool) {
                     imgui.Text("Trigger States:");
                     imgui.Indent(10.0);
                     {
-                        imgui.Text("Left Trigger:  %d(%.1f%%)", state.Gamepad.LeftTrigger,  (cast(f32)state.Gamepad.LeftTrigger/255.0)*100.0);
-                        imgui.Text("Right Trigger: %d(%.1f%%)", state.Gamepad.RightTrigger, (cast(f32)state.Gamepad.RightTrigger/255.0)*100.0);
+                        imgui.Text("Left Trigger:  %d(%.1f%%)", state.Gamepad.LeftTrigger,  (f32(state.Gamepad.LeftTrigger)/255.0)*100.0);
+                        imgui.Text("Right Trigger: %d(%.1f%%)", state.Gamepad.RightTrigger, (f32(state.Gamepad.RightTrigger)/255.0)*100.0);
                     }
                     imgui.Unindent(10.0);
                     imgui.Separator();
@@ -423,7 +423,7 @@ ShowCatalogWindow :: proc(show : ^bool) {
       if(imgui.IsItemHovered()) {
             imgui.BeginTooltip();
             imgui.Text("Path:        %s", val.FileInfo.Path);
-            imgui.Text("Disk Size:   %.2fKB", cast(f32)val.FileInfo.Size/1024.0);
+            imgui.Text("Disk Size:   %.2fKB", f32(val.FileInfo.Size)/1024.0);
             match e in val {
                 case ja.Asset.Texture : {
                     imgui.Text("ID:          %d", e.GLID);
@@ -442,7 +442,7 @@ ShowCatalogWindow :: proc(show : ^bool) {
 
     imgui.Begin("Catalogs", show, STD_WINDOW);
     {
-        imgui.Combo("Catalog", ^_ChosenCatalog, catalog.DebugInfo.CatalogNames[..], -1);
+        imgui.Combo("Catalog", &_ChosenCatalog, catalog.DebugInfo.CatalogNames[..], -1);
         imgui.Separator();
         cat := catalog.DebugInfo.Catalogs[_ChosenCatalog];
         imgui.Text("Folder Path:     %s", cat.Path);
@@ -462,7 +462,7 @@ ShowCatalogWindow :: proc(show : ^bool) {
         imgui.Separator();
         imgui.Text("No. of files: %d/%d", len(cat.Items), cat.FilesInFolder);
         imgui.SameLine(0, -1);
-        imgui.Text("In Memory: %.2fKB/%.2fKB", cast(f32)cat.CurrentSize/1024.0, cast(f32)cat.MaxSize/1024.0);
+        imgui.Text("In Memory: %.2fKB/%.2fKB", f32(cat.CurrentSize)/1024.0, f32(cat.MaxSize)/1024.0);
     }
     imgui.End();
 }

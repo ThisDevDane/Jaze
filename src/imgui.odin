@@ -509,14 +509,13 @@ GetIdPtr                                                :: proc(ptr_id : rawptr)
 
 // Bill says this might work as a workaround
 Text :: proc(fmt_: string, args: ..any) {
-    // NOTE: This procedure would have a C-style vararg parameters but
-    // it will be ignored as Odin doesn't support them
     ImText :: proc(fmt: ^byte) #cc_c #foreign cimgui "igText"; 
 
     buf: [1024]byte;
-    s := fmt.sprintf(buf[..0], fmt_, ..args);
+    c := fmt.bprintf(buf[..], fmt_, ..args);
+    s := string(buf[0..c]);
     assert(len(s) < len(buf));
-    c_str := ^buf[0];
+    c_str := &buf[0];
 
     ImText(c_str);
 }
@@ -525,9 +524,10 @@ TextColored :: proc(col : Vec4, fmt_: string, args: ..any) {
     ImTextColored :: proc(col : Vec4, fmt : ^byte) #cc_c #foreign cimgui "igTextColored";
 
     buf: [1024]byte;
-    s := fmt.sprintf(buf[..0], fmt_, ..args);
+    c := fmt.bprintf(buf[..], fmt_, ..args);
+    s := string(buf[0..c]);
     assert(len(s) < len(buf));
-    c_str := ^buf[0];
+    c_str := &buf[0];
 
     ImTextColored(col, c_str);
 }
@@ -577,7 +577,7 @@ Combo :: proc(label : string, current_item : ^i32, items : []string, height_in_i
         data[idx] = strings.new_c_string(item);
      }
 
-     return ImCombo(str, current_item, ^data[0], cast(i32)len(items), height_in_items); 
+     return ImCombo(str, current_item, &data[0], i32(len(items)), height_in_items); 
 }
 Combo2                                                  :: proc(label : c_string, current_item : ^i32, items_separated_by_zeros : c_string, height_in_items : i32) -> bool                                                                                                     #foreign cimgui "igCombo2";
 Combo3                                                  :: proc(label : c_string, current_item : ^i32, items_getter : proc(data : rawptr, idx : i32, out_text : ^^byte) -> bool #cc_c, data : rawptr, items_count : i32, height_in_items : i32) -> bool                        #foreign cimgui "igCombo3";
@@ -620,7 +620,7 @@ DragFloat3 :: proc(label : string, v : ^[3]f32, v_speed : f32, v_min : f32, v_ma
 
     str := strings.new_c_string(label); defer free(str);
     fstr := strings.new_c_string(display_format); defer free(fstr);
-    return ImDragFloat3(str, ^v[0], v_speed, v_min, v_max, fstr, power);
+    return ImDragFloat3(str, &v[0], v_speed, v_min, v_max, fstr, power);
 }
 
 DragFloat4                                              :: proc(label : c_string, v : [4]f32, v_speed : f32, v_min : f32, v_max : f32, display_format : c_string, power : f32) -> bool                                                                                         #foreign cimgui "igDragFloat4";
@@ -635,7 +635,7 @@ DragIntRange2                                           :: proc(label : c_string
 InputText :: proc(label : string, buf : []byte, flags : GuiInputTextFlags, callback : GuiTextEditCallback, user_data : rawptr) -> bool {
     ImInputText :: proc(label : c_string, buf : c_string, buf_size : u64 /*size_t*/, flags : GuiInputTextFlags, callback : GuiTextEditCallback, user_data : rawptr) -> bool #foreign cimgui "igInputText";
     str := strings.new_c_string(label); defer free(str);
-    return ImInputText(str, ^buf[0], cast(u64)len(buf), flags, callback, user_data);
+    return ImInputText(str, &buf[0], u64(len(buf)), flags, callback, user_data);
 }
 InputTextMultiline                                      :: proc(label : c_string, buf : c_string, buf_size : u64 /*size_t*/, size : Vec2, flags : GuiInputTextFlags, callback : GuiTextEditCallback, user_data : rawptr) -> bool                                               #foreign cimgui "igInputTextMultiline";
 InputFloat                                              :: proc(label : c_string, v : ^f32, step : f32, step_fast : f32, decimal_precision : i32, extra_flags : GuiInputTextFlags) -> bool                                                                                     #foreign cimgui "igInputFloat";

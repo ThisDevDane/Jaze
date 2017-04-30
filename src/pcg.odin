@@ -14,21 +14,21 @@ InitNew :: proc(initState : u64, initSeq : u64) -> state_t {
     rng : state_t;
     rng.State = 0;
     rng.Inc = (initSeq << 1) | 1;
-    Gen(^rng);
+    Gen(&rng);
     rng.State += initState;
-    Gen(^rng);
+    Gen(&rng);
     return rng;
 }
 
 Gen :: proc() -> u32 {
-    return Gen(^GlobalState);
+    return Gen(&GlobalState);
 }
 
 Gen :: proc(rng : ^state_t) -> u32 {
     oldState := rng.State;
     rng.State = oldState * 6364136223846793005 + rng.Inc;
-    xorshifted := cast(u32)(((oldState >> 18) ~ oldState) >> 27);
-    rot := cast(u32)(oldState >> 59);
+    xorshifted := u32(((oldState >> 18) ~ oldState) >> 27);
+    rot := u32(oldState >> 59);
     r := (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
     return r;
 }
@@ -48,16 +48,16 @@ Gen :: proc(rng : ^state_t, bound : u32) -> u32 {
 }
 
 Gen :: proc(bound : u32) -> u32 {
-    return Gen(^GlobalState, bound);
+    return Gen(&GlobalState, bound);
 }
 
 GenFloat :: proc() -> f64 {
-    return GenFloat(^GlobalState);
+    return GenFloat(&GlobalState);
 }
 
 UINT32_MAX :: 4294967295;
 
 GenFloat :: proc(rng : ^state_t) -> f64 {
     r := Gen(rng);
-    return (cast(f64)r - 0.0) / (UINT32_MAX - 0.0);
+    return f64((f64(r) - 0.0) / (f64(UINT32_MAX) - 0.0));
 }

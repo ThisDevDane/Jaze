@@ -43,7 +43,7 @@ MakeMenuBar :: proc() {
     }
 
     if imgui.BeginMenu("Visual", true) {
-        if imgui.Checkbox("Toggle Adaptive VSync", ^main.EngineContext.AdaptiveVSync) {
+        if imgui.Checkbox("Toggle Adaptive VSync", &main.EngineContext.AdaptiveVSync) {
             if main.EngineContext.AdaptiveVSync {
                 wgl.SwapIntervalEXT(-1);
             } else {
@@ -52,7 +52,7 @@ MakeMenuBar :: proc() {
         }
         {
             b := debugWnd.GetWindowState("ShowStatOverlay");
-            if imgui.Checkbox("Toggle Stat Overlay", ^b) {
+            if imgui.Checkbox("Toggle Stat Overlay", &b) {
                 debugWnd.SetWindowState("ShowStatOverlay", b);
             }
         }
@@ -82,13 +82,13 @@ MakeMenuBar :: proc() {
 TryToRenderWindows :: proc(vars : ^main.Win32Vars_t) {
     if debugWnd.GetWindowState("ShowOpenGLInfo") {
         b := debugWnd.GetWindowState("ShowOpenGLInfo");
-        debugWnd.OpenGLInfo(^vars.Ogl, ^b);
+        debugWnd.OpenGLInfo(&vars.Ogl, &b);
         debugWnd.SetWindowState("ShowOpenGLInfo", b);
     }
 
     if debugWnd.GetWindowState("ShowWin32VarInfo") {
         b := debugWnd.GetWindowState("ShowWin32VarInfo");
-        debugWnd.Win32VarsInfo(vars, ^b);
+        debugWnd.Win32VarsInfo(vars, &b);
         debugWnd.SetWindowState("ShowWin32VarInfo", b);
     }
 
@@ -103,7 +103,7 @@ TryToRenderWindows :: proc(vars : ^main.Win32Vars_t) {
 
     if debugWnd.GetWindowState("ShowTestWindow") {
         b := debugWnd.GetWindowState("ShowTestWindow");
-        imgui.ShowTestWindow(^b);
+        imgui.ShowTestWindow(&b);
         debugWnd.SetWindowState("ShowTestWindow", b);
     }
 }

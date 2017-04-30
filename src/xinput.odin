@@ -177,7 +177,7 @@ xGetCapabilities :: proc(userIndex : u32, type : u32, out : ^Capabilities) -> u3
 */
 Enable :: proc(enable : bool) {
     if _Enable != nil {
-        _Enable(cast(win32.Bool)enable);
+        _Enable(win32.Bool(enable));
     } else {
         //TODO: Logging        
     }
@@ -190,9 +190,9 @@ GetCapabilities :: proc(user : User) -> (Capabilities, Error) {
 GetCapabilities :: proc(user : User, onlyGamepads : bool)  -> (Capabilities, Error) {
     if _GetCapabilities != nil {
         res := Capabilities{};
-        _u := cast(u32)user;
-        err := _GetCapabilities(cast(u32)user, cast(u32)onlyGamepads, ^res);
-        return res, cast(Error)err;
+        _u := u32(user);
+        err := _GetCapabilities(u32(user), u32(onlyGamepads), &res);
+        return res, Error(err);
     } else {
         //TODO: Logging        
     }
@@ -202,8 +202,8 @@ GetCapabilities :: proc(user : User, onlyGamepads : bool)  -> (Capabilities, Err
 GetState :: proc(user : User) -> (State, Error) {
      if _GetState != nil {
         res := State{};
-        err := _GetState(cast(u32)user, ^res);
-        return res, cast(Error)err;
+        err := _GetState(u32(user), &res);
+        return res, Error(err);
     } else {
         //TODO: Logging        
     }
@@ -242,16 +242,16 @@ Init :: proc() -> bool {
     lib1_3   := "xinput1_3.dll\x00";
     lib9_1_0 := "xinput9_1_0.dll\x00";
 
-    lib := win32.LoadLibraryA(^lib1_4[0]);
+    lib := win32.LoadLibraryA(&lib1_4[0]);
     using XInputVersion;
     Version = Version1_4;
     if lib == nil {
-        lib = win32.LoadLibraryA(^lib1_3[0]);
+        lib = win32.LoadLibraryA(&lib1_3[0]);
         Version = Version1_3;
     }
 
     if lib == nil {
-        lib := win32.LoadLibraryA(^lib9_1_0[0]);
+        lib := win32.LoadLibraryA(&lib9_1_0[0]);
         Version = Version9_1_0;
     }
 
@@ -263,16 +263,17 @@ Init :: proc() -> bool {
         return false;
     }
 
-    DebugInfo.LibAddress = cast(int)lib;
+    DebugInfo.LibAddress = int(lib);
 
     set_proc_address :: proc(h : win32.Hmodule, p: rawptr, name: string) #inline {
         txt := strings.new_c_string(name); defer free(txt);
         res: = win32.GetProcAddress(h, txt);
-        (cast(^(proc() #cc_c))p)^ = res;
+        ^(proc() #cc_c)(p)^ = res;
+
 
         status := DebugFunctionLoadStatus{};
         status.Name = name;
-        status.Address = cast(int)cast(rawptr)res;
+        status.Address = int(rawptr(res));
         status.Success = false;
         //status.TypeInfo = info;
         DebugInfo.NumberOfFunctionsLoaded++;
@@ -284,12 +285,12 @@ Init :: proc() -> bool {
         append(DebugInfo.Statuses, status);
     }
 
-    set_proc_address(lib, ^_Enable,                "XInputEnable"               );
-    set_proc_address(lib, ^_GetBatteryInformation, "XInputGetBatteryInformation");
-    set_proc_address(lib, ^_GetCapabilities,       "XInputGetCapabilities"      );
-    set_proc_address(lib, ^_GetKeystroke,          "XInputGetKeystroke"         );
-    set_proc_address(lib, ^_GetState,              "XInputGetState"             );
-    set_proc_address(lib, ^_SetState,              "XInputSetState"             );
+    set_proc_address(lib, &_Enable,                "XInputEnable"               );
+    set_proc_address(lib, &_GetBatteryInformation, "XInputGetBatteryInformation");
+    set_proc_address(lib, &_GetCapabilities,       "XInputGetCapabilities"      );
+    set_proc_address(lib, &_GetKeystroke,          "XInputGetKeystroke"         );
+    set_proc_address(lib, &_GetState,              "XInputGetState"             );
+    set_proc_address(lib, &_SetState,              "XInputSetState"             );
 
     return true;
 }

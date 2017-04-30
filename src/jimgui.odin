@@ -62,19 +62,19 @@ Init :: proc(windowHandle : win32.Hwnd) {
     io.ImeWindowHandle = windowHandle;
     io.RenderDrawListsFn = RenderProc;
 
-    io.KeyMap[GuiKey.Tab]        = cast(i32)win32.Key_Code.TAB;
-    io.KeyMap[GuiKey.LeftArrow]  = cast(i32)win32.Key_Code.LEFT;
-    io.KeyMap[GuiKey.RightArrow] = cast(i32)win32.Key_Code.RIGHT;
-    io.KeyMap[GuiKey.UpArrow]    = cast(i32)win32.Key_Code.UP;
-    io.KeyMap[GuiKey.DownArrow]  = cast(i32)win32.Key_Code.DOWN;
-    io.KeyMap[GuiKey.PageUp]     = cast(i32)win32.Key_Code.NEXT;
-    io.KeyMap[GuiKey.PageDown]   = cast(i32)win32.Key_Code.PRIOR;
-    io.KeyMap[GuiKey.Home]       = cast(i32)win32.Key_Code.HOME;
-    io.KeyMap[GuiKey.End]        = cast(i32)win32.Key_Code.END;
-    io.KeyMap[GuiKey.Delete]     = cast(i32)win32.Key_Code.DELETE;
-    io.KeyMap[GuiKey.Backspace]  = cast(i32)win32.Key_Code.BACK;
-    io.KeyMap[GuiKey.Enter]      = cast(i32)win32.Key_Code.RETURN;
-    io.KeyMap[GuiKey.Escape]     = cast(i32)win32.Key_Code.ESCAPE;
+    io.KeyMap[GuiKey.Tab]        = i32(win32.Key_Code.TAB);
+    io.KeyMap[GuiKey.LeftArrow]  = i32(win32.Key_Code.LEFT);
+    io.KeyMap[GuiKey.RightArrow] = i32(win32.Key_Code.RIGHT);
+    io.KeyMap[GuiKey.UpArrow]    = i32(win32.Key_Code.UP);
+    io.KeyMap[GuiKey.DownArrow]  = i32(win32.Key_Code.DOWN);
+    io.KeyMap[GuiKey.PageUp]     = i32(win32.Key_Code.NEXT);
+    io.KeyMap[GuiKey.PageDown]   = i32(win32.Key_Code.PRIOR);
+    io.KeyMap[GuiKey.Home]       = i32(win32.Key_Code.HOME);
+    io.KeyMap[GuiKey.End]        = i32(win32.Key_Code.END);
+    io.KeyMap[GuiKey.Delete]     = i32(win32.Key_Code.DELETE);
+    io.KeyMap[GuiKey.Backspace]  = i32(win32.Key_Code.BACK);
+    io.KeyMap[GuiKey.Enter]      = i32(win32.Key_Code.RETURN);
+    io.KeyMap[GuiKey.Escape]     = i32(win32.Key_Code.ESCAPE);
     io.KeyMap[GuiKey.A]          = 'A';
     io.KeyMap[GuiKey.C]          = 'C';
     io.KeyMap[GuiKey.V]          = 'V';
@@ -129,28 +129,28 @@ Init :: proc(windowHandle : win32.Hwnd) {
     State.MainProgram.Attributes["UV"]       = gl.GetAttribLocation(State.MainProgram, "UV");    
     State.MainProgram.Attributes["Color"]    = gl.GetAttribLocation(State.MainProgram, "Color");    
 
-    State.VBOHandle = cast(gl.VBO)gl.GenBuffer();
-    State.EBOHandle = cast(gl.EBO)gl.GenBuffer();
+    State.VBOHandle = gl.VBO(gl.GenBuffer());
+    State.EBOHandle = gl.EBO(gl.GenBuffer());
     State.VAOHandle = gl.GenVertexArray();
 
     gl.BindBuffer(State.VBOHandle);
     gl.BindBuffer(State.EBOHandle);
     gl.BindVertexArray(State.VAOHandle);
 
-    gl.EnableVertexAttribArray(cast(u32)State.MainProgram.Attributes["Position"]);
-    gl.EnableVertexAttribArray(cast(u32)State.MainProgram.Attributes["UV"]);
-    gl.EnableVertexAttribArray(cast(u32)State.MainProgram.Attributes["Color"]);
+    gl.EnableVertexAttribArray(u32(State.MainProgram.Attributes["Position"]));
+    gl.EnableVertexAttribArray(u32(State.MainProgram.Attributes["UV"]));
+    gl.EnableVertexAttribArray(u32(State.MainProgram.Attributes["Color"]));
 
-    gl.VertexAttribPointer(cast(u32)State.MainProgram.Attributes["Position"],   2, gl.VertexAttribDataType.Float, false, size_of(DrawVert), cast(rawptr)cast(int)offset_of(DrawVert, pos));
-    gl.VertexAttribPointer(cast(u32)State.MainProgram.Attributes["UV"],         2, gl.VertexAttribDataType.Float, false, size_of(DrawVert), cast(rawptr)cast(int)offset_of(DrawVert, uv));
-    gl.VertexAttribPointer(cast(u32)State.MainProgram.Attributes["Color"],      4, gl.VertexAttribDataType.UByte, true,  size_of(DrawVert), cast(rawptr)cast(int)offset_of(DrawVert, col));
+    gl.VertexAttribPointer(u32(State.MainProgram.Attributes["Position"]),   2, gl.VertexAttribDataType.Float, false, size_of(DrawVert), rawptr(int(offset_of(DrawVert, pos))));
+    gl.VertexAttribPointer(u32(State.MainProgram.Attributes["UV"]),         2, gl.VertexAttribDataType.Float, false, size_of(DrawVert), rawptr(int(offset_of(DrawVert, uv))));
+    gl.VertexAttribPointer(u32(State.MainProgram.Attributes["Color"]),      4, gl.VertexAttribDataType.UByte, true,  size_of(DrawVert), rawptr(int(offset_of(DrawVert, col))));
     
     //CreateFont
     pixels : ^byte;
     width : i32;
     height : i32;
     bytePer : i32;
-    FontAtlas_GetTexDataAsRGBA32(io.Fonts, ^pixels, ^width, ^height, ^bytePer);
+    FontAtlas_GetTexDataAsRGBA32(io.Fonts, &pixels, &width, &height, &bytePer);
     State.FontTexture = gl.GenTexture();
     gl.BindTexture(gl.TextureTargets.Texture2D, State.FontTexture);
     gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MinFilter, gl.TextureParametersValues.Linear);
@@ -158,7 +158,7 @@ Init :: proc(windowHandle : win32.Hwnd) {
     gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
                   width, height, gl.PixelDataFormat.RGBA, 
                   gl.Texture2DDataType.UByte, pixels);
-    FontAtlas_SetTexID(io.Fonts, cast(rawptr)cast(uint)State.FontTexture);
+    FontAtlas_SetTexID(io.Fonts, rawptr(uint(State.FontTexture)));
 
     SetStyle();
 }
@@ -166,20 +166,20 @@ Init :: proc(windowHandle : win32.Hwnd) {
 BeginNewFrame :: proc(deltaTime : f64) {
     io := GetIO();
     rect : win32.Rect;
-    win32.GetClientRect(cast(win32.Hwnd)io.ImeWindowHandle, ^rect);
-    io.DisplaySize.x = cast(f32)rect.right;
-    io.DisplaySize.y = cast(f32)rect.bottom;
+    win32.GetClientRect(win32.Hwnd(io.ImeWindowHandle), &rect);
+    io.DisplaySize.x = f32(rect.right);
+    io.DisplaySize.y = f32(rect.bottom);
 
-    if win32.GetActiveWindow() == cast(win32.Hwnd)io.ImeWindowHandle {
+    if win32.GetActiveWindow() == win32.Hwnd(io.ImeWindowHandle) {
         pos : win32.Point;
-        win32.GetCursorPos(^pos);
-        win32.ScreenToClient(cast(win32.Hwnd)io.ImeWindowHandle, ^pos);
-        io.MousePos.x = cast(f32)pos.x;
-        io.MousePos.y = cast(f32)pos.y;
+        win32.GetCursorPos(&pos);
+        win32.ScreenToClient(win32.Hwnd(io.ImeWindowHandle), &pos);
+        io.MousePos.x = f32(pos.x);
+        io.MousePos.y = f32(pos.y);
         io.MouseDown[0] = win32.is_key_down(win32.Key_Code.LBUTTON);
         io.MouseDown[1] = win32.is_key_down(win32.Key_Code.RBUTTON);
 
-        io.MouseWheel = cast(f32)State.MouseWheelDelta; 
+        io.MouseWheel = f32(State.MouseWheelDelta); 
 
         io.KeyCtrl =  win32.is_key_down(win32.Key_Code.LCONTROL) || win32.is_key_down(win32.Key_Code.RCONTROL);
         io.KeyShift = win32.is_key_down(win32.Key_Code.LSHIFT)   || win32.is_key_down(win32.Key_Code.RSHIFT);
@@ -187,7 +187,7 @@ BeginNewFrame :: proc(deltaTime : f64) {
         io.KeySuper = win32.is_key_down(win32.Key_Code.LWIN)     || win32.is_key_down(win32.Key_Code.RWIN);
 
         for i in 0..257 {
-            io.KeysDown[i] = win32.is_key_down(cast(win32.Key_Code)i);
+            io.KeysDown[i] = win32.is_key_down(win32.Key_Code(i));
         }
     } else {
         io.MouseDown[0] = false;
@@ -203,18 +203,18 @@ BeginNewFrame :: proc(deltaTime : f64) {
     }
     
     State.MouseWheelDelta = 0;
-    io.DeltaTime = cast(f32)deltaTime;
+    io.DeltaTime = f32(deltaTime);
     NewFrame();
 }
  
 RenderProc :: proc(data : ^DrawData) #cc_c {
     io := GetIO();
     rect : win32.Rect;
-    win32.GetClientRect(cast(win32.Hwnd)io.ImeWindowHandle, ^rect);
-    io.DisplaySize.x = cast(f32)rect.right;
-    io.DisplaySize.y = cast(f32)rect.bottom;
-    width := cast(i32)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
-    height := cast(i32)(io.DisplaySize.y * io.DisplayFramebufferScale.y);
+    win32.GetClientRect(win32.Hwnd(io.ImeWindowHandle), &rect);
+    io.DisplaySize.x = f32(rect.right);
+    io.DisplaySize.y = f32(rect.bottom);
+    width := i32(io.DisplaySize.x * io.DisplayFramebufferScale.x);
+    height := i32(io.DisplaySize.y * io.DisplayFramebufferScale.y);
     if height == 0 || width == 0 {
         //return;
     }
@@ -222,7 +222,7 @@ RenderProc :: proc(data : ^DrawData) #cc_c {
 
     //@TODO(Hoej): BACKUP STATE!
     lastViewport : [4]i32;
-    gl.GetInteger(gl.GetIntegerNames.Viewport, ^lastViewport[0]);
+    gl.GetInteger(gl.GetIntegerNames.Viewport, &lastViewport[0]);
 
     gl.Enable(gl.Capabilities.Blend);
     gl.BlendFunc(gl.BlendFactors.SrcAlpha, gl.BlendFactors.OneMinusSrcAlpha);
@@ -242,8 +242,8 @@ RenderProc :: proc(data : ^DrawData) #cc_c {
     };
 
     gl.UseProgram(State.MainProgram);
-    gl.Uniform(State.MainProgram.Uniforms["Texture"], cast(i32)0);
-    gl._UniformMatrix4fv(State.MainProgram.Uniforms["ProjMtx"], 1, 0, ^ortho_projection[0][0]);
+    gl.Uniform(State.MainProgram.Uniforms["Texture"], 0);
+    gl._UniformMatrix4fv(State.MainProgram.Uniforms["ProjMtx"], 1, 0, &ortho_projection[0][0]);
     gl.BindVertexArray(State.VAOHandle);
 
     newList := slice_ptr(data.CmdLists, data.CmdListsCount);
@@ -252,16 +252,16 @@ RenderProc :: proc(data : ^DrawData) #cc_c {
         idxBufferOffset : ^DrawIdx = nil;
 
         gl.BindBuffer(State.VBOHandle);
-        gl.BufferData(gl.BufferTargets.Array, cast(i32)(DrawList_GetVertexBufferSize(list) * size_of(DrawVert)), DrawList_GetVertexPtr(list, 0), gl.BufferDataUsage.StreamDraw);
+        gl.BufferData(gl.BufferTargets.Array, i32(DrawList_GetVertexBufferSize(list) * size_of(DrawVert)), DrawList_GetVertexPtr(list, 0), gl.BufferDataUsage.StreamDraw);
 
         gl.BindBuffer(State.EBOHandle);
-        gl.BufferData(gl.BufferTargets.ElementArray, cast(i32)(DrawList_GetIndexBufferSize(list) * size_of(DrawIdx)), DrawList_GetIndexPtr(list, 0), gl.BufferDataUsage.StreamDraw);
+        gl.BufferData(gl.BufferTargets.ElementArray, i32(DrawList_GetIndexBufferSize(list) * size_of(DrawIdx)), DrawList_GetIndexPtr(list, 0), gl.BufferDataUsage.StreamDraw);
 
         for j : i32 = 0; j < DrawList_GetCmdSize(list); j += 1 {
             cmd := DrawList_GetCmdPtr(list, j);
-            gl.BindTexture(gl.TextureTargets.Texture2D, cast(gl.Texture)cast(uint)cmd.TextureId);
-            gl.Scissor(cast(i32)cmd.ClipRect.x, height - cast(i32)cmd.ClipRect.w, cast(i32)(cmd.ClipRect.z - cmd.ClipRect.x), cast(i32)(cmd.ClipRect.w - cmd.ClipRect.y));
-            gl.DrawElements(gl.DrawModes.Triangles, cast(i32)cmd.ElemCount, gl.DrawElementsType.UShort, idxBufferOffset);
+            gl.BindTexture(gl.TextureTargets.Texture2D, gl.Texture(uint(cmd.TextureId)));
+            gl.Scissor(i32(cmd.ClipRect.x), height - i32(cmd.ClipRect.w), i32(cmd.ClipRect.z - cmd.ClipRect.x), i32(cmd.ClipRect.w - cmd.ClipRect.y));
+            gl.DrawElements(gl.DrawModes.Triangles, i32(cmd.ElemCount), gl.DrawElementsType.UShort, idxBufferOffset);
             idxBufferOffset += cmd.ElemCount;
         }
     }
