@@ -420,14 +420,15 @@ main :: proc() {
         gl.ClearColor(1, 0, 1, 1);
         gl.Clear(gl.ClearFlags.COLOR_BUFFER);
 
-        if EngineContext.ShowDebugMenu {
-            jimgui.BeginNewFrame(time.GetUnscaledDeltaTime());
-            debug.RenderDebugUI(&EngineContext.win32);
-        }
-
         mousePos : win32.Point;
         win32.GetCursorPos(&mousePos);
         win32.ScreenToClient(EngineContext.win32.WindowHandle, &mousePos);
+
+        if EngineContext.ShowDebugMenu {
+            jimgui.BeginNewFrame(time.GetUnscaledDeltaTime(), EngineContext.win32.WindowSize, math.Vec2{f32(mousePos.x), f32(mousePos.y)});
+            debug.RenderDebugUI(&EngineContext.win32);
+        }
+
 
         render.Draw(EngineContext.GameDrawArea, mousePos, EngineContext.win32.WindowSize, EngineContext.ScaleFactor, EngineContext.VirtualScreen);
         

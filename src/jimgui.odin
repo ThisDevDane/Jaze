@@ -1,6 +1,7 @@
 #load "imgui.odin";
 #import win32 "sys/windows.odin";
 #import "fmt.odin";
+#import "math.odin";
 #import "gl.odin";
 #import glUtil "gl_util.odin";
 
@@ -163,19 +164,14 @@ Init :: proc(windowHandle : win32.Hwnd) {
     SetStyle();
 }
 
-BeginNewFrame :: proc(deltaTime : f64) {
+BeginNewFrame :: proc(deltaTime : f64, windowSize : math.Vec2, mousePos : math.Vec2) {
     io := GetIO();
-    rect : win32.Rect;
-    win32.GetClientRect(win32.Hwnd(io.ImeWindowHandle), &rect);
-    io.DisplaySize.x = f32(rect.right);
-    io.DisplaySize.y = f32(rect.bottom);
+    io.DisplaySize.x = windowSize.x;
+    io.DisplaySize.y = windowSize.y;
 
     if win32.GetActiveWindow() == win32.Hwnd(io.ImeWindowHandle) {
-        pos : win32.Point;
-        win32.GetCursorPos(&pos);
-        win32.ScreenToClient(win32.Hwnd(io.ImeWindowHandle), &pos);
-        io.MousePos.x = f32(pos.x);
-        io.MousePos.y = f32(pos.y);
+        io.MousePos.x = mousePos.x;
+        io.MousePos.y = mousePos.y;
         io.MouseDown[0] = win32.is_key_down(win32.Key_Code.LBUTTON);
         io.MouseDown[1] = win32.is_key_down(win32.Key_Code.RBUTTON);
 
