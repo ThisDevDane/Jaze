@@ -84,7 +84,7 @@ CreateWindow :: proc (instance : win32.Hinstance) -> win32.Hwnd {
 }
 
 
-CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.Hglrc
+CreateOpenGLContext :: proc (DeviceCtx : win32.Hdc, Ogl : ^gl.OpenGLVars_t, modern : bool) -> win32wgl.Hglrc
 {
     if !modern {
         pfd := win32.PIXELFORMATDESCRIPTOR {};
@@ -94,19 +94,19 @@ CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.Hgl
         pfd.color_bits = 32;
         pfd.alpha_bits = 8;
         pfd.depth_bits = 24;
-        format := win32.ChoosePixelFormat(vars.DeviceCtx, &pfd);
+        format := win32.ChoosePixelFormat(DeviceCtx, &pfd);
 
-        win32.DescribePixelFormat(vars.DeviceCtx, format, size_of(win32.PIXELFORMATDESCRIPTOR), &pfd);
+        win32.DescribePixelFormat(DeviceCtx, format, size_of(win32.PIXELFORMATDESCRIPTOR), &pfd);
 
-        win32.SetPixelFormat(vars.DeviceCtx, format, &pfd);
+        win32.SetPixelFormat(DeviceCtx, format, &pfd);
 
-        ctx := win32wgl.CreateContext(vars.DeviceCtx);
+        ctx := win32wgl.CreateContext(DeviceCtx);
 
         assert(ctx != nil);
-        win32wgl.MakeCurrent(vars.DeviceCtx, ctx);
+        win32wgl.MakeCurrent(DeviceCtx, ctx);
 
-        gl._GetIntegervStatic(i32(gl.GetIntegerNames.MajorVersion), &vars.Ogl.VersionMajorMax);
-        gl._GetIntegervStatic(i32(gl.GetIntegerNames.MinorVersion), &vars.Ogl.VersionMinorMax);
+        gl._GetIntegervStatic(i32(gl.GetIntegerNames.MajorVersion), &Ogl.VersionMajorMax);
+        gl._GetIntegervStatic(i32(gl.GetIntegerNames.MinorVersion), &Ogl.VersionMinorMax);
 
         return ctx;
     } else {
@@ -121,12 +121,12 @@ CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.Hgl
             assert(wndHandle != nil);
             wndDc := win32.GetDC(wndHandle);
             assert(wndDc != nil);
-            temp := vars.DeviceCtx;
-            vars.DeviceCtx = wndDc;
+            temp := DeviceCtx;
+            DeviceCtx = wndDc;
     
-            oldCtx := CreateOpenGLContext(vars, false);
+            oldCtx := CreateOpenGLContext(DeviceCtx, Ogl, false);
     
-            vars.DeviceCtx = temp;
+            DeviceCtx = temp;
             assert(oldCtx != nil);
             extensions := wgl.TryGetExtensionList{};
             wgl.TryGetExtension(&extensions, &wgl.ChoosePixelFormatARB,    "wglChoosePixelFormatARB");
@@ -155,7 +155,7 @@ CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.Hgl
         format : i32;
         formats : u32;
 
-        success := wgl.ChoosePixelFormatARB(vars.DeviceCtx, &attribArray[0], nil, 1, &format, &formats);
+        success := wgl.ChoosePixelFormatARB(DeviceCtx, &attribArray[0], nil, 1, &format, &formats);
         if (success == win32.TRUE) && (formats == 0) {
             panic("Couldn't find suitable pixel format");
         }
@@ -163,8 +163,8 @@ CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.Hgl
         pfd.version = 1;
         pfd.size = size_of(win32.PIXELFORMATDESCRIPTOR);
 
-        win32.DescribePixelFormat(vars.DeviceCtx, format, size_of(win32.PIXELFORMATDESCRIPTOR), &pfd);
-        win32.SetPixelFormat(vars.DeviceCtx, format, &pfd);
+        win32.DescribePixelFormat(DeviceCtx, format, size_of(win32.PIXELFORMATDESCRIPTOR), &pfd);
+        win32.SetPixelFormat(DeviceCtx, format, &pfd);
         createAttr : [dynamic]wgl.Attrib;
         append(createAttr, wgl.CONTEXT_MAJOR_VERSION_ARB(3),
                            wgl.CONTEXT_MINOR_VERSION_ARB(3),
@@ -172,9 +172,9 @@ CreateOpenGLContext :: proc (vars : ^Win32Vars_t, modern : bool) -> win32wgl.Hgl
                            wgl.CONTEXT_PROFILE_MASK_ARB(wgl.CONTEXT_PROFILE_MASK_ARB_VALUES.CORE_PROFILE_BIT_ARB));
         attribArray = wgl.PrepareAttribArray(createAttr);
         
-        ctx := wgl.CreateContextAttribsARB(vars.DeviceCtx, nil, &attribArray[0]);
+        ctx := wgl.CreateContextAttribsARB(DeviceCtx, nil, &attribArray[0]);
         assert(ctx != nil);
-        win32wgl.MakeCurrent(vars.DeviceCtx, ctx);
+        win32wgl.MakeCurrent(DeviceCtx, ctx);
         return ctx;
     }
 }
@@ -309,7 +309,7 @@ main :: proc() {
         EngineContext.win32.AppHandle = win32.GetModuleHandleA(nil);
         EngineContext.win32.WindowHandle = CreateWindow(EngineContext.win32.AppHandle); 
         EngineContext.win32.DeviceCtx = win32.GetDC(EngineContext.win32.WindowHandle);
-        EngineContext.win32.Ogl.Ctx = CreateOpenGLContext(&EngineContext.win32, true);
+        EngineContext.win32.Ogl.Ctx = CreateOpenGLContext(EngineContext.win32.DeviceCtx, &EngineContext.win32.Ogl, true);
     }
     {
         gl.Init();
