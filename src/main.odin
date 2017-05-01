@@ -19,8 +19,6 @@
 #import "console.odin";
 #import "entity.odin";
 
-EngineContext : ^EngineContext_t;
-
 EngineContext_t :: struct {
     ProgramRunning : bool,
     ShowDebugMenu : bool,
@@ -345,16 +343,16 @@ MessageLoop :: proc(ctx : ^EngineContext_t){
 
 UpdateWindowSize :: proc(ctx : ^EngineContext_t) {
     rect : win32.Rect;
-    win32.GetClientRect(EngineContext.win32.WindowHandle, &rect);
-    EngineContext.WindowSize.x = f32(rect.right);
-    EngineContext.WindowSize.y = f32(rect.bottom);
+    win32.GetClientRect(ctx.win32.WindowHandle, &rect);
+    ctx.WindowSize.x = f32(rect.right);
+    ctx.WindowSize.y = f32(rect.bottom);
 }
 
 UpdateMousePosition :: proc(ctx : ^EngineContext_t) {
     mousePos : win32.Point;
     win32.GetCursorPos(&mousePos);
-    win32.ScreenToClient(EngineContext.win32.WindowHandle, &mousePos);
-    EngineContext.MousePos = math.Vec2{f32(mousePos.x), f32(mousePos.y)};
+    win32.ScreenToClient(ctx.win32.WindowHandle, &mousePos);
+    ctx.MousePos = math.Vec2{f32(mousePos.x), f32(mousePos.y)};
 }
 
 ClearScreen :: proc(ctx : ^EngineContext_t) {
@@ -374,7 +372,7 @@ ClearGameScreen :: proc(ctx : ^EngineContext_t) {
 }
 
 main :: proc() {
-    EngineContext = new(EngineContext_t);
+    EngineContext := new(EngineContext_t);
 
     EngineContext.WindowPlacement.length = size_of(win32.Window_Placement);
     {
@@ -419,9 +417,11 @@ main :: proc() {
 
     for EngineContext.ProgramRunning {
         MessageLoop(EngineContext);
+        
         time.Update();
-
+        UpdateMousePosition(EngineContext);
         UpdateWindowSize(EngineContext);
+        
         EngineContext.GameDrawArea = CalculateViewport(EngineContext.WindowSize, EngineContext.VirtualAspectRatio);
         EngineContext.ScaleFactor.x = EngineContext.WindowSize.x / f32(EngineContext.VirtualScreen.x);
         EngineContext.ScaleFactor.y = EngineContext.WindowSize.y / f32(EngineContext.VirtualScreen.y);
@@ -430,7 +430,6 @@ main :: proc() {
                           "Jaze - DEV VERSION | <%.1f, %.1f>", // <%.0f, %.0f> misses a number, tell bill
                           EngineContext.WindowSize.x, EngineContext.WindowSize.y);
 
-        UpdateMousePosition(EngineContext);
 
 
         ClearScreen(EngineContext);

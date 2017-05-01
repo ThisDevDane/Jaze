@@ -4,12 +4,12 @@
 #import "console.odin";
 #import wgl "jwgl.odin";
 
-RenderDebugUI :: proc(Ctx : ^main.EngineContext_t) {
-   MakeMenuBar();
-   TryToRenderWindows(Ctx);
+RenderDebugUI :: proc(ctx : ^main.EngineContext_t) {
+   MakeMenuBar(ctx);
+   TryToRenderWindows(ctx);
 }
 
-MakeMenuBar :: proc() {
+MakeMenuBar :: proc(ctx : ^main.EngineContext_t) {
      MakeMenuItem :: proc(title : string, id : string) {
         MakeMenuItem(title, "", id);
     }
@@ -43,8 +43,8 @@ MakeMenuBar :: proc() {
     }
 
     if imgui.BeginMenu("Visual", true) {
-        if imgui.Checkbox("Toggle Adaptive VSync", &main.EngineContext.AdaptiveVSync) {
-            if main.EngineContext.AdaptiveVSync {
+        if imgui.Checkbox("Toggle Adaptive VSync", &ctx.AdaptiveVSync) {
+            if ctx.AdaptiveVSync {
                 wgl.SwapIntervalEXT(-1);
             } else {
                 wgl.SwapIntervalEXT(0);
@@ -71,7 +71,7 @@ MakeMenuBar :: proc() {
 
         
         if imgui.MenuItem("Exit", "Escape", false, true) {
-            main.EngineContext.ProgramRunning = false;
+            ctx.ProgramRunning = false;
         }
         imgui.EndMenu();
     }
