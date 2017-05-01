@@ -50,7 +50,7 @@ DrawArea :: struct {
 }
 
 
-CreateWindow :: proc (instance : win32.Hinstance) -> win32.Hwnd {
+CreateWindow :: proc (instance : win32.Hinstance, windowSize : math.Vec2) -> win32.Hwnd {
     using win32;
     wndClass : WndClassExA;
     wndClass.size = size_of(WndClassExA);
@@ -64,7 +64,7 @@ CreateWindow :: proc (instance : win32.Hinstance) -> win32.Hwnd {
     }
 
     windowStyle : u32 = WS_OVERLAPPEDWINDOW|WS_VISIBLE;
-    clientRect := Rect{0,0,1024,768};
+    clientRect := Rect{0, 0, i32(windowSize.x), i32(windowSize.y)};
     AdjustWindowRect(&clientRect, windowStyle, 0);
     windowHandle := CreateWindowExA(0,
                                     wndClass.class_name,
@@ -96,7 +96,9 @@ GetMaxGLVersion :: proc() -> (i32, i32) {
         panic("Could not create opengl version checker window");
     }
     deviceCtx := win32.GetDC(wndHandle);
-    assert(deviceCtx != nil);
+    if deviceCtx == nil {
+        panic("Could not get DC for opengl version checker window");
+    }
 
     pfd := win32.PIXELFORMATDESCRIPTOR {};
     pfd.size = size_of(win32.PIXELFORMATDESCRIPTOR);
@@ -112,9 +114,11 @@ GetMaxGLVersion :: proc() -> (i32, i32) {
     win32.SetPixelFormat(deviceCtx, format, &pfd);
 
     ctx := win32wgl.CreateContext(deviceCtx);
-
-    assert(ctx != nil);
+    if deviceCtx == nil {
+        panic("Could not get OpenGL Context for opengl version checker window");
+    }
     win32wgl.MakeCurrent(deviceCtx, ctx);
+
     major : i32;
     minor : i32;
     gl._GetIntegervStatic(i32(gl.GetIntegerNames.MajorVersion), &major);
@@ -339,13 +343,43 @@ MessageLoop :: proc(ctx : ^EngineContext_t){
     }
 }
 
+UpdateWindowSize :: proc(ctx : ^EngineContext_t) {
+    rect : win32.Rect;
+    win32.GetClientRect(EngineContext.win32.WindowHandle, &rect);
+    EngineContext.WindowSize.x = f32(rect.right);
+    EngineContext.WindowSize.y = f32(rect.bottom);
+}
+
+UpdateMousePosition :: proc(ctx : ^EngineContext_t) {
+    mousePos : win32.Point;
+    win32.GetCursorPos(&mousePos);
+    win32.ScreenToClient(EngineContext.win32.WindowHandle, &mousePos);
+    EngineContext.MousePos = math.Vec2{f32(mousePos.x), f32(mousePos.y)};
+}
+
+ClearScreen :: proc(ctx : ^EngineContext_t) {
+    gl.Scissor(0, 0, i32(ctx.WindowSize.x), i32(ctx.WindowSize.y));
+    gl.ClearColor(0, 0, 0, 1);
+    gl.Clear(gl.ClearFlags.COLOR_BUFFER);
+}
+
+ClearGameScreen :: proc(ctx : ^EngineContext_t) {
+        gl.Scissor(ctx.GameDrawArea.X, 
+                   ctx.GameDrawArea.Y, 
+                   ctx.GameDrawArea.Width, 
+                   ctx.GameDrawArea.Height);
+
+        gl.ClearColor(1, 0, 1, 1);
+        gl.Clear(gl.ClearFlags.COLOR_BUFFER);
+}
+
 main :: proc() {
     EngineContext = new(EngineContext_t);
 
     EngineContext.WindowPlacement.length = size_of(win32.Window_Placement);
     {
         EngineContext.win32.AppHandle = win32.GetModuleHandleA(nil);
-        EngineContext.win32.WindowHandle = CreateWindow(EngineContext.win32.AppHandle); 
+        EngineContext.win32.WindowHandle = CreateWindow(EngineContext.win32.AppHandle, math.Vec2{1280, 720}); 
         EngineContext.win32.DeviceCtx = win32.GetDC(EngineContext.win32.WindowHandle);
         EngineContext.win32.Ogl.VersionMajorMax, EngineContext.win32.Ogl.VersionMinorMax = GetMaxGLVersion();
         EngineContext.win32.Ogl.Ctx = CreateOpenGLContext(EngineContext.win32.DeviceCtx, true);
@@ -387,54 +421,27 @@ main :: proc() {
         MessageLoop(EngineContext);
         time.Update();
 
-/*        ChangeWindowTitle(EngineContext.win32.WindowHandle, "Jaze %s | dt: %.5f sdt: %.5f ss: %.1f | <%d, %d> | <%.0f, %.0f> | <%d, %d, %d, %d>", 
-                                                               EngineContext.win32.Ogl.VersionString, 
-                                                               time.GetUnscaledDeltaTime(), 
-                                                               time.GetDeltaTime(), 
-                                                               time.GetTimeSinceStart(),
-                                                               pos.x, pos.y,
-                                                               EngineContext.win32.WindowSize.x, EngineContext.win32.WindowSize.y,
-                                                               EngineContext.GameDrawArea.X, EngineContext.GameDrawArea.Y,
-                                                               EngineContext.GameDrawArea.Width, EngineContext.GameDrawArea.Height);*/
-        gl.ClearColor(0, 0, 0, 1);
-        gl.Clear(gl.ClearFlags.COLOR_BUFFER | gl.ClearFlags.DEPTH_BUFFER);
-
-        rect : win32.Rect;
-        win32.GetClientRect(EngineContext.win32.WindowHandle, &rect);
-        EngineContext.WindowSize.x = f32(rect.right);
-        EngineContext.WindowSize.y = f32(rect.bottom);
-
+        UpdateWindowSize(EngineContext);
         EngineContext.GameDrawArea = CalculateViewport(EngineContext.WindowSize, EngineContext.VirtualAspectRatio);
-
-        EngineContext.ScaleFactor.x = f32(rect.right) / f32(EngineContext.VirtualScreen.x);
-        EngineContext.ScaleFactor.y = f32(rect.bottom) / f32(EngineContext.VirtualScreen.y);
-
-        gl.Scissor(EngineContext.GameDrawArea.X, 
-                   EngineContext.GameDrawArea.Y, 
-                   EngineContext.GameDrawArea.Width, 
-                   EngineContext.GameDrawArea.Height);
-
-        gl.ClearColor(1, 0, 1, 1);
-        gl.Clear(gl.ClearFlags.COLOR_BUFFER);
-
-        mousePos : win32.Point;
-        win32.GetCursorPos(&mousePos);
-        win32.ScreenToClient(EngineContext.win32.WindowHandle, &mousePos);
-        EngineContext.MousePos = math.Vec2{f32(mousePos.x), f32(mousePos.y)};
+        EngineContext.ScaleFactor.x = EngineContext.WindowSize.x / f32(EngineContext.VirtualScreen.x);
+        EngineContext.ScaleFactor.y = EngineContext.WindowSize.y / f32(EngineContext.VirtualScreen.y);
 
         ChangeWindowTitle(EngineContext.win32.WindowHandle, 
                           "Jaze - DEV VERSION | <%.1f, %.1f>", // <%.0f, %.0f> misses a number, tell bill
                           EngineContext.WindowSize.x, EngineContext.WindowSize.y);
 
-        if EngineContext.ShowDebugMenu {
-            jimgui.BeginNewFrame(time.GetUnscaledDeltaTime(), EngineContext.WindowSize, EngineContext.MousePos);
-            debug.RenderDebugUI(EngineContext);
-        }
+        UpdateMousePosition(EngineContext);
 
+
+        ClearScreen(EngineContext);
+        ClearGameScreen(EngineContext);
+        gl.Clear(gl.ClearFlags.DEPTH_BUFFER);
 
         render.Draw(EngineContext);
         
         if EngineContext.ShowDebugMenu {
+            jimgui.BeginNewFrame(time.GetUnscaledDeltaTime(), EngineContext.WindowSize, EngineContext.MousePos);
+            debug.RenderDebugUI(EngineContext);
             imgui.Render();
         }
 
