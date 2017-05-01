@@ -66,10 +66,8 @@ _InternalLog :: proc(fmt_ : string, level : LogLevel, args : ..any) {
             levelStr = _CINPUT_STR;
         }
     }
-    c := fmt.bprintf(buf[..], "%s%s", levelStr, fmt_);
-    newFmt  := string(buf[0..c]);
-    c = fmt.bprintf(buf2[..], newFmt, ..args);
-    tempStr := string(buf2[0..c]);
+    newFmt := fmt.bprintf(buf[..], "%s%s", levelStr, fmt_);
+    tempStr := fmt.bprintf(buf2[..], newFmt, ..args);
     append(_InternalData.Items, _StringDup(tempStr));
 
     when OUTPUT_TO_CLI {
@@ -101,20 +99,18 @@ _UpdateLogFile :: proc() {
         win32.FileTimeToSystemTime(&ft, &st);
 
         buf := make([]byte, 255);
-        c := fmt.bprintf(buf[..], "%d-%d-%d_%d%d%d.jlog", 
+        _InternalData.LogFileName = fmt.bprintf(buf[..], "%d-%d-%d_%d%d%d.jlog", 
                                                 st.day, st.month, st.year, 
                                                 st.hour, st.minute, st.second);
-        _InternalData.LogFileName = string(buf[0..c]);
     }
 
     h, _ := os.open(_InternalData.LogFileName, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0);
     os.seek(h, 0, 2);
     for log in _InternalData.Log {
         buf : [_BUF_SIZE]byte;
-        c := fmt.bprintf(buf[..], "[%2d:%2d:%2d-%3d]%s\n", log.Time.hour,   log.Time.minute, 
+        str := fmt.bprintf(buf[..], "[%2d:%2d:%2d-%3d]%s\n", log.Time.hour,   log.Time.minute, 
                                                               log.Time.second, log.Time.millisecond, 
                                                               log.Text);
-        str := string(buf[0..c]);
         os.write(h, []byte(str));
         os.seek(h, 0, 2);
     }
@@ -277,8 +273,7 @@ _TextEditCallback :: proc(data : ^imgui.GuiTextEditCallbackData) -> i32 #cc_c {
 
             if prev != _InternalData.HistoryPos {
                 pos := _InternalData.HistoryPos > 0 ? _InternalData.HistoryPos-1 : -1;  
-                c := fmt.bprintf(slice_ptr(data.Buf, data.BufSize)[..], "%s", pos < 0 ? "" : _InternalData.History[pos]);
-                str := string(slice_ptr(data.Buf, data.BufSize)[0..c]);
+                str := fmt.bprintf(slice_ptr(data.Buf, data.BufSize)[..], "%s", pos < 0 ? "" : _InternalData.History[pos]);
                 strlen := i32(len(str)-1);
                 data.BufTextLen = strlen;
                 data.CursorPos = strlen;

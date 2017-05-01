@@ -112,8 +112,7 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
         res := new(Catalog);
         res.Name = identifier;
         buf := make([]byte, j32.MAX_PATH);
-        c := fmt.bprintf(buf[..], "%s%s", path, path[len(path)-1] == '/' ? "" : "/");
-        res.Path = string(buf[0..c]);
+        res.Path = fmt.bprintf(buf[..], "%s%s", path, path[len(path)-1] == '/' ? "" : "/");
         res.Kind = kind;
         ExtractAcceptedExtensions(res, acceptedExtensions);
         data := j32.FindData{};
@@ -296,8 +295,7 @@ _CreateFileInfo :: proc(path : string filename : string, data : j32.FindData) ->
     file.Name = _GetFileNameWithoutExtension(filename);
     file.Ext  = _GetFileExtension(filename);
     pathBuf := make([]byte, j32.MAX_PATH);
-    c := fmt.bprintf(pathBuf[..], "%s%s", path, filename);
-    file.Path = string(pathBuf[0..c]);
+    file.Path = fmt.bprintf(pathBuf[..], "%s%s", path, filename);
     MAXDWORD :: 0xffffffff;
     file.Size =  u64(data.FileSizeHigh) * u64(MAXDWORD+1) + u64(data.FileSizeLow);
     return file;

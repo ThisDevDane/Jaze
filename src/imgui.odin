@@ -512,8 +512,7 @@ Text :: proc(fmt_: string, args: ..any) {
     ImText :: proc(fmt: ^byte) #cc_c #foreign cimgui "igText"; 
 
     buf: [1024]byte;
-    c := fmt.bprintf(buf[..], fmt_, ..args);
-    s := string(buf[0..c]);
+    s := fmt.bprintf(buf[..], fmt_, ..args);
     assert(len(s) < len(buf));
     c_str := &buf[0];
 
@@ -524,8 +523,7 @@ TextColored :: proc(col : Vec4, fmt_: string, args: ..any) {
     ImTextColored :: proc(col : Vec4, fmt : ^byte) #cc_c #foreign cimgui "igTextColored";
 
     buf: [1024]byte;
-    c := fmt.bprintf(buf[..], fmt_, ..args);
-    s := string(buf[0..c]);
+    s := fmt.bprintf(buf[..], fmt_, ..args);
     assert(len(s) < len(buf));
     c_str := &buf[0];
 
