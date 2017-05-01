@@ -32,12 +32,12 @@ EngineContext_t :: struct {
     GameDrawArea : DrawArea,
     win32 : Win32Vars_t,
     MousePos : math.Vec2,
+    WindowSize   : math.Vec2,
 }
 
 Win32Vars_t :: struct {
     AppHandle    : win32.Hinstance,
     WindowHandle : win32.Hwnd,
-    WindowSize   : math.Vec2,
     DeviceCtx    : win32.Hdc,
     Ogl          : gl.OpenGLVars_t,
 }
@@ -68,7 +68,7 @@ CreateWindow :: proc (instance : win32.Hinstance) -> win32.Hwnd {
     AdjustWindowRect(&clientRect, windowStyle, 0);
     windowHandle := CreateWindowExA(0,
                                     wndClass.class_name,
-                                    strings.new_c_string("Jaze"),
+                                    strings.new_c_string("Jaze - DEV VERSION"),
                                     windowStyle,
                                     CW_USEDEFAULT,
                                     CW_USEDEFAULT,
@@ -369,7 +369,6 @@ main :: proc() {
     }
 
     jimgui.Init(EngineContext.win32.WindowHandle);
-    ChangeWindowTitle(EngineContext.win32.WindowHandle, "Jaze %s", EngineContext.win32.Ogl.VersionString);
     time.Init();
 
     wgl.SwapIntervalEXT(-1);
@@ -402,10 +401,10 @@ main :: proc() {
 
         rect : win32.Rect;
         win32.GetClientRect(EngineContext.win32.WindowHandle, &rect);
-        EngineContext.win32.WindowSize.x = f32(rect.right);
-        EngineContext.win32.WindowSize.y = f32(rect.bottom);
+        EngineContext.WindowSize.x = f32(rect.right);
+        EngineContext.WindowSize.y = f32(rect.bottom);
 
-        EngineContext.GameDrawArea = CalculateViewport(EngineContext.win32.WindowSize, EngineContext.VirtualAspectRatio);
+        EngineContext.GameDrawArea = CalculateViewport(EngineContext.WindowSize, EngineContext.VirtualAspectRatio);
 
         EngineContext.ScaleFactor.x = f32(rect.right) / f32(EngineContext.VirtualScreen.x);
         EngineContext.ScaleFactor.y = f32(rect.bottom) / f32(EngineContext.VirtualScreen.y);
@@ -423,8 +422,12 @@ main :: proc() {
         win32.ScreenToClient(EngineContext.win32.WindowHandle, &mousePos);
         EngineContext.MousePos = math.Vec2{f32(mousePos.x), f32(mousePos.y)};
 
+        ChangeWindowTitle(EngineContext.win32.WindowHandle, 
+                          "Jaze - DEV VERSION | <%.1f, %.1f>", // <%.0f, %.0f> misses a number, tell bill
+                          EngineContext.WindowSize.x, EngineContext.WindowSize.y);
+
         if EngineContext.ShowDebugMenu {
-            jimgui.BeginNewFrame(time.GetUnscaledDeltaTime(), EngineContext.win32.WindowSize, EngineContext.MousePos);
+            jimgui.BeginNewFrame(time.GetUnscaledDeltaTime(), EngineContext.WindowSize, EngineContext.MousePos);
             debug.RenderDebugUI(EngineContext);
         }
 

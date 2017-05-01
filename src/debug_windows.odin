@@ -66,7 +66,7 @@ StatOverlay :: proc(show : ^bool) {
     imgui.Begin("Stat Overlay", show, imgui.GuiWindowFlags.NoMove | imgui.GuiWindowFlags.NoTitleBar | imgui.GuiWindowFlags.NoResize | imgui.GuiWindowFlags.NoSavedSettings); 
     {
         io := imgui.GetIO();
-        imgui.Text("Framerate: %.0ffps (%fms) ", io.Framerate, 1000.0 / io.Framerate);
+        imgui.Text("Framerate: %.1ffps (%fms) ", io.Framerate, 1000.0 / io.Framerate);
         imgui.Separator();
     }   
     imgui.End();
@@ -231,7 +231,6 @@ Win32VarsInfo :: proc(vars : ^main.Win32Vars_t, show : ^bool) {
     {
         imgui.Text("Application Handle:    0x%X", int(vars.AppHandle));
         imgui.Text("Window Handle:         0x%X", int(vars.WindowHandle));
-        imgui.Text("Window Size:           {%.3f, %.3f}", vars.WindowSize.x, vars.WindowSize.y);
         imgui.Text("Device Context Handle: 0x%X", int(vars.DeviceCtx));
     }
     imgui.End();

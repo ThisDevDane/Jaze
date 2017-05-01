@@ -91,7 +91,7 @@ Draw :: proc(ctx : ^main.EngineContext_t) {
     gl.BindVertexArray(mainvao);
 
     view := CreateViewMatrixFromCamera(Camera);
-    proj := CalculateOrtho(ctx.win32.WindowSize, ctx.ScaleFactor, Camera.Far, Camera.Near);
+    proj := CalculateOrtho(ctx.WindowSize, ctx.ScaleFactor, Camera.Far, Camera.Near);
 
     gl.UniformMatrix4fv(mainProgram.Uniforms["View"],  view,  false);
     gl.UniformMatrix4fv(mainProgram.Uniforms["Proj"],  proj,  false);
