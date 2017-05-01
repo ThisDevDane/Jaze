@@ -440,7 +440,7 @@ main :: proc() {
         render.Draw(EngineContext);
         
         if EngineContext.ShowDebugMenu {
-            jimgui.BeginNewFrame(time.GetUnscaledDeltaTime(), EngineContext.WindowSize, EngineContext.MousePos);
+            jimgui.BeginNewFrame(time.GetUnscaledDeltaTime(), EngineContext);
             debug.RenderDebugUI(EngineContext);
             imgui.Render();
         }

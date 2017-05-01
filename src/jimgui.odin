@@ -1,7 +1,8 @@
-#load "imgui.odin";
+#import "imgui.odin";
 #import win32 "sys/windows.odin";
 #import "fmt.odin";
 #import "math.odin";
+#import "main.odin";
 #import "gl.odin";
 #import glUtil "gl_util.odin";
 
@@ -22,7 +23,7 @@ State_t :: struct {
 State : State_t;
 
 SetStyle :: proc() {
-    style := GetStyle();
+    style := imgui.GetStyle();
 
     style.WindowRounding = 1.0;
     style.ChildWindowRounding = 1.0;
@@ -31,59 +32,59 @@ SetStyle :: proc() {
 
     style.ScrollbarSize = 12.0;
 
-    style.Colors[GuiCol.Text]                  = Vec4{1.00, 1.00, 1.00, 1.00};
-    style.Colors[GuiCol.TextDisabled]          = Vec4{0.63, 0.63, 0.63, 1.00};
-    style.Colors[GuiCol.WindowBg]              = Vec4{0.23, 0.23, 0.23, 0.98};
-    style.Colors[GuiCol.ChildWindowBg]         = Vec4{0.20, 0.20, 0.20, 1.00};
-    style.Colors[GuiCol.PopupBg]               = Vec4{0.25, 0.25, 0.25, 0.96};
-    style.Colors[GuiCol.Column]                = Vec4{0.18, 0.18, 0.18, 0.98};
-    style.Colors[GuiCol.Border]                = Vec4{0.18, 0.18, 0.18, 0.98};
-    style.Colors[GuiCol.BorderShadow]          = Vec4{0.00, 0.00, 0.00, 0.04};
-    style.Colors[GuiCol.FrameBg]               = Vec4{0.00, 0.00, 0.00, 0.29};
-    style.Colors[GuiCol.TitleBg]               = Vec4{0.25, 0.25, 0.25, 0.98};
-    style.Colors[GuiCol.TitleBgCollapsed]      = Vec4{0.25, 0.25, 0.25, 0.49};
-    style.Colors[GuiCol.TitleBgActive]         = Vec4{0.33, 0.33, 0.33, 0.98};
-    style.Colors[GuiCol.MenuBarBg]             = Vec4{0.11, 0.11, 0.11, 0.42};
-    style.Colors[GuiCol.ScrollbarBg]           = Vec4{0.00, 0.00, 0.00, 0.08};
-    style.Colors[GuiCol.ScrollbarGrab]         = Vec4{0.27, 0.27, 0.27, 1.00};
-    style.Colors[GuiCol.ScrollbarGrabHovered]  = Vec4{0.78, 0.78, 0.78, 0.40};
-    style.Colors[GuiCol.CheckMark]             = Vec4{0.78, 0.78, 0.78, 0.94};
-    style.Colors[GuiCol.SliderGrab]            = Vec4{0.78, 0.78, 0.78, 0.94};
-    style.Colors[GuiCol.Button]                = Vec4{0.42, 0.42, 0.42, 0.60};
-    style.Colors[GuiCol.ButtonHovered]         = Vec4{0.78, 0.78, 0.78, 0.40};
-    style.Colors[GuiCol.Header]                = Vec4{0.31, 0.31, 0.31, 0.98};
-    style.Colors[GuiCol.HeaderHovered]         = Vec4{0.78, 0.78, 0.78, 0.40};
-    style.Colors[GuiCol.HeaderActive]          = Vec4{0.80, 0.50, 0.50, 1.00};
-    style.Colors[GuiCol.TextSelectedBg]        = Vec4{0.65, 0.35, 0.35, 0.26};
-    style.Colors[GuiCol.ModalWindowDarkening]  = Vec4{0.20, 0.20, 0.20, 0.35};
+    style.Colors[imgui.GuiCol.Text]                  = imgui.Vec4{1.00, 1.00, 1.00, 1.00};
+    style.Colors[imgui.GuiCol.TextDisabled]          = imgui.Vec4{0.63, 0.63, 0.63, 1.00};
+    style.Colors[imgui.GuiCol.WindowBg]              = imgui.Vec4{0.23, 0.23, 0.23, 0.98};
+    style.Colors[imgui.GuiCol.ChildWindowBg]         = imgui.Vec4{0.20, 0.20, 0.20, 1.00};
+    style.Colors[imgui.GuiCol.PopupBg]               = imgui.Vec4{0.25, 0.25, 0.25, 0.96};
+    style.Colors[imgui.GuiCol.Column]                = imgui.Vec4{0.18, 0.18, 0.18, 0.98};
+    style.Colors[imgui.GuiCol.Border]                = imgui.Vec4{0.18, 0.18, 0.18, 0.98};
+    style.Colors[imgui.GuiCol.BorderShadow]          = imgui.Vec4{0.00, 0.00, 0.00, 0.04};
+    style.Colors[imgui.GuiCol.FrameBg]               = imgui.Vec4{0.00, 0.00, 0.00, 0.29};
+    style.Colors[imgui.GuiCol.TitleBg]               = imgui.Vec4{0.25, 0.25, 0.25, 0.98};
+    style.Colors[imgui.GuiCol.TitleBgCollapsed]      = imgui.Vec4{0.25, 0.25, 0.25, 0.49};
+    style.Colors[imgui.GuiCol.TitleBgActive]         = imgui.Vec4{0.33, 0.33, 0.33, 0.98};
+    style.Colors[imgui.GuiCol.MenuBarBg]             = imgui.Vec4{0.11, 0.11, 0.11, 0.42};
+    style.Colors[imgui.GuiCol.ScrollbarBg]           = imgui.Vec4{0.00, 0.00, 0.00, 0.08};
+    style.Colors[imgui.GuiCol.ScrollbarGrab]         = imgui.Vec4{0.27, 0.27, 0.27, 1.00};
+    style.Colors[imgui.GuiCol.ScrollbarGrabHovered]  = imgui.Vec4{0.78, 0.78, 0.78, 0.40};
+    style.Colors[imgui.GuiCol.CheckMark]             = imgui.Vec4{0.78, 0.78, 0.78, 0.94};
+    style.Colors[imgui.GuiCol.SliderGrab]            = imgui.Vec4{0.78, 0.78, 0.78, 0.94};
+    style.Colors[imgui.GuiCol.Button]                = imgui.Vec4{0.42, 0.42, 0.42, 0.60};
+    style.Colors[imgui.GuiCol.ButtonHovered]         = imgui.Vec4{0.78, 0.78, 0.78, 0.40};
+    style.Colors[imgui.GuiCol.Header]                = imgui.Vec4{0.31, 0.31, 0.31, 0.98};
+    style.Colors[imgui.GuiCol.HeaderHovered]         = imgui.Vec4{0.78, 0.78, 0.78, 0.40};
+    style.Colors[imgui.GuiCol.HeaderActive]          = imgui.Vec4{0.80, 0.50, 0.50, 1.00};
+    style.Colors[imgui.GuiCol.TextSelectedBg]        = imgui.Vec4{0.65, 0.35, 0.35, 0.26};
+    style.Colors[imgui.GuiCol.ModalWindowDarkening]  = imgui.Vec4{0.20, 0.20, 0.20, 0.35};
 }
 
 Init :: proc(windowHandle : win32.Hwnd) {
-    io := GetIO();
+    io := imgui.GetIO();
     io.ImeWindowHandle = windowHandle;
     io.RenderDrawListsFn = RenderProc;
 
-    io.KeyMap[GuiKey.Tab]        = i32(win32.Key_Code.TAB);
-    io.KeyMap[GuiKey.LeftArrow]  = i32(win32.Key_Code.LEFT);
-    io.KeyMap[GuiKey.RightArrow] = i32(win32.Key_Code.RIGHT);
-    io.KeyMap[GuiKey.UpArrow]    = i32(win32.Key_Code.UP);
-    io.KeyMap[GuiKey.DownArrow]  = i32(win32.Key_Code.DOWN);
-    io.KeyMap[GuiKey.PageUp]     = i32(win32.Key_Code.NEXT);
-    io.KeyMap[GuiKey.PageDown]   = i32(win32.Key_Code.PRIOR);
-    io.KeyMap[GuiKey.Home]       = i32(win32.Key_Code.HOME);
-    io.KeyMap[GuiKey.End]        = i32(win32.Key_Code.END);
-    io.KeyMap[GuiKey.Delete]     = i32(win32.Key_Code.DELETE);
-    io.KeyMap[GuiKey.Backspace]  = i32(win32.Key_Code.BACK);
-    io.KeyMap[GuiKey.Enter]      = i32(win32.Key_Code.RETURN);
-    io.KeyMap[GuiKey.Escape]     = i32(win32.Key_Code.ESCAPE);
-    io.KeyMap[GuiKey.A]          = 'A';
-    io.KeyMap[GuiKey.C]          = 'C';
-    io.KeyMap[GuiKey.V]          = 'V';
-    io.KeyMap[GuiKey.X]          = 'X';
-    io.KeyMap[GuiKey.Y]          = 'Y';
-    io.KeyMap[GuiKey.Z]          = 'Z';
+    io.KeyMap[imgui.GuiKey.Tab]        = i32(win32.Key_Code.TAB);
+    io.KeyMap[imgui.GuiKey.LeftArrow]  = i32(win32.Key_Code.LEFT);
+    io.KeyMap[imgui.GuiKey.RightArrow] = i32(win32.Key_Code.RIGHT);
+    io.KeyMap[imgui.GuiKey.UpArrow]    = i32(win32.Key_Code.UP);
+    io.KeyMap[imgui.GuiKey.DownArrow]  = i32(win32.Key_Code.DOWN);
+    io.KeyMap[imgui.GuiKey.PageUp]     = i32(win32.Key_Code.NEXT);
+    io.KeyMap[imgui.GuiKey.PageDown]   = i32(win32.Key_Code.PRIOR);
+    io.KeyMap[imgui.GuiKey.Home]       = i32(win32.Key_Code.HOME);
+    io.KeyMap[imgui.GuiKey.End]        = i32(win32.Key_Code.END);
+    io.KeyMap[imgui.GuiKey.Delete]     = i32(win32.Key_Code.DELETE);
+    io.KeyMap[imgui.GuiKey.Backspace]  = i32(win32.Key_Code.BACK);
+    io.KeyMap[imgui.GuiKey.Enter]      = i32(win32.Key_Code.RETURN);
+    io.KeyMap[imgui.GuiKey.Escape]     = i32(win32.Key_Code.ESCAPE);
+    io.KeyMap[imgui.GuiKey.A]          = 'A';
+    io.KeyMap[imgui.GuiKey.C]          = 'C';
+    io.KeyMap[imgui.GuiKey.V]          = 'V';
+    io.KeyMap[imgui.GuiKey.X]          = 'X';
+    io.KeyMap[imgui.GuiKey.Y]          = 'Y';
+    io.KeyMap[imgui.GuiKey.Z]          = 'Z';
 
-    vertexShaderString :=
+    vertexShaderString ::
         `#version 330
         uniform mat4 ProjMtx;
         in vec2 Position;
@@ -98,7 +99,7 @@ Init :: proc(windowHandle : win32.Hwnd) {
            gl_Position = ProjMtx * vec4(Position.xy,0,1);
         }`;
 
-    fragmentShaderString := 
+    fragmentShaderString :: 
         `#version 330
         uniform sampler2D Texture;
         in vec2 Frag_UV;
@@ -142,16 +143,16 @@ Init :: proc(windowHandle : win32.Hwnd) {
     gl.EnableVertexAttribArray(u32(State.MainProgram.Attributes["UV"]));
     gl.EnableVertexAttribArray(u32(State.MainProgram.Attributes["Color"]));
 
-    gl.VertexAttribPointer(u32(State.MainProgram.Attributes["Position"]),   2, gl.VertexAttribDataType.Float, false, size_of(DrawVert), rawptr(int(offset_of(DrawVert, pos))));
-    gl.VertexAttribPointer(u32(State.MainProgram.Attributes["UV"]),         2, gl.VertexAttribDataType.Float, false, size_of(DrawVert), rawptr(int(offset_of(DrawVert, uv))));
-    gl.VertexAttribPointer(u32(State.MainProgram.Attributes["Color"]),      4, gl.VertexAttribDataType.UByte, true,  size_of(DrawVert), rawptr(int(offset_of(DrawVert, col))));
+    gl.VertexAttribPointer(u32(State.MainProgram.Attributes["Position"]),   2, gl.VertexAttribDataType.Float, false, size_of(imgui.DrawVert), rawptr(int(offset_of(imgui.DrawVert, pos))));
+    gl.VertexAttribPointer(u32(State.MainProgram.Attributes["UV"]),         2, gl.VertexAttribDataType.Float, false, size_of(imgui.DrawVert), rawptr(int(offset_of(imgui.DrawVert, uv))));
+    gl.VertexAttribPointer(u32(State.MainProgram.Attributes["Color"]),      4, gl.VertexAttribDataType.UByte, true,  size_of(imgui.DrawVert), rawptr(int(offset_of(imgui.DrawVert, col))));
     
     //CreateFont
     pixels : ^byte;
     width : i32;
     height : i32;
     bytePer : i32;
-    FontAtlas_GetTexDataAsRGBA32(io.Fonts, &pixels, &width, &height, &bytePer);
+    imgui.FontAtlas_GetTexDataAsRGBA32(io.Fonts, &pixels, &width, &height, &bytePer);
     State.FontTexture = gl.GenTexture();
     gl.BindTexture(gl.TextureTargets.Texture2D, State.FontTexture);
     gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MinFilter, gl.TextureParametersValues.Linear);
@@ -159,19 +160,19 @@ Init :: proc(windowHandle : win32.Hwnd) {
     gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
                   width, height, gl.PixelDataFormat.RGBA, 
                   gl.Texture2DDataType.UByte, pixels);
-    FontAtlas_SetTexID(io.Fonts, rawptr(uint(State.FontTexture)));
+    imgui.FontAtlas_SetTexID(io.Fonts, rawptr(uint(State.FontTexture)));
 
     SetStyle();
 }
 
-BeginNewFrame :: proc(deltaTime : f64, windowSize : math.Vec2, mousePos : math.Vec2) {
-    io := GetIO();
-    io.DisplaySize.x = windowSize.x;
-    io.DisplaySize.y = windowSize.y;
+BeginNewFrame :: proc(deltaTime : f64, ctx : ^main.EngineContext_t) {
+    io := imgui.GetIO();
+    io.DisplaySize.x = ctx.WindowSize.x;
+    io.DisplaySize.y = ctx.WindowSize.y;
 
     if win32.GetActiveWindow() == win32.Hwnd(io.ImeWindowHandle) {
-        io.MousePos.x = mousePos.x;
-        io.MousePos.y = mousePos.y;
+        io.MousePos.x = ctx.MousePos.x;
+        io.MousePos.y = ctx.MousePos.y;
         io.MouseDown[0] = win32.is_key_down(win32.Key_Code.LBUTTON);
         io.MouseDown[1] = win32.is_key_down(win32.Key_Code.RBUTTON);
 
@@ -200,11 +201,11 @@ BeginNewFrame :: proc(deltaTime : f64, windowSize : math.Vec2, mousePos : math.V
     
     State.MouseWheelDelta = 0;
     io.DeltaTime = f32(deltaTime);
-    NewFrame();
+    imgui.NewFrame();
 }
  
-RenderProc :: proc(data : ^DrawData) #cc_c {
-    io := GetIO();
+RenderProc :: proc(data : ^imgui.DrawData) #cc_c {
+    io := imgui.GetIO();
     rect : win32.Rect;
     win32.GetClientRect(win32.Hwnd(io.ImeWindowHandle), &rect);
     io.DisplaySize.x = f32(rect.right);
@@ -245,16 +246,16 @@ RenderProc :: proc(data : ^DrawData) #cc_c {
     newList := slice_ptr(data.CmdLists, data.CmdListsCount);
     for n : i32 = 0; n < data.CmdListsCount; n += 1 {
         list := newList[n];
-        idxBufferOffset : ^DrawIdx = nil;
+        idxBufferOffset : ^imgui.DrawIdx = nil;
 
         gl.BindBuffer(State.VBOHandle);
-        gl.BufferData(gl.BufferTargets.Array, i32(DrawList_GetVertexBufferSize(list) * size_of(DrawVert)), DrawList_GetVertexPtr(list, 0), gl.BufferDataUsage.StreamDraw);
+        gl.BufferData(gl.BufferTargets.Array, i32(imgui.DrawList_GetVertexBufferSize(list) * size_of(imgui.DrawVert)), imgui.DrawList_GetVertexPtr(list, 0), gl.BufferDataUsage.StreamDraw);
 
         gl.BindBuffer(State.EBOHandle);
-        gl.BufferData(gl.BufferTargets.ElementArray, i32(DrawList_GetIndexBufferSize(list) * size_of(DrawIdx)), DrawList_GetIndexPtr(list, 0), gl.BufferDataUsage.StreamDraw);
+        gl.BufferData(gl.BufferTargets.ElementArray, i32(imgui.DrawList_GetIndexBufferSize(list) * size_of(imgui.DrawIdx)), imgui.DrawList_GetIndexPtr(list, 0), gl.BufferDataUsage.StreamDraw);
 
-        for j : i32 = 0; j < DrawList_GetCmdSize(list); j += 1 {
-            cmd := DrawList_GetCmdPtr(list, j);
+        for j : i32 = 0; j < imgui.DrawList_GetCmdSize(list); j += 1 {
+            cmd := imgui.DrawList_GetCmdPtr(list, j);
             gl.BindTexture(gl.TextureTargets.Texture2D, gl.Texture(uint(cmd.TextureId)));
             gl.Scissor(i32(cmd.ClipRect.x), height - i32(cmd.ClipRect.w), i32(cmd.ClipRect.z - cmd.ClipRect.x), i32(cmd.ClipRect.w - cmd.ClipRect.y));
             gl.DrawElements(gl.DrawModes.Triangles, i32(cmd.ElemCount), gl.DrawElementsType.UShort, idxBufferOffset);
