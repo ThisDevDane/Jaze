@@ -251,8 +251,6 @@ CalculateViewport :: proc(newSize : math.Vec2, targetAspectRatio : f32) -> DrawA
 
     res.X = (i32(newSize.x) / 2) - (res.Width / 2);
     res.Y = (i32(newSize.y) / 2) - (res.Height / 2);
-
-    gl.Viewport(res.X, res.Y, res.Width, res.Height);
     return res;
 }
 
@@ -374,8 +372,8 @@ ClearGameScreen :: proc(ctx : ^EngineContext_t) {
 main :: proc() {
     EngineContext := new(EngineContext_t);
 
-    EngineContext.WindowPlacement.length = size_of(win32.Window_Placement);
     {
+        EngineContext.WindowPlacement.length = size_of(win32.Window_Placement);
         EngineContext.win32.AppHandle = win32.GetModuleHandleA(nil);
         EngineContext.win32.WindowHandle = CreateWindow(EngineContext.win32.AppHandle, math.Vec2{1280, 720}); 
         EngineContext.win32.DeviceCtx = win32.GetDC(EngineContext.win32.WindowHandle);
