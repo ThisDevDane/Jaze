@@ -237,18 +237,18 @@ WindowProc :: proc(hwnd: win32.Hwnd,
     return result;
 }
 
-CalculateViewport :: proc(newWidth : i32, newHeight : i32, targetAspectRatio : f32) -> DrawArea {
+CalculateViewport :: proc(newSize : math.Vec2, targetAspectRatio : f32) -> DrawArea {
     res : DrawArea;
-    res.Width = newWidth;
+    res.Width = i32(newSize.x);
     res.Height = i32(f32(res.Width) / targetAspectRatio + 0.5);
 
-    if newHeight < res.Height {
-        res.Height = newHeight;
+    if i32(newSize.y) < res.Height {
+        res.Height = i32(newSize.y);
         res.Width = i32(f32(res.Height) * targetAspectRatio + 0.5);
     }
 
-    res.X = (newWidth / 2) - (res.Width / 2);
-    res.Y = (newHeight / 2) - (res.Height / 2);
+    res.X = (i32(newSize.x) / 2) - (res.Width / 2);
+    res.Y = (i32(newSize.y) / 2) - (res.Height / 2);
 
     gl.Viewport(res.X, res.Y, res.Width, res.Height);
     return res;
@@ -363,8 +363,8 @@ main :: proc() {
         EngineContext.ShowDebugMenu = true;
         EngineContext.AdaptiveVSync = true;
 
-        EngineContext.VirtualScreen.x = 1280;
-        EngineContext.VirtualScreen.y = 720;
+        EngineContext.VirtualScreen.x = 1920;
+        EngineContext.VirtualScreen.y = 1080;
         EngineContext.VirtualAspectRatio = EngineContext.VirtualScreen.x / EngineContext.VirtualScreen.y;
     }
 
@@ -388,9 +388,6 @@ main :: proc() {
         MessageLoop(EngineContext);
         time.Update();
 
-        pos : win32.Point;
-        win32.GetCursorPos(&pos);
-        win32.ScreenToClient(EngineContext.win32.WindowHandle, &pos);
 /*        ChangeWindowTitle(EngineContext.win32.WindowHandle, "Jaze %s | dt: %.5f sdt: %.5f ss: %.1f | <%d, %d> | <%.0f, %.0f> | <%d, %d, %d, %d>", 
                                                                EngineContext.win32.Ogl.VersionString, 
                                                                time.GetUnscaledDeltaTime(), 
@@ -408,9 +405,7 @@ main :: proc() {
         EngineContext.win32.WindowSize.x = f32(rect.right);
         EngineContext.win32.WindowSize.y = f32(rect.bottom);
 
-        EngineContext.GameDrawArea = CalculateViewport(rect.right, 
-                                                       rect.bottom, 
-                                                       EngineContext.VirtualAspectRatio);
+        EngineContext.GameDrawArea = CalculateViewport(EngineContext.win32.WindowSize, EngineContext.VirtualAspectRatio);
 
         EngineContext.ScaleFactor.x = f32(rect.right) / f32(EngineContext.VirtualScreen.x);
         EngineContext.ScaleFactor.y = f32(rect.bottom) / f32(EngineContext.VirtualScreen.y);
