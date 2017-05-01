@@ -18,6 +18,7 @@
 #import "asset.odin";
 #import "console.odin";
 #import "entity.odin";
+#import "input.odin";
 
 EngineContext_t :: struct {
     ProgramRunning : bool,
@@ -31,6 +32,8 @@ EngineContext_t :: struct {
     win32 : Win32Vars_t,
     MousePos : math.Vec2,
     WindowSize   : math.Vec2,
+
+    Input : ^input.Input_t,
 }
 
 Win32Vars_t :: struct {
@@ -318,6 +321,7 @@ MessageLoop :: proc(ctx : ^EngineContext_t){
 
             case win32.WM_CHAR : {
                 imgui.GuiIO_AddInputCharacter(u16(msg.wparam)); 
+                input.AddCharToQueue(ctx.Input, rune(msg.wparam));
             }
             break;
 
@@ -371,6 +375,7 @@ ClearGameScreen :: proc(ctx : ^EngineContext_t) {
 
 main :: proc() {
     EngineContext := new(EngineContext_t);
+    EngineContext.Input = new(input.Input_t);
 
     {
         EngineContext.WindowPlacement.length = size_of(win32.Window_Placement);
@@ -417,6 +422,7 @@ main :: proc() {
         MessageLoop(EngineContext);
         
         time.Update();
+        input.Update(EngineContext.Input);
         UpdateMousePosition(EngineContext);
         UpdateWindowSize(EngineContext);
         
