@@ -11,7 +11,7 @@ ButtonStates :: enum {
 Binding :: struct {
     ID   : string,
     Key  : win32.Key_Code,
-    //XKey : xinput.Buttons, 
+    XKey : xinput.Buttons, 
 }
 
 Input_t :: struct {
@@ -65,7 +65,7 @@ AddBinding :: proc(input : ^Input_t, name : string, key : win32.Key_Code) {
         new : Binding;
         new.ID = name;
         new.Key = key;
-        //new.XKey = xinput.Buttons.DpadUp;
+        new.XKey = xinput.Buttons.DpadUp;
         input.Bindings[name] = new;
     }
 }
