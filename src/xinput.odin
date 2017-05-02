@@ -112,6 +112,8 @@ Buttons :: enum u16 {
     B                = 0x2000,
     X                = 0x4000,
     Y                = 0x8000,
+
+    Invalid          = 0x0000,
 }
 
 BatteryType :: enum byte {

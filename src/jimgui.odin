@@ -219,7 +219,9 @@ RenderProc :: proc(data : ^imgui.DrawData) #cc_c {
 
     //@TODO(Hoej): BACKUP STATE!
     lastViewport : [4]i32;
+    lastScissor  : [4]i32;
     gl.GetInteger(gl.GetIntegerNames.Viewport, &lastViewport[0]);
+    gl.GetInteger(gl.GetIntegerNames.ScissorTest, &lastScissor[0]);
 
     gl.Enable(gl.Capabilities.Blend);
     gl.BlendFunc(gl.BlendFactors.SrcAlpha, gl.BlendFactors.OneMinusSrcAlpha);
@@ -264,6 +266,6 @@ RenderProc :: proc(data : ^imgui.DrawData) #cc_c {
     }
 
     //TODO: Restore state
-    gl.Scissor(0, 0, width, height);
+    gl.Scissor(lastScissor[0], lastScissor[1], lastScissor[2], lastScissor[3]);
     gl.Viewport(lastViewport[0], lastViewport[1], lastViewport[2], lastViewport[3]);
 }

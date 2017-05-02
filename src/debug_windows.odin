@@ -1,10 +1,13 @@
 #import "fmt.odin";
+#import win32 "sys/windows.odin";
 #import "gl.odin";
 #import "xinput.odin";
 #import "imgui.odin";
 #import "main.odin";
 #import "time.odin";
 #import "catalog.odin";
+#import "console.odin";
+#import jinput "input.odin";
 #import ja "asset.odin";
 
 STD_WINDOW :: /*imgui.GuiWindowFlags.ShowBorders |*/  imgui.GuiWindowFlags.NoCollapse;
@@ -462,6 +465,86 @@ ShowCatalogWindow :: proc(show : ^bool) {
         imgui.Text("No. of files: %d/%d", len(cat.Items), cat.FilesInFolder);
         imgui.SameLine(0, -1);
         imgui.Text("In Memory: %.2fKB/%.2fKB", f32(cat.CurrentSize)/1024.0, f32(cat.MaxSize)/1024.0);
+    }
+    imgui.End();
+}
+
+ShowInputWindow :: proc(input : ^jinput.Input_t, show : ^bool) {
+    imgui.Begin("Input", show, STD_WINDOW);
+    {
+        imgui.Columns(4, nil, true);
+        imgui.Text("ID");
+        imgui.NextColumn();
+        imgui.Text("Key");
+        imgui.NextColumn();
+        imgui.Text("Xinput Button");
+        imgui.NextColumn();
+        imgui.Text("State");
+        imgui.Separator();
+        imgui.NextColumn();
+
+        for v in input.Bindings {
+            imgui.Text("%v", v.ID);
+            imgui.NextColumn();
+            imgui.Text("%v", v.Key);
+            imgui.NextColumn();
+            imgui.Text("N/A");
+            imgui.NextColumn();
+            imgui.Text("%v", jinput.GetButtonState(input, v.ID));
+            imgui.NextColumn();
+        }
+
+        imgui.Columns(1, nil, true);
+
+        PrintDownHeld :: proc(keyStates : [256]jinput.ButtonStates) {
+            imgui.Columns(2, nil, true);
+            imgui.Text("Key");
+            imgui.NextColumn();
+            imgui.Text("State");
+            imgui.Separator();
+            imgui.NextColumn();
+            for k in win32.Key_Code {
+                if keyStates[k] == jinput.ButtonStates.Down || 
+                   keyStates[k] == jinput.ButtonStates.Held {
+                    imgui.Text("%v", k);
+                    imgui.NextColumn();
+                    imgui.Text("%v", keyStates[k]);
+                    imgui.NextColumn();
+                }      
+            }
+        }
+
+        PrintUpNeutral :: proc(keyStates : [256]jinput.ButtonStates) {
+            imgui.Columns(2, nil, true);
+            imgui.Text("Key");
+            imgui.NextColumn();
+            imgui.Text("State");
+            imgui.Separator();
+            imgui.NextColumn();
+            for k in win32.Key_Code {
+                if keyStates[k] == jinput.ButtonStates.Up || 
+                   keyStates[k] == jinput.ButtonStates.Neutral {
+                    imgui.Text("%v", k);
+                    imgui.NextColumn();
+                    imgui.Text("%v", keyStates[k]);
+                    imgui.NextColumn();
+                }      
+            }
+        }
+
+        imgui.Separator();
+        if imgui.CollapsingHeader("Key states", 0) {
+            keyStates := jinput.GetKeyStates(input);
+            imgui.Columns(2, nil, true);
+            imgui.BeginChild("Down Held", imgui.Vec2{0, 0}, true, 0);
+            PrintDownHeld(keyStates);
+            imgui.EndChild();
+            imgui.NextColumn();
+            imgui.BeginChild("Up Neutral", imgui.Vec2{0, 0}, true, 0);
+            PrintUpNeutral(keyStates);
+            imgui.EndChild();
+            imgui.NextColumn();
+        }
     }
     imgui.End();
 }

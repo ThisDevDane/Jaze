@@ -1,4 +1,5 @@
 #import win32 "sys/windows.odin";
+#import "xinput.odin";
 
 ButtonStates :: enum {
     Up,
@@ -7,11 +8,16 @@ ButtonStates :: enum {
     Neutral,
 }
 
+Binding :: struct {
+    ID   : string,
+    Key  : win32.Key_Code,
+    //XKey : xinput.Buttons, 
+}
+
 Input_t :: struct {
     AnyKeyPressed : bool,
 
-    Bindings : map[string]win32.Key_Code,
-    _MouseStates : [3]ButtonStates,
+    Bindings : map[string]Binding,
     _KeyStates : [256]ButtonStates,
     _OldKeyStates : [256]ButtonStates,
 }
@@ -22,7 +28,8 @@ Update :: proc(input : ^Input_t) {
 
     for k in win32.Key_Code {
         if win32.GetKeyState(i32(k)) < 0 {
-            if input._OldKeyStates[k] == ButtonStates.Down {
+            if input._OldKeyStates[k] == ButtonStates.Down || 
+               input._OldKeyStates[k] == ButtonStates.Held {
                 input._KeyStates[k] = ButtonStates.Held;
             } else {
                 input._KeyStates[k] = ButtonStates.Down;
@@ -43,8 +50,24 @@ Update :: proc(input : ^Input_t) {
     input._OldKeyStates = input._KeyStates;
 }
 
+SetAllInputNeutral :: proc(input : ^Input_t) {
+    for k in win32.Key_Code {
+       input._KeyStates[k] = ButtonStates.Neutral;
+       input._OldKeyStates[k] = ButtonStates.Neutral;
+    }
+}
+
 AddBinding :: proc(input : ^Input_t, name : string, key : win32.Key_Code) {
-    input.Bindings[name] = key;
+    _, ok := input.Bindings[name];
+    if ok {
+        input.Bindings[name].Key = key;
+    } else {
+        new : Binding;
+        new.ID = name;
+        new.Key = key;
+        //new.XKey = xinput.Buttons.DpadUp;
+        input.Bindings[name] = new;
+    }
 }
 
 IsButtonDown :: proc(input : ^Input_t, name : string) -> bool {
@@ -61,7 +84,7 @@ IsButtonHeld :: proc(input : ^Input_t, name : string) -> bool {
 
 GetButtonState :: proc(input : ^Input_t, name : string) -> ButtonStates {
     if key, ok := input.Bindings[name]; ok {
-        return input._KeyStates[i32(key)];
+        return input._KeyStates[i32(key.Key)];
     }
 
     return ButtonStates.Neutral;
@@ -73,4 +96,8 @@ AddCharToQueue :: proc(input : ^Input_t, char : rune) {
 
 ClearCharQueue :: proc(input : ^Input_t) {
     //TODO(Hoej)
+}
+
+GetKeyStates :: proc(input : ^Input_t) -> [256]ButtonStates {
+    return input._KeyStates;
 }

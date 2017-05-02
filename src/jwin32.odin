@@ -7,6 +7,8 @@ CombineLoHi :: proc(lo : u32, hi : u32) -> u64 {
     return u64(u64(lo) << 32 | u64(hi));
 }
 
+ShowCursor :: proc(show : win32.Bool) #foreign user32 "ShowCursor";
+
 //Kernel32
 MAX_PATH :: 0x00000104;
  

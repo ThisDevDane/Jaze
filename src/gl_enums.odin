@@ -440,24 +440,24 @@ BufferDataUsage :: enum i32 {
 }
 
 PolygonFace :: enum i32 {
-    Front = const.FRONT,
-    Back = const.BACK,
-    FrontAndBack = const.FRONT_AND_BACK,
+    Front                              = const.FRONT,
+    Back                               = const.BACK,
+    FrontAndBack                       = const.FRONT_AND_BACK,
 }
 
 PolygonModes :: enum i32 {
-    Point = const.POINT,
-    Line = const.LINE,
-    Fill = const.FILL,
+    Point                              = const.POINT,
+    Line                               = const.LINE,
+    Fill                               = const.FILL,
 }
 
 DepthFuncs :: enum i32 {
-    Never = const.NEVER,
-    Less = const.LESS,
-    Equal = const.EQUAL,
-    Lequal = const.LEQUAL,
-    Greater = const.GREATER,
-    NotEqual = const.NOTEQUAL,
-    Gequal = const.GEQUAL,
-    Always = const.ALWAYS,
+    Never                              = const.NEVER,
+    Less                               = const.LESS,
+    Equal                              = const.EQUAL,
+    Lequal                             = const.LEQUAL,
+    Greater                            = const.GREATER,
+    NotEqual                           = const.NOTEQUAL,
+    Gequal                             = const.GEQUAL,
+    Always                             = const.ALWAYS,
 }

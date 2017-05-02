@@ -1,3 +1,5 @@
+#import win32 "sys/windows.odin";
+#import "jwin32.odin";
 #import debugWnd "debug_windows.odin";
 #import "imgui.odin";
 #import "main.odin";
@@ -26,14 +28,17 @@ MakeMenuBar :: proc(ctx : ^main.EngineContext_t) {
     if imgui.BeginMenu("Data", true) {
         MakeMenuItem("OpenGL Info", "ShowOpenGLInfo");
         MakeMenuItem("Win32Var Info", "ShowWin32VarInfo");
-        
+        MakeMenuItem("Time Data", "ShowTimeData");
+        imgui.EndMenu();
+    }
+
+    if imgui.BeginMenu("Input", true) {
+        MakeMenuItem("Keyboard & Mouse", "ShowInputWindow");
         if imgui.BeginMenu("XInput", true) {
             MakeMenuItem("Info", "ShowXinputInfo");
             MakeMenuItem("State", "ShowXinputState");
             imgui.EndMenu();
         }
-
-        MakeMenuItem("Time Data", "ShowTimeData");
         imgui.EndMenu();
     }
 
@@ -55,6 +60,10 @@ MakeMenuBar :: proc(ctx : ^main.EngineContext_t) {
             if imgui.Checkbox("Toggle Stat Overlay", &b) {
                 debugWnd.SetWindowState("ShowStatOverlay", b);
             }
+        }
+
+        if imgui.Checkbox("Show Hardware Cursor", &ctx.ShowCursor) {
+            jwin32.ShowCursor(win32.Bool(ctx.ShowCursor));
         }
         
         imgui.EndMenu();
@@ -90,6 +99,12 @@ TryToRenderWindows :: proc(Ctx : ^main.EngineContext_t) {
         b := debugWnd.GetWindowState("ShowWin32VarInfo");
         debugWnd.Win32VarsInfo(&Ctx.win32, &b);
         debugWnd.SetWindowState("ShowWin32VarInfo", b);
+    }
+
+    if debugWnd.GetWindowState("ShowInputWindow") {
+        b := debugWnd.GetWindowState("ShowInputWindow");
+        debugWnd.ShowInputWindow(Ctx.Input, &b);
+        debugWnd.SetWindowState("ShowInputWindow", b);
     }
 
     debugWnd.TryShowWindow("ShowXinputInfo",        debugWnd.ShowXinputInfoWindow);

@@ -19,6 +19,8 @@ mainvao : gl.VAO;
 textures : [dynamic]gl.Texture;
 back : gl.Texture;
 
+cursorT : gl.Texture;
+
 pos := [..]math.Vec3 {
     {0, 0, 0},
     {2, 1, 0}, 
@@ -39,8 +41,9 @@ basicvao : gl.VAO;
 CameraWindow :: proc() {
      if debugWnd.GetWindowState("ShowCameraSettings") {
         b := debugWnd.GetWindowState("ShowCameraSettings");
-        imgui.Begin("Camera Settings", &b, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
+        imgui.Begin("Camera Settings22", &b, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
         {
+            console.Log("I BE DRAWING");
             imgui.DragFloat("Scale",  &Camera.Zoom,  0.05, 0, 0, "%.2f", 1);
             imgui.DragFloat("Near", &Camera.Near, 0.05, 0, 0, "%.2f", 1);
             imgui.DragFloat("Far",  &Camera.Far,  0.05, 0, 0, "%.2f", 1);
@@ -65,8 +68,8 @@ CalculateOrtho :: proc(window : math.Vec2, scaleFactor : math.Vec2, far, near : 
     h := (window.y);
     l := -(w/ 2);
     r := w / 2;
-    b := -(h / 2);
-    t := h / 2;
+    b := h / 2;
+    t := -(h / 2);
     proj  := math.ortho3d(l, r, t, b, far, near);
     return math.scale(proj, math.Vec3{scaleFactor.x, scaleFactor.y, 1.0});
 }
@@ -146,11 +149,11 @@ Draw :: proc(ctx : ^main.EngineContext_t) {
     gl.BindVertexArray(mainvao);
     gl.UniformMatrix4fv(mainProgram.Uniforms["View"],  view,  false);
     gl.UniformMatrix4fv(mainProgram.Uniforms["Proj"],  proj,  false);
-    gl.BindTexture(gl.TextureTargets.Texture2D, textures[0]);
+    gl.BindTexture(gl.TextureTargets.Texture2D, cursorT);
     TestRender(mainProgram, 
-               ScreenToWorld(ctx.MousePos, proj, view, ctx.GameDrawArea, Camera), 
-               f32(time.GetTimeSinceStart() * 100.0),
-               math.Vec3{0.2, 0.2, 0.2});
+               ScreenToWorld(ctx.MousePos, proj, view, ctx.GameDrawArea, Camera) + math.Vec3{0.105, -0.155, 0}, 
+               0,
+               math.Vec3{0.5, 0.5, 0.5});
 }
 
 
@@ -215,6 +218,9 @@ Test :: proc(shaderCat : ^catalog.Catalog, textureCat : ^catalog.Catalog) {
     kickAsset, ok3 := catalog.Find(textureCat, "test22");
     holdAsset, ok4 := catalog.Find(textureCat, "test22");
     backAsset, ok5 := catalog.Find(textureCat, "back");
+
+    cursorAsset, _ := catalog.Find(textureCat, "cursor");
+
     if ok1 != catalog.ERR_SUCCESS || ok2 != catalog.ERR_SUCCESS || ok3 != catalog.ERR_SUCCESS {
         panic("FUCK COULDN'T FIND YA SHADERS M8");
     }
@@ -224,6 +230,8 @@ Test :: proc(shaderCat : ^catalog.Catalog, textureCat : ^catalog.Catalog) {
     kick :=   kickAsset.(^ja.Asset.Texture);
     hold :=   holdAsset.(^ja.Asset.Texture);
     back = backAsset.(^ja.Asset.Texture).GLID;
+    cursorT = cursorAsset.(^ja.Asset.Texture).GLID;
+
     append(textures, hold.GLID);
     append(textures, kick.GLID);
     mainProgram = gl.CreateProgram();

@@ -21,19 +21,20 @@
 #import "input.odin";
 
 EngineContext_t :: struct {
-    ProgramRunning : bool,
-    ShowDebugMenu : bool,
-    AdaptiveVSync : bool,
-    WindowPlacement : win32.Window_Placement,
-    VirtualScreen : math.Vec2,
+    ProgramRunning     : bool,
+    ShowDebugMenu      : bool,
+    AdaptiveVSync      : bool,
+    ShowCursor         : bool,
+    WindowPlacement    : win32.Window_Placement,
+    VirtualScreen      : math.Vec2,
     VirtualAspectRatio : f32,
-    ScaleFactor : math.Vec2,
-    GameDrawArea : DrawArea,
-    win32 : Win32Vars_t,
-    MousePos : math.Vec2,
-    WindowSize   : math.Vec2,
+    ScaleFactor        : math.Vec2,
+    GameDrawArea       : DrawArea,
+    win32              : Win32Vars_t,
+    MousePos           : math.Vec2,
+    WindowSize         : math.Vec2,
 
-    Input : ^input.Input_t,
+    Input              : ^input.Input_t,
 }
 
 Win32Vars_t :: struct {
@@ -376,6 +377,9 @@ ClearGameScreen :: proc(ctx : ^EngineContext_t) {
 main :: proc() {
     EngineContext := new(EngineContext_t);
     EngineContext.Input = new(input.Input_t);
+    input.AddBinding(EngineContext.Input, "Fire", win32.Key_Code.LBUTTON);
+    input.AddBinding(EngineContext.Input, "Zoom", win32.Key_Code.RBUTTON);
+    input.AddBinding(EngineContext.Input, "Build", win32.Key_Code.B);
 
     {
         EngineContext.WindowPlacement.length = size_of(win32.Window_Placement);
@@ -397,9 +401,10 @@ main :: proc() {
         EngineContext.ProgramRunning = true;
         EngineContext.ShowDebugMenu = true;
         EngineContext.AdaptiveVSync = true;
+        EngineContext.ShowCursor = true;
 
-        EngineContext.VirtualScreen.x = 1920;
-        EngineContext.VirtualScreen.y = 1080;
+        EngineContext.VirtualScreen.x = 1280;
+        EngineContext.VirtualScreen.y = 720;
         EngineContext.VirtualAspectRatio = EngineContext.VirtualScreen.x / EngineContext.VirtualScreen.y;
     }
 
@@ -422,23 +427,34 @@ main :: proc() {
         MessageLoop(EngineContext);
         
         time.Update();
-        input.Update(EngineContext.Input);
+        if win32.GetActiveWindow() == EngineContext.win32.WindowHandle {
+            input.Update(EngineContext.Input);
+        } else {
+            input.SetAllInputNeutral(EngineContext.Input);
+        }
         UpdateMousePosition(EngineContext);
         UpdateWindowSize(EngineContext);
         
+
+        ChangeWindowTitle(EngineContext.win32.WindowHandle, 
+                          "Jaze - DEV VERSION | <%.1f, %.1f> | <%d, %d, %d, %d>", // <%.0f, %.0f> misses a number, tell bill
+                          EngineContext.WindowSize.x, EngineContext.WindowSize.y,
+                          EngineContext.GameDrawArea.X, EngineContext.GameDrawArea.Y,
+                          EngineContext.GameDrawArea.Width, EngineContext.GameDrawArea.Height);
+
+
+
         EngineContext.GameDrawArea = CalculateViewport(EngineContext.WindowSize, EngineContext.VirtualAspectRatio);
         EngineContext.ScaleFactor.x = EngineContext.WindowSize.x / f32(EngineContext.VirtualScreen.x);
         EngineContext.ScaleFactor.y = EngineContext.WindowSize.y / f32(EngineContext.VirtualScreen.y);
-
-        ChangeWindowTitle(EngineContext.win32.WindowHandle, 
-                          "Jaze - DEV VERSION | <%.1f, %.1f>", // <%.0f, %.0f> misses a number, tell bill
-                          EngineContext.WindowSize.x, EngineContext.WindowSize.y);
-
-
-
         ClearScreen(EngineContext);
+        gl.Viewport(EngineContext.GameDrawArea.X, 
+                    EngineContext.GameDrawArea.Y, 
+                    EngineContext.GameDrawArea.Width,
+                    EngineContext.GameDrawArea.Height);
         ClearGameScreen(EngineContext);
         gl.Clear(gl.ClearFlags.DEPTH_BUFFER);
+
 
         render.Draw(EngineContext);
         
