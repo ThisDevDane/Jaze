@@ -15,7 +15,7 @@ MAX_PATH :: 0x00000104;
 INVALID_FILE_ATTRIBUTES  :: -1;
 FILE_ATTRIBUTE_DIRECTORY :: 0x10;
 
-FindData :: struct #ordered {
+FindData :: struct {
     FileAttributes    : u32,
     CreationTime      : win32.Filetime,
     LastAccessTime    : win32.Filetime,

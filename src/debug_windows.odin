@@ -472,7 +472,7 @@ ShowCatalogWindow :: proc(show : ^bool) {
 ShowInputWindow :: proc(input : ^jinput.Input_t, show : ^bool) {
     imgui.Begin("Input", show, STD_WINDOW);
     {
-        imgui.Columns(4, nil, true);
+    imgui.Columns(4, nil, true);
         imgui.Text("ID");
         imgui.NextColumn();
         imgui.Text("Key");
@@ -488,7 +488,7 @@ ShowInputWindow :: proc(input : ^jinput.Input_t, show : ^bool) {
             imgui.NextColumn();
             imgui.Text("%v", v.Key);
             imgui.NextColumn();
-            imgui.Text("N/A");
+            imgui.Text("%v", v.XKey);
             imgui.NextColumn();
             imgui.Text("%v", jinput.GetButtonState(input, v.ID));
             imgui.NextColumn();
@@ -496,7 +496,7 @@ ShowInputWindow :: proc(input : ^jinput.Input_t, show : ^bool) {
 
         imgui.Columns(1, nil, true);
 
-        PrintDownHeld :: proc(keyStates : [256]jinput.ButtonStates) {
+        PrintDownHeld :: proc(keyStates : []jinput.ButtonStates) {
             imgui.Columns(2, nil, true);
             imgui.Text("Key");
             imgui.NextColumn();
@@ -514,7 +514,7 @@ ShowInputWindow :: proc(input : ^jinput.Input_t, show : ^bool) {
             }
         }
 
-        PrintUpNeutral :: proc(keyStates : [256]jinput.ButtonStates) {
+        PrintUpNeutral :: proc(keyStates : []jinput.ButtonStates) {
             imgui.Columns(2, nil, true);
             imgui.Text("Key");
             imgui.NextColumn();
@@ -534,14 +534,13 @@ ShowInputWindow :: proc(input : ^jinput.Input_t, show : ^bool) {
 
         imgui.Separator();
         if imgui.CollapsingHeader("Key states", 0) {
-            keyStates := jinput.GetKeyStates(input);
             imgui.Columns(2, nil, true);
             imgui.BeginChild("Down Held", imgui.Vec2{0, 0}, true, 0);
-            PrintDownHeld(keyStates);
+            PrintDownHeld(input.KeyStates[..]);
             imgui.EndChild();
             imgui.NextColumn();
             imgui.BeginChild("Up Neutral", imgui.Vec2{0, 0}, true, 0);
-            PrintUpNeutral(keyStates);
+            PrintUpNeutral(input.KeyStates[..]);
             imgui.EndChild();
             imgui.NextColumn();
         }
