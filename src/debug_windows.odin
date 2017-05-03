@@ -9,6 +9,7 @@
 #import "console.odin";
 #import jinput "input.odin";
 #import ja "asset.odin";
+#import je "entity.odin";
 
 STD_WINDOW :: /*imgui.GuiWindowFlags.ShowBorders |*/  imgui.GuiWindowFlags.NoCollapse;
 
@@ -34,6 +35,39 @@ TryShowWindow :: proc(id : string, p : proc(b : ^bool)) {
         b := GetWindowState(id);
         p(&b);
         SetWindowState(id, b);
+    }
+}
+
+ShowEntityList :: proc(gameCtx : ^main.GameContext_t, show : ^bool) {
+    imgui.Begin("Entity List", show, STD_WINDOW);
+    {
+        imgui.BeginChild("Buffer", imgui.Vec2{0, -20}, true, 0);
+        {
+            for i := gameCtx.EntityList.Front;
+                i != nil;
+                i = i.Next {
+
+                imgui.Text("%s(%d)", i.Entity.Name, i.Entity.GUID);
+                match e in i.Entity {
+                    case je.Entity.NormalTower : {
+                        PrintNormalTower(e);
+                    }
+                }
+            }
+        }
+        imgui.EndChild();
+
+        imgui.Separator();
+        imgui.TextColored(imgui.Vec4{1, 1, 1, 0.2}, "Entities: %d", gameCtx.EntityList.Count);
+    }
+    imgui.End();
+
+    PrintNormalTower :: proc(e : ^je.Entity.NormalTower) {
+
+    }
+
+    PrintSlowTower :: proc(e : ^je.Entity.SlowTower) {
+
     }
 }
 

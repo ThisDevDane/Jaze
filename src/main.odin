@@ -37,6 +37,10 @@ EngineContext_t :: struct {
     Input              : ^input.Input_t,
 }
 
+GameContext_t :: struct {
+    EntityList : ^entity.List,
+}
+
 Win32Vars_t :: struct {
     AppHandle    : win32.Hinstance,
     WindowHandle : win32.Hwnd,
@@ -423,6 +427,17 @@ main :: proc() {
     console.AddCommand("Help", console.DefaultHelpCommand);
     console.AddCommand("Clear", console.DefaultClearCommand);
 
+    GameContext := new(GameContext_t);
+    GameContext.EntityList = entity.MakeList();
+
+    e := entity.CreateTower();
+    entity.AddEntity(GameContext.EntityList, entity.CreateEntity());
+    entity.AddEntity(GameContext.EntityList, entity.CreateTower());
+    entity.AddEntity(GameContext.EntityList, entity.CreateTower());
+    entity.AddEntity(GameContext.EntityList, e);
+    entity.AddEntity(GameContext.EntityList, entity.CreateEntity());
+    entity.RemoveEntity(GameContext.EntityList, e);
+
     for EngineContext.ProgramRunning {
         MessageLoop(EngineContext);
         
@@ -460,7 +475,7 @@ main :: proc() {
         
         if EngineContext.ShowDebugMenu {
             jimgui.BeginNewFrame(time.GetUnscaledDeltaTime(), EngineContext);
-            debug.RenderDebugUI(EngineContext);
+            debug.RenderDebugUI(EngineContext, GameContext);
             imgui.Render();
         }
 

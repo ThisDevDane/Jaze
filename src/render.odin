@@ -41,9 +41,8 @@ basicvao : gl.VAO;
 CameraWindow :: proc() {
      if debugWnd.GetWindowState("ShowCameraSettings") {
         b := debugWnd.GetWindowState("ShowCameraSettings");
-        imgui.Begin("Camera Settings22", &b, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
+        imgui.Begin("Camera Settings", &b, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
         {
-            console.Log("I BE DRAWING");
             imgui.DragFloat("Scale",  &Camera.Zoom,  0.05, 0, 0, "%.2f", 1);
             imgui.DragFloat("Near", &Camera.Near, 0.05, 0, 0, "%.2f", 1);
             imgui.DragFloat("Far",  &Camera.Far,  0.05, 0, 0, "%.2f", 1);
@@ -151,16 +150,16 @@ Draw :: proc(ctx : ^main.EngineContext_t) {
     gl.UniformMatrix4fv(mainProgram.Uniforms["Proj"],  proj,  false);
     gl.BindTexture(gl.TextureTargets.Texture2D, cursorT);
     TestRender(mainProgram, 
-               ScreenToWorld(ctx.MousePos, proj, view, ctx.GameDrawArea, Camera) + math.Vec3{0.105, -0.155, 0}, 
-               0,
-               math.Vec3{0.5, 0.5, 0.5});
+               ScreenToWorld(ctx.MousePos, proj, view, ctx.GameDrawArea, Camera), 
+               f32(time.GetTimeSinceStart() * 200.0),
+               math.Vec3{0.4, 0.4, 0.4});
 }
 
 
 
 Init :: proc(shaderCat : ^catalog.Catalog, textureCat : ^catalog.Catalog) {
     Camera.Pos = math.Vec3{0, 0, 15};
-    Camera.Zoom = 100;
+    Camera.Zoom = 50;
     Camera.Near = 0.1;
     Camera.Far = 50;
     Camera.Rot = 45;
@@ -212,11 +211,13 @@ Test2 :: proc(shaderCat : ^catalog.Catalog) {
     gl.BindFragDataLocation(mainProgram, 0, "out_color");
 }
 
+PixelsToUnits :: 64;
+
 Test :: proc(shaderCat : ^catalog.Catalog, textureCat : ^catalog.Catalog) {
     vertexAsset, ok1 := catalog.Find(shaderCat, "test_vert");
     fragAsset, ok2 := catalog.Find(shaderCat, "test_frag");
-    kickAsset, ok3 := catalog.Find(textureCat, "test22");
-    holdAsset, ok4 := catalog.Find(textureCat, "test22");
+    kickAsset, ok3 := catalog.Find(textureCat, "towerDefense_tile162");
+    holdAsset, ok4 := catalog.Find(textureCat, "towerDefense_tile162");
     backAsset, ok5 := catalog.Find(textureCat, "back");
 
     cursorAsset, _ := catalog.Find(textureCat, "cursor");
@@ -253,12 +254,15 @@ Test :: proc(shaderCat : ^catalog.Catalog, textureCat : ^catalog.Catalog) {
     ebo := gl.GenEBO();
     gl.BindBuffer(ebo);
 
+    height := f32(kick.Height) / PixelsToUnits;
+    width := f32(kick.Width) / PixelsToUnits;
+    console.Log("<%v,%v>", height, width);
     //Pos, UV
     vertices := [..]f32 {
-         1, 1, 0,  1.0, 0.0, // Top Right
-         1, 0, 0,  1.0, 1.0, // Bottom Right
+         width, height, 0,  1.0, 0.0, // Top Right
+         width, 0, 0,  1.0, 1.0, // Bottom Right
          0, 0, 0,  0.0, 1.0, // Bottom Left
-         0, 1, 0,  0.0, 0.0, // Top Left
+         0, height, 0,  0.0, 0.0, // Top Left
     };
 
     elements := [..]u32 {

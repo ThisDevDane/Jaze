@@ -6,9 +6,9 @@
 #import "console.odin";
 #import wgl "jwgl.odin";
 
-RenderDebugUI :: proc(ctx : ^main.EngineContext_t) {
+RenderDebugUI :: proc(ctx : ^main.EngineContext_t, gameCtx : ^main.GameContext_t) {
    MakeMenuBar(ctx);
-   TryToRenderWindows(ctx);
+   TryToRenderWindows(ctx, gameCtx);
 }
 
 MakeMenuBar :: proc(ctx : ^main.EngineContext_t) {
@@ -24,6 +24,11 @@ MakeMenuBar :: proc(ctx : ^main.EngineContext_t) {
 
     imgui.PushStyleColor(imgui.GuiCol.MenuBarBg, imgui.Vec4{0.35, 0.35, 0.35, 0.78});
     imgui.BeginMainMenuBar();
+
+    if imgui.BeginMenu("Game", true) {
+        MakeMenuItem("Entity List", "ShowEntityList");
+        imgui.EndMenu();
+    }
    
     if imgui.BeginMenu("Data", true) {
         MakeMenuItem("OpenGL Info", "ShowOpenGLInfo");
@@ -88,7 +93,7 @@ MakeMenuBar :: proc(ctx : ^main.EngineContext_t) {
     imgui.PopStyleColor(1);
 }
 
-TryToRenderWindows :: proc(Ctx : ^main.EngineContext_t) {
+TryToRenderWindows :: proc(Ctx : ^main.EngineContext_t, gameCtx : ^main.GameContext_t) {
     if debugWnd.GetWindowState("ShowOpenGLInfo") {
         b := debugWnd.GetWindowState("ShowOpenGLInfo");
         debugWnd.OpenGLInfo(&Ctx.win32.Ogl, &b);
@@ -101,10 +106,16 @@ TryToRenderWindows :: proc(Ctx : ^main.EngineContext_t) {
         debugWnd.SetWindowState("ShowWin32VarInfo", b);
     }
 
-    if debugWnd.GetWindowState("ShowInputWindow") {
-        b := debugWnd.GetWindowState("ShowInputWindow");
-        debugWnd.ShowInputWindow(Ctx.Input, &b);
-        debugWnd.SetWindowState("ShowInputWindow", b);
+    if debugWnd.GetWindowState("ShowWin32VarInfo") {
+        b := debugWnd.GetWindowState("ShowWin32VarInfo");
+        debugWnd.Win32VarsInfo(&Ctx.win32, &b);
+        debugWnd.SetWindowState("ShowWin32VarInfo", b);
+    }
+
+    if debugWnd.GetWindowState("ShowEntityList") {
+        b := debugWnd.GetWindowState("ShowEntityList");
+        debugWnd.ShowEntityList(gameCtx, &b);
+        debugWnd.SetWindowState("ShowEntityList", b);
     }
 
     debugWnd.TryShowWindow("ShowXinputInfo",        debugWnd.ShowXinputInfoWindow);
