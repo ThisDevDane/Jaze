@@ -38,21 +38,26 @@ TryShowWindow :: proc(id : string, p : proc(b : ^bool)) {
     }
 }
 
+_ChosenEntity : ^je.Entity;
+
 ShowEntityList :: proc(gameCtx : ^main.GameContext_t, show : ^bool) {
     PrintNormalTower :: proc(t : je.Tower) {
         imgui.Indent(10);
         {
-            imgui.Text("Transform:");
-            imgui.Indent(5);
-            {
+            if imgui.CollapsingHeader("Transform", 0) {
+                imgui.Indent(10);
                 imgui.Text("Position: %v", t.Position);
                 imgui.Text("Scale: %v", t.Scale);
                 imgui.Text("Rotation: %v", t.Rotation);
+                imgui.Unindent(10);
             }
-            imgui.Unindent(5);
             imgui.Text("Damage: %v", t.Damage);
             imgui.Text("Attack Speed: %v", t.AttackSpeed);
-            imgui.Text("Texture: %v", t.Texture);
+            if t.Texture != nil {
+                imgui.TextWrapped("Texture: %v", t.Texture^);
+            } else {
+                imgui.Text("Texture: N/A");
+            } 
         }
         imgui.Unindent(10);
     }
@@ -67,7 +72,8 @@ ShowEntityList :: proc(gameCtx : ^main.GameContext_t, show : ^bool) {
 
     imgui.Begin("Entity List", show, STD_WINDOW);
     {
-        imgui.BeginChild("Buffer", imgui.Vec2{0, -20}, true, 0);
+        imgui.Columns(2, nil, false);
+        imgui.BeginChild("Entities", imgui.Vec2{0, -20}, true, 0);
         {
             for i := gameCtx.EntityList.Front;
                 i != nil;
@@ -75,22 +81,34 @@ ShowEntityList :: proc(gameCtx : ^main.GameContext_t, show : ^bool) {
 
                 buf : [256]byte;
                 str := fmt.bprintf(buf[..], "%s(%d)", i.Entity.Name, i.Entity.GUID);
-                if imgui.CollapsingHeader(str, 0) {
-                    match e in i.Entity {
-                        case je.Entity.Tower : {
-                            match t in e.T {
-                                case je.Tower.Slow : {
-                                    PrintNormalTower(e.T);
-                                    PrintSlowTower(t);
-                                }
+                if imgui.Button(str, imgui.Vec2{-1, 0}) {
+                    _ChosenEntity = i.Entity;   
+                }
+            }
+        }
+        imgui.EndChild();
+        imgui.NextColumn();
+        imgui.BeginChild("Entity", imgui.Vec2{0, -20}, true, 0);
+        {
+            if _ChosenEntity != nil {
+                imgui.Text("GUID: %v", _ChosenEntity.GUID);
+                imgui.Text("Name: %v", _ChosenEntity.Name);
+                match e in _ChosenEntity {
+                    case je.Entity.Tower : {
+                        match t in e.T {
+                            case je.Tower.Slow : {
+                                imgui.Text("Match: %T", t);
+                                PrintNormalTower(e.T);
+                                PrintSlowTower(t);
+                            }
 
-                                case je.Tower.Basic : {
-                                    PrintNormalTower(e.T);
-                                }
+                            case je.Tower.Basic : {
+                                imgui.Text("Match: %T", t);
+                                PrintNormalTower(e.T);
+                            }
 
-                                default : {
-                                    imgui.Text("WUT: %T", t);
-                                }
+                            default : {
+                                imgui.Text("WUT: %T", t);
                             }
                         }
                     }
@@ -98,7 +116,7 @@ ShowEntityList :: proc(gameCtx : ^main.GameContext_t, show : ^bool) {
             }
         }
         imgui.EndChild();
-
+        imgui.Columns(1, nil, false);
         imgui.Separator();
         imgui.TextColored(imgui.Vec4{1, 1, 1, 0.2}, "Entities: %d", gameCtx.EntityList.Count);
     }
@@ -540,7 +558,7 @@ ShowCatalogWindow :: proc(show : ^bool) {
 }
 
 ShowInputWindow :: proc(input : ^jinput.Input_t, show : ^bool) {
-    imgui.Begin("Input", show, STD_WINDOW);
+    imgui.Begin("Input##TESTIUYHSEIFUSEYGF", show, STD_WINDOW);
     {
     imgui.Columns(4, nil, true);
         imgui.Text("ID");

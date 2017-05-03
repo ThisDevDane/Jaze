@@ -531,8 +531,18 @@ TextColored :: proc(col : Vec4, fmt_: string, args: ..any) {
 }
 /*
 TextDisabled                                            :: proc(CONST char* fmt, ...)                                                                                                                                                                                          #foreign cimgui "igTextDisabled";
-TextWrapped                                             :: proc(CONST char* fmt, ...)                                                                                                                                                                                          #foreign cimgui "igTextWrapped";
 */
+TextWrapped :: proc(fmt_: string, args: ..any) {
+    ImTextWrapped :: proc(fmt: ^byte) #foreign cimgui "igTextWrapped";
+
+    buf: [1024]byte;
+    s := fmt.bprintf(buf[..], fmt_, ..args);
+    assert(len(s) < len(buf));
+    c_str := &buf[0];
+
+    ImTextWrapped(c_str);
+}
+
 TextUnformatted                                         :: proc(text : c_string, text_end : c_string)                                                                                                                                                                          #foreign cimgui "igTextUnformatted";
 /*
 LabelText                                               :: proc(CONST char* label, CONST char* fmt, ...)                                                                                                                                                                       #foreign cimgui "igLabelText";

@@ -20,13 +20,14 @@ Transform_t :: struct {
     Position : math.Vec3,
     Scale : math.Vec3,
     Rotation : f32,
+    RenderOffset : math.Vec3,
 }
 
 Tower :: union {
     using Transform : Transform_t,
     Damage : int,
     AttackSpeed : f32,
-    Texture : ja.Asset.Texture,
+    Texture : ^ja.Asset.Texture,
 
     Basic{},
     Slow{
@@ -69,8 +70,9 @@ CreateSlowTower :: proc() -> ^Entity {
     e := new(Entity);
     t := Entity.Tower{};    
     //t.T = new(Tower);
-    t.T = Tower.Slow{};
-    t.T.(Tower.Slow).SlowFactor = 342;
+    s := Tower.Slow{};
+    s.SlowFactor = 342;
+    t.T = s;
     e^ = t;
     GUID++;
     e.GUID = GUID;

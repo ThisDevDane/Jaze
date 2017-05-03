@@ -41,7 +41,7 @@ basicvao : gl.VAO;
 CameraWindow :: proc() {
      if debugWnd.GetWindowState("ShowCameraSettings") {
         b := debugWnd.GetWindowState("ShowCameraSettings");
-        imgui.Begin("Camera Settings", &b, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
+        imgui.Begin("Camera Settings123123", &b, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
         {
             imgui.DragFloat("Scale",  &Camera.Zoom,  0.05, 0, 0, "%.2f", 1);
             imgui.DragFloat("Near", &Camera.Near, 0.05, 0, 0, "%.2f", 1);

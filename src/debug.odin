@@ -100,10 +100,10 @@ TryToRenderWindows :: proc(Ctx : ^main.EngineContext_t, gameCtx : ^main.GameCont
         debugWnd.SetWindowState("ShowOpenGLInfo", b);
     }
 
-    if debugWnd.GetWindowState("ShowWin32VarInfo") {
-        b := debugWnd.GetWindowState("ShowWin32VarInfo");
-        debugWnd.Win32VarsInfo(&Ctx.win32, &b);
-        debugWnd.SetWindowState("ShowWin32VarInfo", b);
+    if debugWnd.GetWindowState("ShowInputWindow") {
+        b := debugWnd.GetWindowState("ShowInputWindow");
+        debugWnd.ShowInputWindow(Ctx.Input, &b);
+        debugWnd.SetWindowState("ShowInputWindow", b);
     }
 
     if debugWnd.GetWindowState("ShowWin32VarInfo") {

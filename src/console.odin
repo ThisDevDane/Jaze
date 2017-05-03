@@ -5,7 +5,7 @@
 #import debugWnd "debug_windows.odin";
 
 OUTPUT_TO_CLI  :: true;
-OUTPUT_TO_FILE :: true;
+OUTPUT_TO_FILE :: false;
 
 _BUF_SIZE :: 1024;
 
