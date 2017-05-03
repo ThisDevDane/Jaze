@@ -17,15 +17,21 @@ Binding :: struct {
 Input_t :: struct {
     AnyKeyPressed : bool,
 
-    Bindings : map[string]Binding,
-    KeyStates : [256]ButtonStates,
+    Bindings      : map[string]Binding,
+    KeyStates     : [256]ButtonStates,
     _OldKeyStates : [256]ButtonStates,
+    XState        : [4]xinput.GamepadState,
+    _OldXState    : [4]xinput.GamepadState,
 }
 
 Update :: proc(input : ^Input_t) {
     input.AnyKeyPressed = false;
     ClearCharQueue(input);
+    UpdateKeyboard(input);
+    UpdateXinput(input);
+}
 
+UpdateKeyboard :: proc(input : ^Input_t) {
     for k in win32.Key_Code {
         if win32.GetKeyState(i32(k)) < 0 {
             if input._OldKeyStates[k] == ButtonStates.Down || 
@@ -50,6 +56,12 @@ Update :: proc(input : ^Input_t) {
     input._OldKeyStates = input.KeyStates;
 }
 
+UpdateXinput :: proc(input : ^Input_t) {
+    IsButtonPressed :: proc(state : xinput.State, b : xinput.Buttons) -> bool {
+        return state.Gamepad.Buttons & u16(b) == u16(b);
+    }
+}
+
 SetAllInputNeutral :: proc(input : ^Input_t) {
     for k in win32.Key_Code {
        input.KeyStates[k] = ButtonStates.Neutral;
@@ -66,6 +78,19 @@ AddBinding :: proc(input : ^Input_t, name : string, key : win32.Key_Code) {
         new.ID = name;
         new.Key = key;
         new.XKey = xinput.Buttons.Invalid;
+        input.Bindings[name] = new;
+    }
+}
+
+AddBinding :: proc(input : ^Input_t, name : string, xKey : xinput.Buttons) {
+        _, ok := input.Bindings[name];
+    if ok {
+        input.Bindings[name].XKey = xKey;
+    } else {
+        new : Binding;
+        new.ID = name;
+        new.Key = win32.Key_Code.NONAME;
+        new.XKey = xKey;
         input.Bindings[name] = new;
     }
 }
