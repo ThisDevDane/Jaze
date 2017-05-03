@@ -48,7 +48,7 @@ MakeMenuBar :: proc(ctx : ^main.EngineContext_t) {
     }
 
     if imgui.BeginMenu("Visual", true) {
-        if imgui.Checkbox("Toggle Adaptive VSync", &ctx.AdaptiveVSync) {
+        if imgui.Checkbox("Adaptive VSync", &ctx.AdaptiveVSync) {
             if ctx.AdaptiveVSync {
                 wgl.SwapIntervalEXT(-1);
             } else {
@@ -57,12 +57,12 @@ MakeMenuBar :: proc(ctx : ^main.EngineContext_t) {
         }
         {
             b := debugWnd.GetWindowState("ShowStatOverlay");
-            if imgui.Checkbox("Toggle Stat Overlay", &b) {
+            if imgui.Checkbox("Stat Overlay", &b) {
                 debugWnd.SetWindowState("ShowStatOverlay", b);
             }
         }
 
-        if imgui.Checkbox("Show Hardware Cursor", &ctx.ShowCursor) {
+        if imgui.Checkbox("Hardware Cursor", &ctx.ShowCursor) {
             jwin32.ShowCursor(win32.Bool(ctx.ShowCursor));
         }
         
