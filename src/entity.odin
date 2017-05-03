@@ -1,3 +1,4 @@
+#import "math.odin";
 #import ja "asset.odin";
 
 GUID : int = 0;
@@ -6,19 +7,31 @@ Entity :: union {
     GUID : int,
     Name : string,
 
-    NormalTower{
-        using Tower : TowerStats,
+    Tower{
+        T : Tower,
     },
-    SlowTower{
-        using Tower : TowerStats,
-        SlowFactor : f32,
-    },
+
+    Enemy{
+        using Transform : Transform_t,
+    }
 }
 
-TowerStats :: struct {
+Transform_t :: struct {    
+    Position : math.Vec3,
+    Scale : math.Vec3,
+    Rotation : f32,
+}
+
+Tower :: union {
+    using Transform : Transform_t,
     Damage : int,
     AttackSpeed : f32,
     Texture : ja.Asset.Texture,
+
+    Basic{},
+    Slow{
+        SlowFactor : f32,
+    }
 }
 
 ListItem :: struct {
@@ -42,11 +55,26 @@ CreateEntity :: proc() -> ^Entity {
 
 CreateTower :: proc() -> ^Entity {
     e := new(Entity);
-    t := Entity.NormalTower{};    
+    t := Entity.Tower{};    
+    //t.T = new(Tower);
+    t.T = Tower.Basic{};
     e^ = t;
     GUID++;
     e.GUID = GUID;
-    e.Name = "Tower";
+    e.Name = "Basic Tower";
+    return e;
+}
+
+CreateSlowTower :: proc() -> ^Entity {
+    e := new(Entity);
+    t := Entity.Tower{};    
+    //t.T = new(Tower);
+    t.T = Tower.Slow{};
+    t.T.(Tower.Slow).SlowFactor = 342;
+    e^ = t;
+    GUID++;
+    e.GUID = GUID;
+    e.Name = "Slow Tower";
     return e;
 }
 

@@ -39,6 +39,32 @@ TryShowWindow :: proc(id : string, p : proc(b : ^bool)) {
 }
 
 ShowEntityList :: proc(gameCtx : ^main.GameContext_t, show : ^bool) {
+    PrintNormalTower :: proc(t : je.Tower) {
+        imgui.Indent(10);
+        {
+            imgui.Text("Transform:");
+            imgui.Indent(5);
+            {
+                imgui.Text("Position: %v", t.Position);
+                imgui.Text("Scale: %v", t.Scale);
+                imgui.Text("Rotation: %v", t.Rotation);
+            }
+            imgui.Unindent(5);
+            imgui.Text("Damage: %v", t.Damage);
+            imgui.Text("Attack Speed: %v", t.AttackSpeed);
+            imgui.Text("Texture: %v", t.Texture);
+        }
+        imgui.Unindent(10);
+    }
+    
+    PrintSlowTower :: proc(e : je.Tower.Slow) {
+        imgui.Indent(10);
+        {
+            imgui.Text("Slow Rate: %v", e.SlowFactor);
+        }
+        imgui.Unindent(10);
+    }
+
     imgui.Begin("Entity List", show, STD_WINDOW);
     {
         imgui.BeginChild("Buffer", imgui.Vec2{0, -20}, true, 0);
@@ -47,10 +73,26 @@ ShowEntityList :: proc(gameCtx : ^main.GameContext_t, show : ^bool) {
                 i != nil;
                 i = i.Next {
 
-                imgui.Text("%s(%d)", i.Entity.Name, i.Entity.GUID);
-                match e in i.Entity {
-                    case je.Entity.NormalTower : {
-                        PrintNormalTower(e);
+                buf : [256]byte;
+                str := fmt.bprintf(buf[..], "%s(%d)", i.Entity.Name, i.Entity.GUID);
+                if imgui.CollapsingHeader(str, 0) {
+                    match e in i.Entity {
+                        case je.Entity.Tower : {
+                            match t in e.T {
+                                case je.Tower.Slow : {
+                                    PrintNormalTower(e.T);
+                                    PrintSlowTower(t);
+                                }
+
+                                case je.Tower.Basic : {
+                                    PrintNormalTower(e.T);
+                                }
+
+                                default : {
+                                    imgui.Text("WUT: %T", t);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -62,13 +104,7 @@ ShowEntityList :: proc(gameCtx : ^main.GameContext_t, show : ^bool) {
     }
     imgui.End();
 
-    PrintNormalTower :: proc(e : ^je.Entity.NormalTower) {
 
-    }
-
-    PrintSlowTower :: proc(e : ^je.Entity.SlowTower) {
-
-    }
 }
 
 ShowDebugWindowStates :: proc(show : ^bool) {
