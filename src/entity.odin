@@ -10,7 +10,6 @@ Entity :: union {
     Tower{
         T : Tower,
     },
-
     Enemy{
         using Transform : Transform_t,
     }
@@ -32,7 +31,7 @@ Tower :: union {
     Basic{},
     Slow{
         SlowFactor : f32,
-    }
+    },
 }
 
 ListItem :: struct {

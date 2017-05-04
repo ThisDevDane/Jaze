@@ -64,6 +64,7 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
         shader.FileInfo = file;
         shader.LoadedFromDisk = false;
 
+        //TODO(@Hoej): Fix this, this is bad
         match shader.FileInfo.Ext {
             case ".vs" : { shader.Type = gl.ShaderTypes.Vertex; }
             case ".glslv" : { shader.Type = gl.ShaderTypes.Vertex; }

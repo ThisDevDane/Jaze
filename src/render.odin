@@ -252,7 +252,6 @@ Test :: proc(shaderCat : ^catalog.Catalog, textureCat : ^catalog.Catalog) {
 
     height := f32(kick.Height) / PixelsToUnits;
     width := f32(kick.Width) / PixelsToUnits;
-    console.Log("<%v,%v>", height, width);
     //Pos, UV
     vertices := [..]f32 {
          width, height, 0,  1.0, 0.0, // Top Right

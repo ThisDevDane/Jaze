@@ -99,18 +99,18 @@ ShowEntityList :: proc(gameCtx : ^game.Context_t, show : ^bool) {
                     case je.Entity.Tower : {
                         match t in e.T {
                             case je.Tower.Slow : {
-                                imgui.Text("Match: %T", t);
+                                imgui.Text("Match: %d", e.T.__tag);
                                 PrintNormalTower(e.T);
                                 PrintSlowTower(t);
                             }
 
                             case je.Tower.Basic : {
-                                imgui.Text("Match: %T", t);
+                                imgui.Text("Match: %d", e.T.__tag);
                                 PrintNormalTower(e.T);
                             }
 
                             default : {
-                                imgui.Text("WUT: %T", t);
+                                imgui.Text("Match: %d", e.T.__tag);
                             }
                         }
                     }

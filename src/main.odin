@@ -162,15 +162,7 @@ main :: proc() {
     GameContext.EntityList = entity.MakeList();
     GameContext.Map = jmap.CreateMap(50, 20);
 
-    e := entity.CreateTower();
-    entity.AddEntity(GameContext.EntityList, entity.CreateEntity());
-    entity.AddEntity(GameContext.EntityList, entity.CreateTower());
-    entity.AddEntity(GameContext.EntityList, entity.CreateTower());
     entity.AddEntity(GameContext.EntityList, entity.CreateSlowTower());
-    entity.AddEntity(GameContext.EntityList, entity.CreateTower());
-    entity.AddEntity(GameContext.EntityList, e);
-    entity.AddEntity(GameContext.EntityList, entity.CreateEntity());
-    entity.RemoveEntity(GameContext.EntityList, e);
 
     for EngineContext.Settings.ProgramRunning {
         MessageLoop(EngineContext);
