@@ -32,7 +32,7 @@ CreateContext :: proc() -> ^Context_t {
     ctx              := new(Context_t);
     ctx.Input         = new(input.Input_t);
     ctx.Settings      = new(Setting_t);
-    ctx.VirtualScreen = new(render.VirtualScreen_t);
+    ctx.VirtualScreen = render.CreateVirtualScreen(1280, 720);
     ctx.Win32         = new(p32.Data_t);
     ctx.ImguiState    = new(jimgui.State_t);
     ctx.Time          = time.CreateData();
@@ -45,9 +45,4 @@ SetContextDefaults :: proc(ctx : ^Context_t) {
     ctx.Settings.ProgramRunning = true;
     ctx.Settings.ShowDebugMenu = true;
     ctx.Settings.ShowCursor = true;
-
-    ctx.VirtualScreen.Dimension.x = 1280;
-    ctx.VirtualScreen.Dimension.y = 720;
-    ctx.VirtualScreen.AspectRatio = ctx.VirtualScreen.Dimension.x / ctx.VirtualScreen.Dimension.y;
-
 }

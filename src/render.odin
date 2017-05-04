@@ -51,6 +51,15 @@ VirtualScreen_t :: struct {
     AspectRatio : f32,
 }
 
+CreateVirtualScreen :: proc(w, h : int) -> ^VirtualScreen_t {
+    screen := new(VirtualScreen_t);
+    screen.Dimension.x = 1280;
+    screen.Dimension.y = 720;
+    screen.AspectRatio = screen.Dimension.x / screen.Dimension.y;
+
+    return screen;
+}
+
 CalculateOrtho :: proc(window : math.Vec2, scaleFactor : math.Vec2, far, near : f32) -> math.Mat4 {
     w := (window.x);
     h := (window.y);

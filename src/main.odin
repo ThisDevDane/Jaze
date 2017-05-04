@@ -18,6 +18,7 @@
 #import "input.odin";
 #import "engine.odin";
 #import "game.odin";
+#import "jmap.odin";
 #import wgl "jwgl.odin";
 #import debugWnd "debug_windows.odin";
 #import p32 "platform_win32.odin";
@@ -159,6 +160,7 @@ main :: proc() {
 
     GameContext := new(game.Context_t);
     GameContext.EntityList = entity.MakeList();
+    GameContext.Map = jmap.CreateMap(50, 20);
 
     e := entity.CreateTower();
     entity.AddEntity(GameContext.EntityList, entity.CreateEntity());
@@ -201,7 +203,6 @@ main :: proc() {
                     EngineContext.GameDrawRegion.Height);
         ClearGameScreen(EngineContext);
         gl.Clear(gl.ClearFlags.DEPTH_BUFFER);
-
 
         render.Draw(EngineContext);
         

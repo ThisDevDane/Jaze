@@ -365,8 +365,8 @@ ShowXinputInfoWindow :: proc(show : ^bool) {
         }
 
         imgui.Columns(2, nil, true);
-        for i in 0..4 { //I WANT TO DO THIS Pl0x for(user in xinput.Users) 
-            cap, err := xinput.GetCapabilities(xinput.User(i));
+        for user, i in xinput.User {
+            cap, err := xinput.GetCapabilities(user);
             _PrintGamepadName(i, err);
             if err == xinput.Success {
                 imgui.Text("Capabilites:");
@@ -406,8 +406,8 @@ ShowXinputStateWindow :: proc(show : ^bool) {
     imgui.Begin("XInput State", show, STD_WINDOW);
     {
         imgui.Columns(2, nil, true);
-        for i in 0..4 {
-            state, err := xinput.GetState(xinput.User(i));
+        for user, i in xinput.User {
+            state, err := xinput.GetState(user);
             _PrintGamepadName(i, err);
             if err == xinput.Success {
                 imgui.Indent(10.0);
