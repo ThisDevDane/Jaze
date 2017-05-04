@@ -4,14 +4,16 @@
 #import "imgui.odin";
 #import "main.odin";
 #import "console.odin";
+#import "engine.odin";
+#import "game.odin";
 #import wgl "jwgl.odin";
 
-RenderDebugUI :: proc(ctx : ^main.EngineContext_t, gameCtx : ^main.GameContext_t) {
+RenderDebugUI :: proc(ctx : ^engine.Context_t, gameCtx : ^game.Context_t) {
    MakeMenuBar(ctx);
    TryToRenderWindows(ctx, gameCtx);
 }
 
-MakeMenuBar :: proc(ctx : ^main.EngineContext_t) {
+MakeMenuBar :: proc(ctx : ^engine.Context_t) {
      MakeMenuItem :: proc(title : string, id : string) {
         MakeMenuItem(title, "", id);
     }
@@ -67,8 +69,8 @@ MakeMenuBar :: proc(ctx : ^main.EngineContext_t) {
             }
         }
 
-        if imgui.Checkbox("Hardware Cursor", &ctx.ShowCursor) {
-            jwin32.ShowCursor(win32.Bool(ctx.ShowCursor));
+        if imgui.Checkbox("Hardware Cursor", &ctx.Settings.ShowCursor) {
+            jwin32.ShowCursor(win32.Bool(ctx.Settings.ShowCursor));
         }
         
         imgui.EndMenu();
@@ -85,7 +87,7 @@ MakeMenuBar :: proc(ctx : ^main.EngineContext_t) {
 
         
         if imgui.MenuItem("Exit", "Escape", false, true) {
-            ctx.ProgramRunning = false;
+            ctx.Settings.ProgramRunning = false;
         }
         imgui.EndMenu();
     }
@@ -93,10 +95,10 @@ MakeMenuBar :: proc(ctx : ^main.EngineContext_t) {
     imgui.PopStyleColor(1);
 }
 
-TryToRenderWindows :: proc(Ctx : ^main.EngineContext_t, gameCtx : ^main.GameContext_t) {
+TryToRenderWindows :: proc(Ctx : ^engine.Context_t, gameCtx : ^game.Context_t) {
     if debugWnd.GetWindowState("ShowOpenGLInfo") {
         b := debugWnd.GetWindowState("ShowOpenGLInfo");
-        debugWnd.OpenGLInfo(&Ctx.win32.Ogl, &b);
+        debugWnd.OpenGLInfo(&Ctx.Win32.Ogl, &b);
         debugWnd.SetWindowState("ShowOpenGLInfo", b);
     }
 
@@ -108,7 +110,7 @@ TryToRenderWindows :: proc(Ctx : ^main.EngineContext_t, gameCtx : ^main.GameCont
 
     if debugWnd.GetWindowState("ShowWin32VarInfo") {
         b := debugWnd.GetWindowState("ShowWin32VarInfo");
-        debugWnd.Win32VarsInfo(&Ctx.win32, &b);
+        debugWnd.Win32VarsInfo(Ctx.Win32, &b);
         debugWnd.SetWindowState("ShowWin32VarInfo", b);
     }
 

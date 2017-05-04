@@ -7,9 +7,11 @@
 #import "time.odin";
 #import "catalog.odin";
 #import "console.odin";
+#import "game.odin";
 #import jinput "input.odin";
 #import ja "asset.odin";
 #import je "entity.odin";
+#import p32 "platform_win32.odin";
 
 STD_WINDOW :: /*imgui.GuiWindowFlags.ShowBorders |*/  imgui.GuiWindowFlags.NoCollapse;
 
@@ -40,7 +42,7 @@ TryShowWindow :: proc(id : string, p : proc(b : ^bool)) {
 
 _ChosenEntity : ^je.Entity;
 
-ShowEntityList :: proc(gameCtx : ^main.GameContext_t, show : ^bool) {
+ShowEntityList :: proc(gameCtx : ^game.Context_t, show : ^bool) {
     PrintNormalTower :: proc(t : je.Tower) {
         imgui.Indent(10);
         {
@@ -317,7 +319,7 @@ OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
     TryShowWindow("ShowGLTextureOverview", OpenGLTextureOverview);
 }
 
-Win32VarsInfo :: proc(vars : ^main.Win32Vars_t, show : ^bool) {
+Win32VarsInfo :: proc(vars : ^p32.Data_t, show : ^bool) {
     imgui.Begin("Win32Vars Info", show, STD_WINDOW);
     {
         imgui.Text("Application Handle:    0x%X", int(vars.AppHandle));

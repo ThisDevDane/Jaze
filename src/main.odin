@@ -7,248 +7,24 @@
 #import "imgui.odin";
 #import "jwin32.odin";
 #import "gl.odin";
-#import wgl "jwgl.odin";
-#import debugWnd "debug_windows.odin";
 #import "debug.odin";
 #import "jimgui.odin";
 #import "xinput.odin";
 #import "render.odin";
 #import "time.odin";
 #import "catalog.odin";
-#import "asset.odin";
 #import "console.odin";
 #import "entity.odin";
 #import "input.odin";
-
-EngineContext_t :: struct {
-    ProgramRunning     : bool,
-    ShowDebugMenu      : bool,
-    AdaptiveVSync      : bool,
-    ShowCursor         : bool,
-    WindowPlacement    : win32.Window_Placement,
-    VirtualScreen      : math.Vec2,
-    VirtualAspectRatio : f32,
-    ScaleFactor        : math.Vec2,
-    GameDrawArea       : DrawArea,
-    win32              : Win32Vars_t,
-    MousePos           : math.Vec2,
-    WindowSize         : math.Vec2,
-
-    Input              : ^input.Input_t,
-}
-
-GameContext_t :: struct {
-    EntityList : ^entity.List,
-}
-
-Win32Vars_t :: struct {
-    AppHandle    : win32.Hinstance,
-    WindowHandle : win32.Hwnd,
-    DeviceCtx    : win32.Hdc,
-    Ogl          : gl.OpenGLVars_t,
-}
-
-DrawArea :: struct {
-    X : i32,
-    Y : i32,
-    Width : i32,
-    Height : i32,
-}
+#import "engine.odin";
+#import "game.odin";
+#import wgl "jwgl.odin";
+#import debugWnd "debug_windows.odin";
+#import p32 "platform_win32.odin";
 
 
-CreateWindow :: proc (instance : win32.Hinstance, windowSize : math.Vec2) -> win32.Hwnd {
-    using win32;
-    wndClass : WndClassExA;
-    wndClass.size = size_of(WndClassExA);
-    wndClass.style = CS_OWNDC|CS_HREDRAW|CS_VREDRAW;
-    wndClass.wnd_proc = WindowProc;
-    wndClass.instance = instance;
-    wndClass.class_name = strings.new_c_string("jaze_class");
-
-    if RegisterClassExA(&wndClass) == 0 {
-        panic("Could not register main window class");
-    }
-
-    windowStyle : u32 = WS_OVERLAPPEDWINDOW|WS_VISIBLE;
-    clientRect := Rect{0, 0, i32(windowSize.x), i32(windowSize.y)};
-    AdjustWindowRect(&clientRect, windowStyle, 0);
-    windowHandle := CreateWindowExA(0,
-                                    wndClass.class_name,
-                                    strings.new_c_string("Jaze - DEV VERSION"),
-                                    windowStyle,
-                                    CW_USEDEFAULT,
-                                    CW_USEDEFAULT,
-                                    clientRect.right - clientRect.left,
-                                    clientRect.bottom - clientRect.top,
-                                    nil,
-                                    nil,
-                                    instance,
-                                    nil);
-    if windowHandle == nil {
-        panic("Could not create main window");
-    }
-
-    return windowHandle;
-}
-
-GetMaxGLVersion :: proc() -> (i32, i32) {
-    wndHandle := win32.CreateWindowExA(0, 
-                                       strings.new_c_string("STATIC"), 
-                                       strings.new_c_string("OpenGL Version Checker"), 
-                                       win32.WS_OVERLAPPED, 
-                                       win32.CW_USEDEFAULT, win32.CW_USEDEFAULT, win32.CW_USEDEFAULT, win32.CW_USEDEFAULT,
-                                       nil, nil, nil, nil);
-    if wndHandle == nil {
-        panic("Could not create opengl version checker window");
-    }
-    deviceCtx := win32.GetDC(wndHandle);
-    if deviceCtx == nil {
-        panic("Could not get DC for opengl version checker window");
-    }
-
-    pfd := win32.PIXELFORMATDESCRIPTOR {};
-    pfd.size = size_of(win32.PIXELFORMATDESCRIPTOR);
-    pfd.version = 1;
-    pfd.flags = win32.PFD_DRAW_TO_WINDOW | win32.PFD_SUPPORT_OPENGL | win32.PFD_DOUBLEBUFFER;
-    pfd.color_bits = 32;
-    pfd.alpha_bits = 8;
-    pfd.depth_bits = 24;
-    format := win32.ChoosePixelFormat(deviceCtx, &pfd);
-
-    win32.DescribePixelFormat(deviceCtx, format, size_of(win32.PIXELFORMATDESCRIPTOR), &pfd);
-
-    win32.SetPixelFormat(deviceCtx, format, &pfd);
-
-    ctx := win32wgl.CreateContext(deviceCtx);
-    if deviceCtx == nil {
-        panic("Could not get OpenGL Context for opengl version checker window");
-    }
-    win32wgl.MakeCurrent(deviceCtx, ctx);
-
-    major : i32;
-    minor : i32;
-    gl._GetIntegervStatic(i32(gl.GetIntegerNames.MajorVersion), &major);
-    gl._GetIntegervStatic(i32(gl.GetIntegerNames.MinorVersion), &minor);
-
-    return major, minor;
-}
-
-
-CreateOpenGLContext :: proc (DeviceCtx : win32.Hdc, modern : bool) -> win32wgl.Hglrc
-{
-    if !modern {
-        pfd := win32.PIXELFORMATDESCRIPTOR {};
-        pfd.size = size_of(win32.PIXELFORMATDESCRIPTOR);
-        pfd.version = 1;
-        pfd.flags = win32.PFD_DRAW_TO_WINDOW | win32.PFD_SUPPORT_OPENGL | win32.PFD_DOUBLEBUFFER;
-        pfd.color_bits = 32;
-        pfd.alpha_bits = 8;
-        pfd.depth_bits = 24;
-        format := win32.ChoosePixelFormat(DeviceCtx, &pfd);
-
-        win32.DescribePixelFormat(DeviceCtx, format, size_of(win32.PIXELFORMATDESCRIPTOR), &pfd);
-
-        win32.SetPixelFormat(DeviceCtx, format, &pfd);
-
-        ctx := win32wgl.CreateContext(DeviceCtx);
-
-        assert(ctx != nil);
-        win32wgl.MakeCurrent(DeviceCtx, ctx);
-
-        return ctx;
-    } else {
-        {
-    
-            wndHandle := win32.CreateWindowExA(0, 
-                           strings.new_c_string("STATIC"), 
-                           strings.new_c_string("OpenGL Loader"), 
-                           win32.WS_OVERLAPPED, 
-                           win32.CW_USEDEFAULT, win32.CW_USEDEFAULT, win32.CW_USEDEFAULT, win32.CW_USEDEFAULT,
-                           nil, nil, nil, nil);
-            if wndHandle == nil {
-                panic("Could not create opengl loader window");
-            }
-            wndDc := win32.GetDC(wndHandle);
-            assert(wndDc != nil);
-            temp := DeviceCtx;
-            DeviceCtx = wndDc;
-    
-            oldCtx := CreateOpenGLContext(DeviceCtx, false);
-    
-            DeviceCtx = temp;
-            assert(oldCtx != nil);
-            extensions := wgl.TryGetExtensionList{};
-            wgl.TryGetExtension(&extensions, &wgl.ChoosePixelFormatARB,    "wglChoosePixelFormatARB");
-            wgl.TryGetExtension(&extensions, &wgl.CreateContextAttribsARB, "wglCreateContextAttribsARB");
-            wgl.TryGetExtension(&extensions, &wgl.GetExtensionsStringARB,  "wglGetExtensionsStringARB");
-            wgl.TryGetExtension(&extensions, &wgl.SwapIntervalEXT,         "wglSwapIntervalEXT");
-            wgl.LoadExtensions(oldCtx, wndDc, extensions);
-            win32wgl.MakeCurrent(nil, nil);
-            win32wgl.DeleteContext(oldCtx);
-            win32.ReleaseDC(wndHandle, wndDc);
-            win32.DestroyWindow(wndHandle);
-    
-        }
-        
-        attribs : [dynamic]wgl.Attrib;
-        append(attribs, wgl.DRAW_TO_WINDOW_ARB(true),
-                        wgl.ACCELERATION_ARB(wgl.ACCELERATION_ARB_VALUES.FULL_ACCELERATION_ARB),
-                        wgl.SUPPORT_OPENGL_ARB(true),
-                        wgl.DOUBLE_BUFFER_ARB(true),
-                        wgl.PIXEL_TYPE_ARB(wgl.PIXEL_TYPE_ARB_VALUES.RGBA_ARB),
-                        wgl.COLOR_BITS_ARB(32),
-                        wgl.ALPHA_BITS_ARB(8),
-                        wgl.DEPTH_BITS_ARB(24),
-                        wgl.FRAMEBUFFER_SRGB_CAPABLE_ARB(true));
-        attribArray := wgl.PrepareAttribArray(attribs);
-        format : i32;
-        formats : u32;
-
-        success := wgl.ChoosePixelFormatARB(DeviceCtx, &attribArray[0], nil, 1, &format, &formats);
-        if (success == win32.TRUE) && (formats == 0) {
-            panic("Couldn't find suitable pixel format");
-        }
-        pfd : win32.PIXELFORMATDESCRIPTOR;
-        pfd.version = 1;
-        pfd.size = size_of(win32.PIXELFORMATDESCRIPTOR);
-
-        win32.DescribePixelFormat(DeviceCtx, format, size_of(win32.PIXELFORMATDESCRIPTOR), &pfd);
-        win32.SetPixelFormat(DeviceCtx, format, &pfd);
-        createAttr : [dynamic]wgl.Attrib;
-        append(createAttr, wgl.CONTEXT_MAJOR_VERSION_ARB(3),
-                           wgl.CONTEXT_MINOR_VERSION_ARB(3),
-                           wgl.CONTEXT_FLAGS_ARB(wgl.CONTEXT_FLAGS_ARB_VALUES.DEBUG_BIT_ARB),
-                           wgl.CONTEXT_PROFILE_MASK_ARB(wgl.CONTEXT_PROFILE_MASK_ARB_VALUES.CORE_PROFILE_BIT_ARB));
-        attribArray = wgl.PrepareAttribArray(createAttr);
-        
-        ctx := wgl.CreateContextAttribsARB(DeviceCtx, nil, &attribArray[0]);
-        assert(ctx != nil);
-        win32wgl.MakeCurrent(DeviceCtx, ctx);
-        return ctx;
-    }
-}
-
-WindowProc :: proc(hwnd: win32.Hwnd, 
-                   msg: u32, 
-                   wparam: win32.Wparam, 
-                   lparam: win32.Lparam) -> win32.Lresult #cc_c {
-    using win32;
-    result : Lresult = 0;
-    match(msg) {       
-        case WM_DESTROY : {
-            PostQuitMessage(0);
-        }
-
-        default : {
-            result = DefWindowProcA(hwnd, msg, wparam, lparam);
-        }
-    }
-    
-    return result;
-}
-
-CalculateViewport :: proc(newSize : math.Vec2, targetAspectRatio : f32) -> DrawArea {
-    res : DrawArea;
+CalculateViewport :: proc(newSize : math.Vec2, targetAspectRatio : f32) -> render.DrawRegion {
+    res : render.DrawRegion;
     res.Width = i32(newSize.x);
     res.Height = i32(f32(res.Width) / targetAspectRatio + 0.5);
 
@@ -266,46 +42,17 @@ OpenGLDebugCallback :: proc(source : gl.DebugSource, type : gl.DebugType, id : i
     console.Log("[%v | %v | %v] %s \n", source, type, severity, strings.to_odin_string(message));
 }
 
-ToggleFullscreen :: proc(wnd : win32.Hwnd, WindowPlacement : ^win32.Window_Placement) {
-    Style : u32 = u32(win32.GetWindowLongPtrA(wnd, win32.GWL_STYLE));
-    if(Style & win32.WS_OVERLAPPEDWINDOW == win32.WS_OVERLAPPEDWINDOW) {
-        monitorInfo : win32.Monitor_Info;
-        monitorInfo.size = size_of(win32.Monitor_Info);
-
-        win32.GetWindowPlacement(wnd, WindowPlacement);
-        win32.GetMonitorInfoA(win32.MonitorFromWindow(wnd, win32.MONITOR_DEFAULTTOPRIMARY), &monitorInfo);
-        win32.SetWindowLongPtrA(wnd, win32.GWL_STYLE, i64(Style) & ~win32.WS_OVERLAPPEDWINDOW);
-        win32.SetWindowPos(wnd, win32.Hwnd_TOP,
-                                monitorInfo.monitor.left, monitorInfo.monitor.top,
-                                monitorInfo.monitor.right - monitorInfo.monitor.left,
-                                monitorInfo.monitor.bottom - monitorInfo.monitor.top,
-                                win32.SWP_FRAMECHANGED | win32.SWP_NOOWNERZORDER);
-    } else {
-        win32.SetWindowLongPtrA(wnd, win32.GWL_STYLE, i64(Style | win32.WS_OVERLAPPEDWINDOW));
-        win32.SetWindowPlacement(wnd, WindowPlacement);
-        win32.SetWindowPos(wnd, nil, 0, 0, 0, 0,
-                                win32.SWP_NOMOVE | win32.SWP_NOSIZE | win32.SWP_NOZORDER |
-                                win32.SWP_NOOWNERZORDER | win32.SWP_FRAMECHANGED);
-    }       
-}
-
-ChangeWindowTitle :: proc(window : win32.Hwnd, fmt_ : string, args : ..any) {
-    buf : [1024]byte;
-    fmt.bprintf(buf[..], fmt_, ..args);
-    win32.SetWindowTextA(window, &buf[0]);
-}
-
-MessageLoop :: proc(ctx : ^EngineContext_t){
+MessageLoop :: proc(ctx : ^engine.Context_t){
     msg : win32.Msg;
     for win32.PeekMessageA(&msg, nil, 0, 0, win32.PM_REMOVE) == win32.TRUE {
         match msg.message {
             case win32.WM_QUIT : {
-                ctx.ProgramRunning = false;
+                ctx.Settings.ProgramRunning = false;
             }
 
             case win32.WM_SYSKEYDOWN : {
                 if win32.Key_Code(msg.wparam) == win32.Key_Code.RETURN {
-                    ToggleFullscreen(ctx.win32.WindowHandle, &ctx.WindowPlacement);
+                    p32.ToggleBorderlessFullscreen(ctx.Win32.WindowHandle, &ctx.Win32.WindowPlacement);
                 }
 
                 if win32.Key_Code(msg.wparam) == win32.Key_Code.C {
@@ -313,7 +60,7 @@ MessageLoop :: proc(ctx : ^EngineContext_t){
                 }
 
                 if msg.wparam == 0xC0 {
-                    ctx.ShowDebugMenu = !ctx.ShowDebugMenu;
+                    ctx.Settings.ShowDebugMenu = !ctx.Settings.ShowDebugMenu;
                 }
                 continue;
             }
@@ -333,10 +80,10 @@ MessageLoop :: proc(ctx : ^EngineContext_t){
             case win32.WM_MOUSEWHEEL : {
                 delta := i16(win32.HIWORD(msg.wparam));
                 if(delta > 1) {
-                    jimgui.State.MouseWheelDelta += 1;
+                    ctx.ImguiState.MouseWheelDelta += 1;
                 }
                 if(delta < 1) {
-                    jimgui.State.MouseWheelDelta -= 1;
+                    ctx.ImguiState.MouseWheelDelta -= 1;
                 }
             } 
 
@@ -348,71 +95,55 @@ MessageLoop :: proc(ctx : ^EngineContext_t){
     }
 }
 
-UpdateWindowSize :: proc(ctx : ^EngineContext_t) {
+UpdateWindowSize :: proc(ctx : ^engine.Context_t) {
     rect : win32.Rect;
-    win32.GetClientRect(ctx.win32.WindowHandle, &rect);
+    win32.GetClientRect(ctx.Win32.WindowHandle, &rect);
     ctx.WindowSize.x = f32(rect.right);
     ctx.WindowSize.y = f32(rect.bottom);
 }
 
-UpdateMousePosition :: proc(ctx : ^EngineContext_t) {
-    mousePos : win32.Point;
-    win32.GetCursorPos(&mousePos);
-    win32.ScreenToClient(ctx.win32.WindowHandle, &mousePos);
-    ctx.MousePos = math.Vec2{f32(mousePos.x), f32(mousePos.y)};
-}
-
-ClearScreen :: proc(ctx : ^EngineContext_t) {
+ClearScreen :: proc(ctx : ^engine.Context_t) {
     gl.Scissor(0, 0, i32(ctx.WindowSize.x), i32(ctx.WindowSize.y));
     gl.ClearColor(0, 0, 0, 1);
     gl.Clear(gl.ClearFlags.COLOR_BUFFER);
 }
 
-ClearGameScreen :: proc(ctx : ^EngineContext_t) {
-        gl.Scissor(ctx.GameDrawArea.X, 
-                   ctx.GameDrawArea.Y, 
-                   ctx.GameDrawArea.Width, 
-                   ctx.GameDrawArea.Height);
+ClearGameScreen :: proc(ctx : ^engine.Context_t) {
+        gl.Scissor(ctx.GameDrawRegion.X, 
+                   ctx.GameDrawRegion.Y, 
+                   ctx.GameDrawRegion.Width, 
+                   ctx.GameDrawRegion.Height);
 
         gl.ClearColor(1, 0, 1, 1);
         gl.Clear(gl.ClearFlags.COLOR_BUFFER);
 }
 
 main :: proc() {
-    EngineContext := new(EngineContext_t);
-    EngineContext.Input = new(input.Input_t);
+    EngineContext := engine.CreateContext();
+    engine.SetContextDefaults(EngineContext);
+
     input.AddBinding(EngineContext.Input, "Fire", win32.Key_Code.LBUTTON);
     input.AddBinding(EngineContext.Input, "Zoom", win32.Key_Code.RBUTTON);
     input.AddBinding(EngineContext.Input, "Build", win32.Key_Code.B);
 
     {
-        EngineContext.WindowPlacement.length = size_of(win32.Window_Placement);
-        EngineContext.win32.AppHandle = win32.GetModuleHandleA(nil);
-        EngineContext.win32.WindowHandle = CreateWindow(EngineContext.win32.AppHandle, math.Vec2{1280, 720}); 
-        EngineContext.win32.DeviceCtx = win32.GetDC(EngineContext.win32.WindowHandle);
-        EngineContext.win32.Ogl.VersionMajorMax, EngineContext.win32.Ogl.VersionMinorMax = GetMaxGLVersion();
-        EngineContext.win32.Ogl.Ctx = CreateOpenGLContext(EngineContext.win32.DeviceCtx, true);
+        EngineContext.Win32.WindowPlacement.length = size_of(win32.Window_Placement);
+        EngineContext.Win32.AppHandle = win32.GetModuleHandleA(nil);
+        EngineContext.Win32.WindowHandle = p32.CreateWindow(EngineContext.Win32.AppHandle, math.Vec2{1280, 720}); 
+        EngineContext.Win32.DeviceCtx = win32.GetDC(EngineContext.Win32.WindowHandle);
+        EngineContext.Win32.Ogl.VersionMajorMax, EngineContext.Win32.Ogl.VersionMinorMax = p32.GetMaxGLVersion();
+        EngineContext.Win32.Ogl.Ctx = p32.CreateOpenGLContext(EngineContext.Win32.DeviceCtx, true);
     }
     {
         gl.Init();
         gl.DebugMessageCallback(OpenGLDebugCallback, nil);
         gl.Enable(gl.Capabilities.DebugOutputSynchronous);
         gl.DebugMessageControl(gl.DebugSource.DontCare, gl.DebugType.DontCare, gl.DebugSeverity.Notification, 0, nil, false);
-        gl.GetInfo(&EngineContext.win32.Ogl);
-        wgl.GetInfo(&EngineContext.win32.Ogl, EngineContext.win32.DeviceCtx);
-    }
-    {
-        EngineContext.ProgramRunning = true;
-        EngineContext.ShowDebugMenu = true;
-        EngineContext.AdaptiveVSync = true;
-        EngineContext.ShowCursor = true;
-
-        EngineContext.VirtualScreen.x = 1280;
-        EngineContext.VirtualScreen.y = 720;
-        EngineContext.VirtualAspectRatio = EngineContext.VirtualScreen.x / EngineContext.VirtualScreen.y;
+        gl.GetInfo(&EngineContext.Win32.Ogl);
+        wgl.GetInfo(&EngineContext.Win32.Ogl, EngineContext.Win32.DeviceCtx);
     }
 
-    jimgui.Init(EngineContext.win32.WindowHandle);
+    jimgui.Init(EngineContext);
     time.Init();
 
     wgl.SwapIntervalEXT(-1);
@@ -427,7 +158,7 @@ main :: proc() {
     console.AddCommand("Help", console.DefaultHelpCommand);
     console.AddCommand("Clear", console.DefaultClearCommand);
 
-    GameContext := new(GameContext_t);
+    GameContext := new(game.Context_t);
     GameContext.EntityList = entity.MakeList();
 
     e := entity.CreateTower();
@@ -440,47 +171,47 @@ main :: proc() {
     entity.AddEntity(GameContext.EntityList, entity.CreateEntity());
     entity.RemoveEntity(GameContext.EntityList, e);
 
-    for EngineContext.ProgramRunning {
+    for EngineContext.Settings.ProgramRunning {
         MessageLoop(EngineContext);
         
         time.Update();
-        if win32.GetActiveWindow() == EngineContext.win32.WindowHandle {
+        if win32.GetActiveWindow() == EngineContext.Win32.WindowHandle {
             input.Update(EngineContext.Input);
+            input.UpdateMousePosition(EngineContext.Input, EngineContext.Win32.WindowHandle);
         } else {
             input.SetAllInputNeutral(EngineContext.Input);
         }
-        UpdateMousePosition(EngineContext);
         UpdateWindowSize(EngineContext);
         
 
-        ChangeWindowTitle(EngineContext.win32.WindowHandle, 
+        p32.ChangeWindowTitle(EngineContext.Win32.WindowHandle, 
                           "Jaze - DEV VERSION | <%.1f, %.1f> | <%d, %d, %d, %d>", // <%.0f, %.0f> misses a number, tell bill
                           EngineContext.WindowSize.x, EngineContext.WindowSize.y,
-                          EngineContext.GameDrawArea.X, EngineContext.GameDrawArea.Y,
-                          EngineContext.GameDrawArea.Width, EngineContext.GameDrawArea.Height);
+                          EngineContext.GameDrawRegion.X, EngineContext.GameDrawRegion.Y,
+                          EngineContext.GameDrawRegion.Width, EngineContext.GameDrawRegion.Height);
 
 
 
-        EngineContext.GameDrawArea = CalculateViewport(EngineContext.WindowSize, EngineContext.VirtualAspectRatio);
-        EngineContext.ScaleFactor.x = EngineContext.WindowSize.x / f32(EngineContext.VirtualScreen.x);
-        EngineContext.ScaleFactor.y = EngineContext.WindowSize.y / f32(EngineContext.VirtualScreen.y);
+        EngineContext.GameDrawRegion = CalculateViewport(EngineContext.WindowSize, EngineContext.VirtualScreen.AspectRatio);
+        EngineContext.ScaleFactor.x = EngineContext.WindowSize.x / f32(EngineContext.VirtualScreen.Dimension.x);
+        EngineContext.ScaleFactor.y = EngineContext.WindowSize.y / f32(EngineContext.VirtualScreen.Dimension.y);
         ClearScreen(EngineContext);
-        gl.Viewport(EngineContext.GameDrawArea.X, 
-                    EngineContext.GameDrawArea.Y, 
-                    EngineContext.GameDrawArea.Width,
-                    EngineContext.GameDrawArea.Height);
+        gl.Viewport(EngineContext.GameDrawRegion.X, 
+                    EngineContext.GameDrawRegion.Y, 
+                    EngineContext.GameDrawRegion.Width,
+                    EngineContext.GameDrawRegion.Height);
         ClearGameScreen(EngineContext);
         gl.Clear(gl.ClearFlags.DEPTH_BUFFER);
 
 
         render.Draw(EngineContext);
         
-        if EngineContext.ShowDebugMenu {
+        if EngineContext.Settings.ShowDebugMenu {
             jimgui.BeginNewFrame(time.GetUnscaledDeltaTime(), EngineContext);
             debug.RenderDebugUI(EngineContext, GameContext);
-            imgui.Render();
+            jimgui.RenderProc(EngineContext);
         }
 
-        win32.SwapBuffers(EngineContext.win32.DeviceCtx);
+        win32.SwapBuffers(EngineContext.Win32.DeviceCtx);
     }
 }

@@ -11,6 +11,7 @@
 #import ja "asset.odin";
 #import rnd "pcg.odin";
 #import "imgui.odin";
+#import "engine.odin";
 #import debugWnd "debug_windows.odin";
 #import win32 "sys/windows.odin";
 
@@ -35,8 +36,20 @@ Camera_t :: struct {
     Far  : f32,
 }
 
+DrawRegion :: struct {
+    X : i32,
+    Y : i32,
+    Width : i32,
+    Height : i32,
+}
+
 basicProgram : gl.Program;
 basicvao : gl.VAO;
+
+VirtualScreen_t :: struct {
+    Dimension : math.Vec2,
+    AspectRatio : f32,
+}
 
 CalculateOrtho :: proc(window : math.Vec2, scaleFactor : math.Vec2, far, near : f32) -> math.Mat4 {
     w := (window.x);
@@ -57,7 +70,7 @@ CreateViewMatrixFromCamera :: proc(camera : Camera_t) -> math.Mat4 {
     return math.mul(view, tr);
 }
 
-Draw :: proc(ctx : ^main.EngineContext_t) { 
+Draw :: proc(ctx : ^engine.Context_t) { 
     gl.Enable(gl.Capabilities.DepthTest);
     gl.Enable(gl.Capabilities.Blend);
     gl.DepthFunc(gl.DepthFuncs.Lequal);
@@ -100,7 +113,7 @@ Draw :: proc(ctx : ^main.EngineContext_t) {
         return (t - min) / (max - min);
     }
 
-    ScreenToWorld :: proc(screenPos : math.Vec2, proj, view : math.Mat4, area : main.DrawArea, cam : Camera_t) -> math.Vec3 {
+    ScreenToWorld :: proc(screenPos : math.Vec2, proj, view : math.Mat4, area : DrawRegion, cam : Camera_t) -> math.Vec3 {
         u := MapToRange(screenPos.x, f32(area.X), f32(area.X + area.Width));
         v := MapToRange(screenPos.y, f32(area.Y), f32(area.Y + area.Height));
         p := math.Vec4{u * 2 - 1,
@@ -124,7 +137,7 @@ Draw :: proc(ctx : ^main.EngineContext_t) {
     gl.UniformMatrix4fv(mainProgram.Uniforms["Proj"],  proj,  false);
     gl.BindTexture(gl.TextureTargets.Texture2D, cursorT);
     TestRender(mainProgram, 
-               ScreenToWorld(ctx.MousePos, proj, view, ctx.GameDrawArea, Camera), 
+               ScreenToWorld(ctx.Input.MousePos, proj, view, ctx.GameDrawRegion, Camera), 
                f32(time.GetTimeSinceStart() * 200.0),
                math.Vec3{0.4, 0.4, 0.4});
 }

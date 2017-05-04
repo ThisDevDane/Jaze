@@ -1,4 +1,6 @@
 #import win32 "sys/windows.odin";
+#import "math.odin";
+
 #import "xinput.odin";
 
 ButtonStates :: enum {
@@ -16,6 +18,7 @@ Binding :: struct {
 
 Input_t :: struct {
     AnyKeyPressed : bool,
+    MousePos      : math.Vec2,
 
     Bindings      : map[string]Binding,
     KeyStates     : [256]ButtonStates,
@@ -29,6 +32,13 @@ Update :: proc(input : ^Input_t) {
     ClearCharQueue(input);
     UpdateKeyboard(input);
     UpdateXinput(input);
+}
+
+UpdateMousePosition :: proc(input : ^Input_t, handle : win32.Hwnd) {
+    mousePos : win32.Point;
+    win32.GetCursorPos(&mousePos);
+    win32.ScreenToClient(handle, &mousePos);
+    input.MousePos = math.Vec2{f32(mousePos.x), f32(mousePos.y)};
 }
 
 UpdateKeyboard :: proc(input : ^Input_t) {

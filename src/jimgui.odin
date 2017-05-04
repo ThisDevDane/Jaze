@@ -4,6 +4,7 @@
 #import "math.odin";
 #import "main.odin";
 #import "gl.odin";
+#import "engine.odin";
 #import glUtil "gl_util.odin";
 
 State_t :: struct {
@@ -19,8 +20,6 @@ State_t :: struct {
 
     FontTexture      : gl.Texture,
 }
-
-State : State_t;
 
 SetStyle :: proc() {
     style := imgui.GetStyle();
@@ -59,10 +58,10 @@ SetStyle :: proc() {
     style.Colors[imgui.GuiCol.ModalWindowDarkening]  = imgui.Vec4{0.20, 0.20, 0.20, 0.35};
 }
 
-Init :: proc(windowHandle : win32.Hwnd) {
+Init :: proc(ctx : ^engine.Context_t) {
     io := imgui.GetIO();
-    io.ImeWindowHandle = windowHandle;
-    io.RenderDrawListsFn = RenderProc;
+    io.ImeWindowHandle = ctx.Win32.WindowHandle;
+    //io.RenderDrawListsFn = RenderProc;
 
     io.KeyMap[imgui.GuiKey.Tab]        = i32(win32.Key_Code.TAB);
     io.KeyMap[imgui.GuiKey.LeftArrow]  = i32(win32.Key_Code.LEFT);
@@ -111,7 +110,7 @@ Init :: proc(windowHandle : win32.Hwnd) {
         }`;
 
 
-    State.MainProgram    = gl.CreateProgram();
+    ctx.ImguiState.MainProgram    = gl.CreateProgram();
     vertexShader,   ok1 := glUtil.CreateAndCompileShader(gl.ShaderTypes.Vertex, vertexShaderString);
     fragmentShader, ok2 := glUtil.CreateAndCompileShader(gl.ShaderTypes.Fragment, fragmentShaderString);
    
@@ -119,33 +118,33 @@ Init :: proc(windowHandle : win32.Hwnd) {
         panic("FUUUCK");
     }
 
-    gl.AttachShader(State.MainProgram, vertexShader);
-    State.MainProgram.Vertex = vertexShader;
-    gl.AttachShader(State.MainProgram, fragmentShader);
-    State.MainProgram.Fragment = fragmentShader;
-    gl.LinkProgram(State.MainProgram);
-    State.MainProgram.Uniforms["Texture"] = gl.GetUniformLocation(State.MainProgram, "Texture");    
-    State.MainProgram.Uniforms["ProjMtx"] = gl.GetUniformLocation(State.MainProgram, "ProjMtx");
+    gl.AttachShader(ctx.ImguiState.MainProgram, vertexShader);
+    ctx.ImguiState.MainProgram.Vertex = vertexShader;
+    gl.AttachShader(ctx.ImguiState.MainProgram, fragmentShader);
+    ctx.ImguiState.MainProgram.Fragment = fragmentShader;
+    gl.LinkProgram(ctx.ImguiState.MainProgram);
+    ctx.ImguiState.MainProgram.Uniforms["Texture"] = gl.GetUniformLocation(ctx.ImguiState.MainProgram, "Texture");    
+    ctx.ImguiState.MainProgram.Uniforms["ProjMtx"] = gl.GetUniformLocation(ctx.ImguiState.MainProgram, "ProjMtx");
 
-    State.MainProgram.Attributes["Position"] = gl.GetAttribLocation(State.MainProgram, "Position");    
-    State.MainProgram.Attributes["UV"]       = gl.GetAttribLocation(State.MainProgram, "UV");    
-    State.MainProgram.Attributes["Color"]    = gl.GetAttribLocation(State.MainProgram, "Color");    
+    ctx.ImguiState.MainProgram.Attributes["Position"] = gl.GetAttribLocation(ctx.ImguiState.MainProgram, "Position");    
+    ctx.ImguiState.MainProgram.Attributes["UV"]       = gl.GetAttribLocation(ctx.ImguiState.MainProgram, "UV");    
+    ctx.ImguiState.MainProgram.Attributes["Color"]    = gl.GetAttribLocation(ctx.ImguiState.MainProgram, "Color");    
 
-    State.VBOHandle = gl.VBO(gl.GenBuffer());
-    State.EBOHandle = gl.EBO(gl.GenBuffer());
-    State.VAOHandle = gl.GenVertexArray();
+    ctx.ImguiState.VBOHandle = gl.VBO(gl.GenBuffer());
+    ctx.ImguiState.EBOHandle = gl.EBO(gl.GenBuffer());
+    ctx.ImguiState.VAOHandle = gl.GenVertexArray();
 
-    gl.BindBuffer(State.VBOHandle);
-    gl.BindBuffer(State.EBOHandle);
-    gl.BindVertexArray(State.VAOHandle);
+    gl.BindBuffer(ctx.ImguiState.VBOHandle);
+    gl.BindBuffer(ctx.ImguiState.EBOHandle);
+    gl.BindVertexArray(ctx.ImguiState.VAOHandle);
 
-    gl.EnableVertexAttribArray(u32(State.MainProgram.Attributes["Position"]));
-    gl.EnableVertexAttribArray(u32(State.MainProgram.Attributes["UV"]));
-    gl.EnableVertexAttribArray(u32(State.MainProgram.Attributes["Color"]));
+    gl.EnableVertexAttribArray(u32(ctx.ImguiState.MainProgram.Attributes["Position"]));
+    gl.EnableVertexAttribArray(u32(ctx.ImguiState.MainProgram.Attributes["UV"]));
+    gl.EnableVertexAttribArray(u32(ctx.ImguiState.MainProgram.Attributes["Color"]));
 
-    gl.VertexAttribPointer(u32(State.MainProgram.Attributes["Position"]),   2, gl.VertexAttribDataType.Float, false, size_of(imgui.DrawVert), rawptr(int(offset_of(imgui.DrawVert, pos))));
-    gl.VertexAttribPointer(u32(State.MainProgram.Attributes["UV"]),         2, gl.VertexAttribDataType.Float, false, size_of(imgui.DrawVert), rawptr(int(offset_of(imgui.DrawVert, uv))));
-    gl.VertexAttribPointer(u32(State.MainProgram.Attributes["Color"]),      4, gl.VertexAttribDataType.UByte, true,  size_of(imgui.DrawVert), rawptr(int(offset_of(imgui.DrawVert, col))));
+    gl.VertexAttribPointer(u32(ctx.ImguiState.MainProgram.Attributes["Position"]),   2, gl.VertexAttribDataType.Float, false, size_of(imgui.DrawVert), rawptr(int(offset_of(imgui.DrawVert, pos))));
+    gl.VertexAttribPointer(u32(ctx.ImguiState.MainProgram.Attributes["UV"]),         2, gl.VertexAttribDataType.Float, false, size_of(imgui.DrawVert), rawptr(int(offset_of(imgui.DrawVert, uv))));
+    gl.VertexAttribPointer(u32(ctx.ImguiState.MainProgram.Attributes["Color"]),      4, gl.VertexAttribDataType.UByte, true,  size_of(imgui.DrawVert), rawptr(int(offset_of(imgui.DrawVert, col))));
     
     //CreateFont
     pixels : ^byte;
@@ -153,30 +152,30 @@ Init :: proc(windowHandle : win32.Hwnd) {
     height : i32;
     bytePer : i32;
     imgui.FontAtlas_GetTexDataAsRGBA32(io.Fonts, &pixels, &width, &height, &bytePer);
-    State.FontTexture = gl.GenTexture();
-    gl.BindTexture(gl.TextureTargets.Texture2D, State.FontTexture);
+    ctx.ImguiState.FontTexture = gl.GenTexture();
+    gl.BindTexture(gl.TextureTargets.Texture2D, ctx.ImguiState.FontTexture);
     gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MinFilter, gl.TextureParametersValues.Linear);
     gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MagFilter, gl.TextureParametersValues.Linear);
     gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
                   width, height, gl.PixelDataFormat.RGBA, 
                   gl.Texture2DDataType.UByte, pixels);
-    imgui.FontAtlas_SetTexID(io.Fonts, rawptr(uint(State.FontTexture)));
+    imgui.FontAtlas_SetTexID(io.Fonts, rawptr(uint(ctx.ImguiState.FontTexture)));
 
     SetStyle();
 }
 
-BeginNewFrame :: proc(deltaTime : f64, ctx : ^main.EngineContext_t) {
+BeginNewFrame :: proc(deltaTime : f64, ctx : ^engine.Context_t) {
     io := imgui.GetIO();
     io.DisplaySize.x = ctx.WindowSize.x;
     io.DisplaySize.y = ctx.WindowSize.y;
 
     if win32.GetActiveWindow() == win32.Hwnd(io.ImeWindowHandle) {
-        io.MousePos.x = ctx.MousePos.x;
-        io.MousePos.y = ctx.MousePos.y;
+        io.MousePos.x = ctx.Input.MousePos.x;
+        io.MousePos.y = ctx.Input.MousePos.y;
         io.MouseDown[0] = win32.is_key_down(win32.Key_Code.LBUTTON);
         io.MouseDown[1] = win32.is_key_down(win32.Key_Code.RBUTTON);
 
-        io.MouseWheel = f32(State.MouseWheelDelta); 
+        io.MouseWheel = f32(ctx.ImguiState.MouseWheelDelta); 
 
         io.KeyCtrl =  win32.is_key_down(win32.Key_Code.LCONTROL) || win32.is_key_down(win32.Key_Code.RCONTROL);
         io.KeyShift = win32.is_key_down(win32.Key_Code.LSHIFT)   || win32.is_key_down(win32.Key_Code.RSHIFT);
@@ -199,12 +198,15 @@ BeginNewFrame :: proc(deltaTime : f64, ctx : ^main.EngineContext_t) {
         }
     }
     
-    State.MouseWheelDelta = 0;
+    ctx.ImguiState.MouseWheelDelta = 0;
     io.DeltaTime = f32(deltaTime);
     imgui.NewFrame();
 }
  
-RenderProc :: proc(data : ^imgui.DrawData) #cc_c {
+RenderProc :: proc(ctx : ^engine.Context_t) {
+    imgui.Render();
+    data := imgui.GetDrawData();
+
     io := imgui.GetIO();
     rect : win32.Rect;
     win32.GetClientRect(win32.Hwnd(io.ImeWindowHandle), &rect);
@@ -240,20 +242,20 @@ RenderProc :: proc(data : ^imgui.DrawData) #cc_c {
         { -1.0,                     1.0,                        0.0,    1.0 },
     };
 
-    gl.UseProgram(State.MainProgram);
-    gl.Uniform(State.MainProgram.Uniforms["Texture"], 0);
-    gl._UniformMatrix4fv(State.MainProgram.Uniforms["ProjMtx"], 1, 0, &ortho_projection[0][0]);
-    gl.BindVertexArray(State.VAOHandle);
+    gl.UseProgram(ctx.ImguiState.MainProgram);
+    gl.Uniform(ctx.ImguiState.MainProgram.Uniforms["Texture"], 0);
+    gl._UniformMatrix4fv(ctx.ImguiState.MainProgram.Uniforms["ProjMtx"], 1, 0, &ortho_projection[0][0]);
+    gl.BindVertexArray(ctx.ImguiState.VAOHandle);
 
     newList := slice_ptr(data.CmdLists, data.CmdListsCount);
     for n : i32 = 0; n < data.CmdListsCount; n += 1 {
         list := newList[n];
         idxBufferOffset : ^imgui.DrawIdx = nil;
 
-        gl.BindBuffer(State.VBOHandle);
+        gl.BindBuffer(ctx.ImguiState.VBOHandle);
         gl.BufferData(gl.BufferTargets.Array, i32(imgui.DrawList_GetVertexBufferSize(list) * size_of(imgui.DrawVert)), imgui.DrawList_GetVertexPtr(list, 0), gl.BufferDataUsage.StreamDraw);
 
-        gl.BindBuffer(State.EBOHandle);
+        gl.BindBuffer(ctx.ImguiState.EBOHandle);
         gl.BufferData(gl.BufferTargets.ElementArray, i32(imgui.DrawList_GetIndexBufferSize(list) * size_of(imgui.DrawIdx)), imgui.DrawList_GetIndexPtr(list, 0), gl.BufferDataUsage.StreamDraw);
 
         for j : i32 = 0; j < imgui.DrawList_GetCmdSize(list); j += 1 {
