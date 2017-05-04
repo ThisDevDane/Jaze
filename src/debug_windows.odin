@@ -467,13 +467,12 @@ ShowXinputStateWindow :: proc(show : ^bool) {
     imgui.End();
 }
 
-ShowTimeDataWindow :: proc(show : ^bool) {
+ShowTimeDataWindow :: proc(data : ^time.Data_t, show : ^bool) {
     imgui.Begin("Time Data", show, STD_WINDOW);
     {
-        data := time.GetTimeData();
         imgui.Text("Time Scale:               %f", data.TimeScale);
-        imgui.Text("Unscaled DeltaTime:       %.10f", data.DeltaTime);
-        imgui.Text("DeltaTime:                %.10f", data.DeltaTime * data.TimeScale);
+        imgui.Text("Unscaled DeltaTime:       %.10f", data.UnscaledDeltaTime);
+        imgui.Text("DeltaTime:                %.10f", data.DeltaTime);
         imgui.Text("Time Since Start:         %f", data.TimeSinceStart);
         imgui.Text("Frame Count Since Start:  %d", data.FrameCountSinceStart);
         imgui.NewLine();

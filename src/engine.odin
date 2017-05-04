@@ -5,6 +5,7 @@
 #import "main.odin";
 #import "input.odin";
 #import "jimgui.odin";
+#import "time.odin";
 #import p32 "platform_win32.odin";
 
 Context_t :: struct {
@@ -13,6 +14,7 @@ Context_t :: struct {
     VirtualScreen      : ^render.VirtualScreen_t,
     Win32              : ^p32.Data_t,
     ImguiState         : ^jimgui.State_t,
+    Time               : ^time.Data_t,
 
     AdaptiveVSync      : bool,
     ScaleFactor        : math.Vec2,
@@ -33,6 +35,7 @@ CreateContext :: proc() -> ^Context_t {
     ctx.VirtualScreen = new(render.VirtualScreen_t);
     ctx.Win32         = new(p32.Data_t);
     ctx.ImguiState    = new(jimgui.State_t);
+    ctx.Time          = time.CreateData();
 
     return ctx;
 }

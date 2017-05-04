@@ -95,22 +95,22 @@ MakeMenuBar :: proc(ctx : ^engine.Context_t) {
     imgui.PopStyleColor(1);
 }
 
-TryToRenderWindows :: proc(Ctx : ^engine.Context_t, gameCtx : ^game.Context_t) {
+TryToRenderWindows :: proc(ctx : ^engine.Context_t, gameCtx : ^game.Context_t) {
     if debugWnd.GetWindowState("ShowOpenGLInfo") {
         b := debugWnd.GetWindowState("ShowOpenGLInfo");
-        debugWnd.OpenGLInfo(&Ctx.Win32.Ogl, &b);
+        debugWnd.OpenGLInfo(&ctx.Win32.Ogl, &b);
         debugWnd.SetWindowState("ShowOpenGLInfo", b);
     }
 
     if debugWnd.GetWindowState("ShowInputWindow") {
         b := debugWnd.GetWindowState("ShowInputWindow");
-        debugWnd.ShowInputWindow(Ctx.Input, &b);
+        debugWnd.ShowInputWindow(ctx.Input, &b);
         debugWnd.SetWindowState("ShowInputWindow", b);
     }
 
     if debugWnd.GetWindowState("ShowWin32VarInfo") {
         b := debugWnd.GetWindowState("ShowWin32VarInfo");
-        debugWnd.Win32VarsInfo(Ctx.Win32, &b);
+        debugWnd.Win32VarsInfo(ctx.Win32, &b);
         debugWnd.SetWindowState("ShowWin32VarInfo", b);
     }
 
@@ -120,9 +120,14 @@ TryToRenderWindows :: proc(Ctx : ^engine.Context_t, gameCtx : ^game.Context_t) {
         debugWnd.SetWindowState("ShowEntityList", b);
     }
 
+    if debugWnd.GetWindowState("ShowTimeData") {
+        b := debugWnd.GetWindowState("ShowTimeData");
+        debugWnd.ShowTimeDataWindow(ctx.Time, &b);
+        debugWnd.SetWindowState("ShowTimeData", b);
+    }
+
     debugWnd.TryShowWindow("ShowXinputInfo",        debugWnd.ShowXinputInfoWindow);
     debugWnd.TryShowWindow("ShowXinputState",       debugWnd.ShowXinputStateWindow);
-    debugWnd.TryShowWindow("ShowTimeData",          debugWnd.ShowTimeDataWindow);
     debugWnd.TryShowWindow("ShowCatalogWindow",     debugWnd.ShowCatalogWindow);
     debugWnd.TryShowWindow("ShowDebugWindowStates", debugWnd.ShowDebugWindowStates);
     debugWnd.TryShowWindow("ShowStatOverlay",       debugWnd.StatOverlay);

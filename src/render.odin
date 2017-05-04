@@ -129,7 +129,7 @@ Draw :: proc(ctx : ^engine.Context_t) {
     //gl.Uniform(basicProgram.Uniforms["Color"], cast(f32)1.0, 0.0, 0.0, 1.0);
     
     gl.Uniform(basicProgram.Uniforms["Color"], 0.0, 1.0, 0.0, 1.0);
-    TestRender(basicProgram, math.Vec3{1, 0, 0}, f32(time.GetTimeSinceStart() * 20.0), math.Vec3{0.5, 0.5, 0.5});
+    TestRender(basicProgram, math.Vec3{1, 0, 0}, f32(ctx.Time.TimeSinceStart * 20.0), math.Vec3{0.5, 0.5, 0.5});
 
     gl.UseProgram(mainProgram);
     gl.BindVertexArray(mainvao);
@@ -138,7 +138,7 @@ Draw :: proc(ctx : ^engine.Context_t) {
     gl.BindTexture(gl.TextureTargets.Texture2D, cursorT);
     TestRender(mainProgram, 
                ScreenToWorld(ctx.Input.MousePos, proj, view, ctx.GameDrawRegion, Camera), 
-               f32(time.GetTimeSinceStart() * 200.0),
+               f32(ctx.Time.TimeSinceStart * 200.0),
                math.Vec3{0.4, 0.4, 0.4});
 }
 

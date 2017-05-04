@@ -1,8 +1,9 @@
 #import win32 "sys/windows.odin";
 
-TimeData :: struct {
+Data_t :: struct {
     TimeScale : f64,
     DeltaTime : f64,
+    UnscaledDeltaTime : f64,
     TimeSinceStart : f64,
     FrameCountSinceStart : i64,
 
@@ -10,49 +11,24 @@ TimeData :: struct {
     pfOld : i64,
 } 
 
-_Time := TimeData{};
+CreateData :: proc() -> ^Data_t {
+    res := new(Data_t);
 
-Init :: proc() {
-    win32.QueryPerformanceFrequency(&_Time.pfFreq);
-    win32.QueryPerformanceCounter(&_Time.pfOld);
-    _Time.TimeScale = 1;
+    win32.QueryPerformanceFrequency(&res.pfFreq);
+    win32.QueryPerformanceCounter(&res.pfOld);
+    res.TimeScale = 1;
+
+    return res;
 }
 
-Update :: proc() {
+Update :: proc(data : ^Data_t) {
     newTime : i64;
     win32.QueryPerformanceCounter(&newTime);
-    _Time.DeltaTime = f64((newTime - _Time.pfOld));
-    _Time.pfOld = newTime;
-    _Time.DeltaTime /= f64(_Time.pfFreq);
+    data.UnscaledDeltaTime = f64((newTime - data.pfOld));
+    data.pfOld = newTime;
+    data.UnscaledDeltaTime /= f64(data.pfFreq);
+    data.DeltaTime = data.UnscaledDeltaTime * data.TimeScale;
 
-    _Time.TimeSinceStart += _Time.DeltaTime;
-    _Time.FrameCountSinceStart++;
-}
-
-GetDeltaTime :: proc() -> f64 {
-    return _Time.DeltaTime * _Time.TimeScale;
-}
-
-GetUnscaledDeltaTime :: proc() -> f64 {
-    return _Time.DeltaTime;
-}
-
-GetFrameCountSinceStart :: proc() -> i64 {
-    return _Time.FrameCountSinceStart;
-}
-
-GetTimeSinceStart :: proc() -> f64 {
-    return _Time.TimeSinceStart;
-}
-
-SetTimeScale :: proc(scale : f64) {
-    _Time.TimeScale = scale;
-}
-
-GetTimeScale :: proc() -> f64 {
-    return _Time.TimeScale;
-}
-
-GetTimeData :: proc() -> TimeData {
-    return _Time;
+    data.TimeSinceStart += data.UnscaledDeltaTime;
+    data.FrameCountSinceStart++;
 }

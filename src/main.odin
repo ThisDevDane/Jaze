@@ -144,7 +144,6 @@ main :: proc() {
     }
 
     jimgui.Init(EngineContext);
-    time.Init();
 
     wgl.SwapIntervalEXT(-1);
     xinput.Init();
@@ -174,7 +173,7 @@ main :: proc() {
     for EngineContext.Settings.ProgramRunning {
         MessageLoop(EngineContext);
         
-        time.Update();
+        time.Update(EngineContext.Time);
         if win32.GetActiveWindow() == EngineContext.Win32.WindowHandle {
             input.Update(EngineContext.Input);
             input.UpdateMousePosition(EngineContext.Input, EngineContext.Win32.WindowHandle);
@@ -207,7 +206,7 @@ main :: proc() {
         render.Draw(EngineContext);
         
         if EngineContext.Settings.ShowDebugMenu {
-            jimgui.BeginNewFrame(time.GetUnscaledDeltaTime(), EngineContext);
+            jimgui.BeginNewFrame(EngineContext.Time.UnscaledDeltaTime, EngineContext);
             debug.RenderDebugUI(EngineContext, GameContext);
             jimgui.RenderProc(EngineContext);
         }
