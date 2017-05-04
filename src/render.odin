@@ -38,30 +38,6 @@ Camera_t :: struct {
 basicProgram : gl.Program;
 basicvao : gl.VAO;
 
-CameraWindow :: proc() {
-     if debugWnd.GetWindowState("ShowCameraSettings") {
-        b := debugWnd.GetWindowState("ShowCameraSettings");
-        imgui.Begin("Camera Settings123123", &b, imgui.GuiWindowFlags.ShowBorders | imgui.GuiWindowFlags.NoCollapse);
-        {
-            imgui.DragFloat("Scale",  &Camera.Zoom,  0.05, 0, 0, "%.2f", 1);
-            imgui.DragFloat("Near", &Camera.Near, 0.05, 0, 0, "%.2f", 1);
-            imgui.DragFloat("Far",  &Camera.Far,  0.05, 0, 0, "%.2f", 1);
-            imgui.DragFloat("//Rotation",  &Camera.Rot,  0.05, 0, 0, "%.2f", 1);
-            imgui.Separator();
-            pos : [3]f32;
-            pos[0] = Camera.Pos.x;
-            pos[1] = Camera.Pos.y;
-            pos[2] = Camera.Pos.z;
-            imgui.DragFloat3("Pos", &pos, 0.1, 0, 0, "%.2f", 1);
-            Camera.Pos.x = pos[0];
-            Camera.Pos.y = pos[1];
-            Camera.Pos.z = pos[2];
-        }
-        imgui.End();
-        debugWnd.SetWindowState("ShowCameraSettings", b);
-    }
-}
-
 CalculateOrtho :: proc(window : math.Vec2, scaleFactor : math.Vec2, far, near : f32) -> math.Mat4 {
     w := (window.x);
     h := (window.y);
@@ -86,8 +62,6 @@ Draw :: proc(ctx : ^main.EngineContext_t) {
     gl.Enable(gl.Capabilities.Blend);
     gl.DepthFunc(gl.DepthFuncs.Lequal);
     gl.BlendFunc(gl.BlendFactors.SrcAlpha, gl.BlendFactors.OneMinusSrcAlpha);  
-
-    CameraWindow();
     
     gl.UseProgram(mainProgram);
     gl.BindVertexArray(mainvao);
