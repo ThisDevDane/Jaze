@@ -2,6 +2,7 @@
 #import "math.odin";
 
 #import "xinput.odin";
+#import p32 "platform_win32.odin";
 
 ButtonStates :: enum {
     Up,
@@ -34,11 +35,8 @@ Update :: proc(input : ^Input_t) {
     UpdateXinput(input);
 }
 
-UpdateMousePosition :: proc(input : ^Input_t, handle : win32.Hwnd) {
-    mousePos : win32.Point;
-    win32.GetCursorPos(&mousePos);
-    win32.ScreenToClient(handle, &mousePos);
-    input.MousePos = math.Vec2{f32(mousePos.x), f32(mousePos.y)};
+UpdateMousePosition :: proc(input : ^Input_t, handle : p32.WndHandle) {
+    input.MousePos = p32.GetCursorPos(handle);
 }
 
 UpdateKeyboard :: proc(input : ^Input_t) {

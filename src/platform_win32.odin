@@ -5,11 +5,18 @@
 #import "fmt.odin";
 
 #import "gl.odin";
+#import "engine.odin";
+#import "input.odin";
+#import "imgui.odin";
 #import wgl "jwgl.odin";
+#import debugWnd "debug_windows.odin";
+
+AppHandle :: win32.Hinstance;
+WndHandle :: win32.Hinstance;
 
 Data_t :: struct {
-    AppHandle          : win32.Hinstance,
-    WindowHandle       : win32.Hwnd,
+    AppHandle          : AppHandle,
+    WindowHandle       : WndHandle,
     DeviceCtx          : win32.Hdc,
     Ogl                : gl.OpenGLVars_t,
     WindowPlacement    : win32.Window_Placement,
@@ -19,28 +26,127 @@ WindowProc :: proc(hwnd: win32.Hwnd,
                    msg: u32, 
                    wparam: win32.Wparam, 
                    lparam: win32.Lparam) -> win32.Lresult #cc_c {
-    using win32;
-    result : Lresult = 0;
     match(msg) {       
-        case WM_DESTROY : {
-            PostQuitMessage(0);
+        case win32.WM_DESTROY : {
+            win32.PostQuitMessage(0);
+            return 0;
         }
 
         default : {
-            result = DefWindowProcA(hwnd, msg, wparam, lparam);
+            return win32.DefWindowProcA(hwnd, msg, wparam, lparam);
         }
     }
-    
-    return result;
 }
 
-CreateWindow :: proc (instance : win32.Hinstance, windowSize : math.Vec2) -> win32.Hwnd {
+GetProgramHandle :: proc() -> AppHandle {
+    return AppHandle(win32.GetModuleHandleA(nil));
+}
+
+GetWindowSize :: proc(handle : WndHandle) -> math.Vec2 {
+    res : math.Vec2;
+    rect : win32.Rect;
+    win32.GetClientRect(win32.Hwnd(handle), &rect);
+    res.x = f32(rect.right);
+    res.y = f32(rect.bottom);
+
+    return res;
+}
+
+SwapBuffers :: proc(dc : win32.Hdc) {
+    win32.SwapBuffers(dc);
+}
+
+Event :: union {
+    Quit{
+        ExitCode : int    
+    },
+    KeyDown{},
+    MouseWheel{},
+    Char{},
+}
+
+MessageLoop :: proc(ctx : ^engine.Context_t){
+    msg : win32.Msg;
+    for win32.PeekMessageA(&msg, nil, 0, 0, win32.PM_REMOVE) == win32.TRUE {
+        match msg.message {
+            case win32.WM_QUIT : {
+                ctx.Settings.ProgramRunning = false;
+            }
+
+            case win32.WM_SYSKEYDOWN : {
+                if win32.Key_Code(msg.wparam) == win32.Key_Code.RETURN {
+                    ToggleBorderlessFullscreen(ctx.Win32.WindowHandle, &ctx.Win32.WindowPlacement);
+                }
+
+                if win32.Key_Code(msg.wparam) == win32.Key_Code.C {
+                    debugWnd.ToggleWindow("ShowConsoleWindow");
+                }
+
+                if msg.wparam == 0xC0 {
+                    ctx.Settings.ShowDebugMenu = !ctx.Settings.ShowDebugMenu;
+                }
+                continue;
+            }
+
+            case win32.WM_KEYDOWN : {
+                if win32.Key_Code(msg.wparam) == win32.Key_Code.ESCAPE {
+                    win32.PostQuitMessage(0);
+                }
+            } 
+
+            case win32.WM_CHAR : {
+                imgui.GuiIO_AddInputCharacter(u16(msg.wparam)); 
+                input.AddCharToQueue(ctx.Input, rune(msg.wparam));
+            }
+            break;
+
+            case win32.WM_MOUSEWHEEL : {
+                delta := i16(win32.HIWORD(msg.wparam));
+                if(delta > 1) {
+                    ctx.ImguiState.MouseWheelDelta += 1;
+                }
+                if(delta < 1) {
+                    ctx.ImguiState.MouseWheelDelta -= 1;
+                }
+            } 
+
+
+        }
+
+        win32.TranslateMessage(&msg);
+        win32.DispatchMessageA(&msg);
+    }
+}
+
+GetDC :: proc(handle : WndHandle) -> win32.Hdc {
+    return win32.GetDC(win32.Hwnd(handle));
+}
+
+IsWindowActive :: proc(handle : WndHandle) -> bool {
+    return win32.GetActiveWindow() == win32.Hwnd(handle);
+}
+
+/*GetGlobalCursorPos :: proc() -> math.Vec2 {
+    mousePos : win32.Point;
+    win32.GetCursorPos(&mousePos);
+    win32.ScreenToClient(handle, &mousePos);
+    input.MousePos = math.Vec2{f32(mousePos.x), f32(mousePos.y)};
+}*/
+
+GetCursorPos :: proc(handle : WndHandle) -> math.Vec2 {
+    mousePos : win32.Point;
+    win32.GetCursorPos(&mousePos);
+    win32.ScreenToClient(win32.Hwnd(handle), &mousePos);
+    return math.Vec2{f32(mousePos.x), f32(mousePos.y)};
+}
+
+CreateWindow :: proc (instance : AppHandle, windowSize : math.Vec2) -> WndHandle {
     using win32;
     wndClass : WndClassExA;
     wndClass.size = size_of(WndClassExA);
     wndClass.style = CS_OWNDC|CS_HREDRAW|CS_VREDRAW;
     wndClass.wnd_proc = WindowProc;
-    wndClass.instance = instance;
+    wndClass.instance = win32.Hinstance(instance);
     wndClass.class_name = strings.new_c_string("jaze_class");
 
     if RegisterClassExA(&wndClass) == 0 {
@@ -60,13 +166,13 @@ CreateWindow :: proc (instance : win32.Hinstance, windowSize : math.Vec2) -> win
                                     clientRect.bottom - clientRect.top,
                                     nil,
                                     nil,
-                                    instance,
+                                    win32.Hinstance(instance),
                                     nil);
     if windowHandle == nil {
         panic("Could not create main window");
     }
 
-    return windowHandle;
+    return WndHandle(windowHandle);
 }
 
 GetMaxGLVersion :: proc() -> (i32, i32) {
@@ -206,31 +312,31 @@ CreateOpenGLContext :: proc (DeviceCtx : win32.Hdc, modern : bool) -> win32wgl.H
     }
 }
 
-ToggleBorderlessFullscreen :: proc(wnd : win32.Hwnd, WindowPlacement : ^win32.Window_Placement) {
-    Style : u32 = u32(win32.GetWindowLongPtrA(wnd, win32.GWL_STYLE));
+ToggleBorderlessFullscreen :: proc(wnd : WndHandle, WindowPlacement : ^win32.Window_Placement) {
+    Style : u32 = u32(win32.GetWindowLongPtrA(win32.Hwnd(wnd), win32.GWL_STYLE));
     if(Style & win32.WS_OVERLAPPEDWINDOW == win32.WS_OVERLAPPEDWINDOW) {
         monitorInfo : win32.Monitor_Info;
         monitorInfo.size = size_of(win32.Monitor_Info);
 
-        win32.GetWindowPlacement(wnd, WindowPlacement);
-        win32.GetMonitorInfoA(win32.MonitorFromWindow(wnd, win32.MONITOR_DEFAULTTOPRIMARY), &monitorInfo);
-        win32.SetWindowLongPtrA(wnd, win32.GWL_STYLE, i64(Style) & ~win32.WS_OVERLAPPEDWINDOW);
-        win32.SetWindowPos(wnd, win32.Hwnd_TOP,
+        win32.GetWindowPlacement(win32.Hwnd(wnd), WindowPlacement);
+        win32.GetMonitorInfoA(win32.MonitorFromWindow(win32.Hwnd(wnd), win32.MONITOR_DEFAULTTOPRIMARY), &monitorInfo);
+        win32.SetWindowLongPtrA(win32.Hwnd(wnd), win32.GWL_STYLE, i64(Style) & ~win32.WS_OVERLAPPEDWINDOW);
+        win32.SetWindowPos(win32.Hwnd(wnd), win32.Hwnd_TOP,
                                 monitorInfo.monitor.left, monitorInfo.monitor.top,
                                 monitorInfo.monitor.right - monitorInfo.monitor.left,
                                 monitorInfo.monitor.bottom - monitorInfo.monitor.top,
                                 win32.SWP_FRAMECHANGED | win32.SWP_NOOWNERZORDER);
     } else {
-        win32.SetWindowLongPtrA(wnd, win32.GWL_STYLE, i64(Style | win32.WS_OVERLAPPEDWINDOW));
-        win32.SetWindowPlacement(wnd, WindowPlacement);
-        win32.SetWindowPos(wnd, nil, 0, 0, 0, 0,
+        win32.SetWindowLongPtrA(win32.Hwnd(wnd), win32.GWL_STYLE, i64(Style | win32.WS_OVERLAPPEDWINDOW));
+        win32.SetWindowPlacement(win32.Hwnd(wnd), WindowPlacement);
+        win32.SetWindowPos(win32.Hwnd(wnd), nil, 0, 0, 0, 0,
                                 win32.SWP_NOMOVE | win32.SWP_NOSIZE | win32.SWP_NOZORDER |
                                 win32.SWP_NOOWNERZORDER | win32.SWP_FRAMECHANGED);
     }       
 }
 
-ChangeWindowTitle :: proc(window : win32.Hwnd, fmt_ : string, args : ..any) {
+ChangeWindowTitle :: proc(window : WndHandle, fmt_ : string, args : ..any) {
     buf : [1024]byte;
     fmt.bprintf(buf[..], fmt_, ..args);
-    win32.SetWindowTextA(window, &buf[0]);
+    win32.SetWindowTextA(win32.Hwnd(window), &buf[0]);
 }

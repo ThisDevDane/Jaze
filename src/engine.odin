@@ -1,5 +1,4 @@
 #import "math.odin";
-#import win32 "sys/windows.odin";
 
 #import "render.odin";
 #import "main.odin";
