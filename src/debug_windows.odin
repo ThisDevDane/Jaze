@@ -572,14 +572,25 @@ ShowInputWindow :: proc(input : ^jinput.Input_t, show : ^bool) {
         imgui.Separator();
         imgui.NextColumn();
 
-        for v in input.Bindings {
-            imgui.Text("%v", v.ID);
+        if len(input.Bindings) > 0 {
+            for v in input.Bindings {
+                imgui.Text("%v", v.ID);
+                imgui.NextColumn();
+                imgui.Text("%v", v.Key);
+                imgui.NextColumn();
+                imgui.Text("%v", v.XKey);
+                imgui.NextColumn();
+                imgui.Text("%v", jinput.GetButtonState(input, v.ID));
+                imgui.NextColumn();
+            }
+        } else {
+            imgui.Text("No bindings found!");
             imgui.NextColumn();
-            imgui.Text("%v", v.Key);
+            imgui.Text("N/A");
             imgui.NextColumn();
-            imgui.Text("%v", v.XKey);
+            imgui.Text("N/A");
             imgui.NextColumn();
-            imgui.Text("%v", jinput.GetButtonState(input, v.ID));
+            imgui.Text("N/A");
             imgui.NextColumn();
         }
 
