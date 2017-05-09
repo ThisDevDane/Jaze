@@ -19,6 +19,7 @@ _GlobalDebugWndBools : map[string]bool;
 _ChosenCatalog : i32;
 _PreviewSize := imgui.Vec2{20, 20};
 _ShowID : gl.Texture = 1;
+_ChosenEntity : ^je.Entity;
 
 GetWindowState :: proc(str : string) -> bool {
     return _GlobalDebugWndBools[str];
@@ -40,7 +41,22 @@ TryShowWindow :: proc(id : string, p : proc(b : ^bool)) {
     }
 }
 
-_ChosenEntity : ^je.Entity;
+ShowStructInfo :: proc(name : string, show : ^bool, data : any) {
+    imgui.Begin(name, show, STD_WINDOW);
+    {
+        imgui.Columns(2, nil, true);
+        info := type_info_base(data.type_info).(^Type_Info.Struct);
+        for n, i in info.names {
+            value := ^byte(data.data) + info.offsets[i];
+            imgui.Text("%s", n);
+            imgui.NextColumn();
+            imgui.TextWrapped("%v", any{rawptr(value), info.types[i]});
+            imgui.Separator();
+            imgui.NextColumn();
+        }
+    }
+    imgui.End();
+}
 
 ShowEntityList :: proc(gameCtx : ^game.Context_t, show : ^bool) {
     PrintNormalTower :: proc(t : je.Tower) {

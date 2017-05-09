@@ -36,6 +36,7 @@ MakeMenuBar :: proc(ctx : ^engine.Context_t) {
         MakeMenuItem("OpenGL Info", "ShowOpenGLInfo");
         MakeMenuItem("Win32Var Info", "ShowWin32VarInfo");
         MakeMenuItem("Time Data", "ShowTimeData");
+        MakeMenuItem("Engine Info", "ShowEngineInfo");
         imgui.EndMenu();
     }
 
@@ -110,7 +111,7 @@ TryToRenderWindows :: proc(ctx : ^engine.Context_t, gameCtx : ^game.Context_t) {
 
     if debugWnd.GetWindowState("ShowWin32VarInfo") {
         b := debugWnd.GetWindowState("ShowWin32VarInfo");
-        debugWnd.Win32VarsInfo(ctx.Win32, &b);
+        debugWnd.ShowStructInfo("Win32 Info", &b, ctx.Win32^);;
         debugWnd.SetWindowState("ShowWin32VarInfo", b);
     }
 
@@ -124,6 +125,12 @@ TryToRenderWindows :: proc(ctx : ^engine.Context_t, gameCtx : ^game.Context_t) {
         b := debugWnd.GetWindowState("ShowTimeData");
         debugWnd.ShowTimeDataWindow(ctx.Time, &b);
         debugWnd.SetWindowState("ShowTimeData", b);
+    }
+
+    if debugWnd.GetWindowState("ShowEngineInfo") {
+        b := debugWnd.GetWindowState("ShowEngineInfo");
+        debugWnd.ShowStructInfo("Engine Info", &b, ctx^);
+        debugWnd.SetWindowState("ShowEngineInfo", b);
     }
 
     debugWnd.TryShowWindow("ShowXinputInfo",        debugWnd.ShowXinputInfoWindow);

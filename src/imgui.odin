@@ -507,27 +507,25 @@ GetIdPtr                                                :: proc(ptr_id : rawptr)
 /// FUNCTIONS SIGNATURES!!!! TODO!!!
 // Widgets
 
+BUF_SIZE :: 4096;
+
 // Bill says this might work as a workaround
 Text :: proc(fmt_: string, args: ..any) {
     ImText :: proc(fmt: ^byte) #cc_c #foreign cimgui "igText"; 
 
-    buf: [1024]byte;
+    buf: [BUF_SIZE]byte;
     s := fmt.bprintf(buf[..], fmt_, ..args);
-    assert(len(s) < len(buf));
-    c_str := &buf[0];
 
-    ImText(c_str);
+    ImText(&buf[0]);
 }
 
 TextColored :: proc(col : Vec4, fmt_: string, args: ..any) {
     ImTextColored :: proc(col : Vec4, fmt : ^byte) #cc_c #foreign cimgui "igTextColored";
 
-    buf: [1024]byte;
+    buf: [BUF_SIZE]byte;
     s := fmt.bprintf(buf[..], fmt_, ..args);
-    assert(len(s) < len(buf));
-    c_str := &buf[0];
 
-    ImTextColored(col, c_str);
+    ImTextColored(col, &buf[0]);
 }
 /*
 TextDisabled                                            :: proc(CONST char* fmt, ...)                                                                                                                                                                                          #foreign cimgui "igTextDisabled";
@@ -535,12 +533,10 @@ TextDisabled                                            :: proc(CONST char* fmt,
 TextWrapped :: proc(fmt_: string, args: ..any) {
     ImTextWrapped :: proc(fmt: ^byte) #foreign cimgui "igTextWrapped";
 
-    buf: [1024]byte;
+    buf: [BUF_SIZE]byte;
     s := fmt.bprintf(buf[..], fmt_, ..args);
-    assert(len(s) < len(buf));
-    c_str := &buf[0];
 
-    ImTextWrapped(c_str);
+    ImTextWrapped(&buf[0]);
 }
 
 TextUnformatted                                         :: proc(text : c_string, text_end : c_string)                                                                                                                                                                          #foreign cimgui "igTextUnformatted";
