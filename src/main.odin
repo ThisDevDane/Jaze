@@ -116,7 +116,7 @@ main :: proc() {
         
 
         p32.ChangeWindowTitle(EngineContext.Win32.WindowHandle, 
-                          "Jaze - DEV VERSION | <%.1f, %.1f> | <%d, %d, %d, %d>", // <%.0f, %.0f> misses a number, tell bill
+                          "Jaze - DEV VERSION | <%.0f, %.0f> | <%d, %d, %d, %d>",
                           EngineContext.WindowSize.x, EngineContext.WindowSize.y,
                           EngineContext.GameDrawRegion.X, EngineContext.GameDrawRegion.Y,
                           EngineContext.GameDrawRegion.Width, EngineContext.GameDrawRegion.Height);
