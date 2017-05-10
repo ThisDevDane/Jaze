@@ -534,6 +534,7 @@ TextWrapped :: proc(fmt_: string, args: ..any) {
     ImTextWrapped :: proc(fmt: ^byte) #foreign cimgui "igTextWrapped";
 
     buf: [BUF_SIZE]byte;
+    //NOTE(Bill): Crashing inside this.
     s := fmt.bprintf(buf[..], fmt_, ..args);
 
     ImTextWrapped(&buf[0]);
@@ -679,7 +680,6 @@ CollapsingHeader :: proc(label : string, flags : GuiTreeNodeFlags) -> bool {
     return ImCollapsingHeader(str, flags);
 }
 
-//CollapsingHeader                                        :: proc(label : c_string, flags : GuiTreeNodeFlags) -> bool                                                                                                                                                            #foreign cimgui "igCollapsingHeader";
 CollapsingHeaderEx                                      :: proc(label : c_string, p_open : ^bool, flags : GuiTreeNodeFlags) -> bool                                                                                                                                            #foreign cimgui "igCollapsingHeaderEx";
 
 // Widgets: Selectable / Lists

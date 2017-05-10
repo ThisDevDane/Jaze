@@ -47,10 +47,37 @@ ShowStructInfo :: proc(name : string, show : ^bool, data : any) {
         imgui.Columns(2, nil, true);
         info := type_info_base(data.type_info).(^Type_Info.Struct);
         for n, i in info.names {
-            value := ^byte(data.data) + info.offsets[i];
             imgui.Text("%s", n);
             imgui.NextColumn();
-            imgui.TextWrapped("%v", any{rawptr(value), info.types[i]});
+            match t in info.types[i] {
+                case Type_Info.Pointer : {
+                    if t.elem == nil {
+                        imgui.Text("RAWPTR");
+                    } else {
+                        buf : [128]byte;
+                        s := fmt.bprintf(buf[..], "%s##%s", "Show Value", n);
+                        if imgui.CollapsingHeader(s, 0) {
+                            ptr := ^byte(data.data) + info.offsets[i];
+                            value := ^rawptr(ptr)^;
+                            v := any{rawptr(value), t.elem};
+                            ShowStructInfo(n, nil, v);
+                        }
+                    }
+                }
+
+                case Type_Info.Boolean : {
+                    value := ^byte(data.data) + info.offsets[i];
+                    col := bool(value^) ? imgui.Vec4{0, 1, 0, 1} : imgui.Vec4{1, 0, 0, 1};
+                    v := any{rawptr(value), type_info_base(info.types[i])};
+                    imgui.TextColored(col, "%t", v);
+                }                
+
+                default : {
+                    value := ^byte(data.data) + info.offsets[i];
+                    v := any{rawptr(value), info.types[i]};
+                    imgui.TextWrapped("%v", v);
+                } 
+            }
             imgui.Separator();
             imgui.NextColumn();
         }
