@@ -362,16 +362,6 @@ OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
     TryShowWindow("ShowGLTextureOverview", OpenGLTextureOverview);
 }
 
-Win32VarsInfo :: proc(vars : ^p32.Data_t, show : ^bool) {
-    imgui.Begin("Win32Vars Info", show, STD_WINDOW);
-    {
-        imgui.Text("Application Handle:    0x%X", int(vars.AppHandle));
-        imgui.Text("Window Handle:         0x%X", int(vars.WindowHandle));
-        imgui.Text("Device Context Handle: 0x%X", int(vars.DeviceCtx));
-    }
-    imgui.End();
-}
-
 _PrintGamepadName :: proc(id : int, err : xinput.Error) {
     imgui.Text("Gamepad %d(", id+1);
     b := err == xinput.Success;
@@ -506,21 +496,6 @@ ShowXinputStateWindow :: proc(show : ^bool) {
             }
         }
         imgui.Columns(1, nil, false);
-    }
-    imgui.End();
-}
-
-ShowTimeDataWindow :: proc(data : ^time.Data_t, show : ^bool) {
-    imgui.Begin("Time Data", show, STD_WINDOW);
-    {
-        imgui.Text("Time Scale:               %f", data.TimeScale);
-        imgui.Text("Unscaled DeltaTime:       %.10f", data.UnscaledDeltaTime);
-        imgui.Text("DeltaTime:                %.10f", data.DeltaTime);
-        imgui.Text("Time Since Start:         %f", data.TimeSinceStart);
-        imgui.Text("Frame Count Since Start:  %d", data.FrameCountSinceStart);
-        imgui.NewLine();
-        imgui.Text("pfFreq: %d", data.pfFreq);
-        imgui.Text("pfOld:  %d", data.pfOld);
     }
     imgui.End();
 }

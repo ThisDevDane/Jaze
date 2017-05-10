@@ -123,7 +123,7 @@ TryToRenderWindows :: proc(ctx : ^engine.Context_t, gameCtx : ^game.Context_t) {
 
     if debugWnd.GetWindowState("ShowTimeData") {
         b := debugWnd.GetWindowState("ShowTimeData");
-        debugWnd.ShowTimeDataWindow(ctx.Time, &b);
+        debugWnd.ShowStructInfo("Time", &b, ctx.Time^);
         debugWnd.SetWindowState("ShowTimeData", b);
     }
 
