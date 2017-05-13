@@ -12,12 +12,12 @@ Error :: u32;
 Success : Error : 0;
 NotConnected : Error : 1167;
 
-BatteryInformation :: struct {
+BatteryInformation :: struct #ordered {
     Type  : BatteryType,
     Level : BatteryLevel,
 }
 
-Capabilities :: struct {
+Capabilities :: struct #ordered {
     Type      : byte,
     SubType   : ControllerType,
     Flags     : CapabilitiesFlags,
@@ -25,12 +25,12 @@ Capabilities :: struct {
     Vibration : VibrationState,
 }
 
-State :: struct {
+State :: struct #ordered {
     PacketNumber : u32,
     Gamepad : GamepadState,
 }
 
-GamepadState :: struct {
+GamepadState :: struct #ordered {
     Buttons      : u16,
     LeftTrigger  : byte,
     RightTrigger : byte,
@@ -40,12 +40,12 @@ GamepadState :: struct {
     RY           : i16,
 }
 
-VibrationState :: struct {
+VibrationState :: struct #ordered {
     LeftMotorSpeed  : u16,
     RightMotorSpeed : u16,
 }
 
-KeyStroke :: struct {
+KeyStroke :: struct #ordered {
     VirtualKey : VirtualKeys,
     Unicode    : u16,
     Flags      : KeyStrokeFlags,

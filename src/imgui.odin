@@ -9,7 +9,7 @@ GuiID     :: u32;
 
 c_string  :: ^byte; // Just for clarity
 
-GuiTextEditCallbackData :: struct {
+GuiTextEditCallbackData :: struct #ordered {
     EventFlag      : GuiInputTextFlags,
     Flags          : GuiInputTextFlags,
     UserData       : rawptr,
@@ -25,14 +25,14 @@ GuiTextEditCallbackData :: struct {
     SelectionEnd   : i32,
 }
 
-GuiSizeConstraintCallbackData :: struct {
+GuiSizeConstraintCallbackData :: struct #ordered {
     UserData    : rawptr,
     Pos         : Vec2,
     CurrentSize : Vec2,
     DesiredSize : Vec2,
 }
 
-DrawCmd :: struct {
+DrawCmd :: struct #ordered {
     ElemCount        : u32,
     ClipRect         : Vec4,
     TextureId        : TextureID,
@@ -40,25 +40,25 @@ DrawCmd :: struct {
     UserCallbackData : rawptr,
 }
 
-Vec2 :: struct {
+Vec2 :: struct #ordered {
     x : f32,
     y : f32,
 }
 
-Vec4 :: struct {
+Vec4 :: struct #ordered {
     x : f32,
     y : f32,
     z : f32,
     w : f32,
 }
 
-DrawVert :: struct {
+DrawVert :: struct #ordered {
     pos : Vec2,
     uv  : Vec2,
     col : u32,
 }
 
-DrawData :: struct {
+DrawData :: struct #ordered {
     Valid         : bool,
     CmdLists      : ^^DrawList,
     CmdListsCount : i32,
@@ -66,13 +66,13 @@ DrawData :: struct {
     TotalIdxCount : i32,
 }
 
-Font :: struct {}
-GuiStorage :: struct {}
-GuiContext :: struct {}
-FontAtlas :: struct {}
-DrawList :: struct {}
+Font :: struct #ordered {}
+GuiStorage :: struct #ordered {}
+GuiContext :: struct #ordered {}
+FontAtlas :: struct #ordered {}
+DrawList :: struct #ordered {}
 
-FontConfig :: struct {
+FontConfig :: struct #ordered {
     FontData                : rawptr,
     FontDataSize            : i32,
     FontDataOwnedByAtlas    : bool,
@@ -88,7 +88,7 @@ FontConfig :: struct {
     DstFont                 : ^Font,
 };
 
-GuiStyle :: struct {
+GuiStyle :: struct #ordered {
     Alpha                   : f32,
     WindowPadding           : Vec2,
     WindowMinSize           : Vec2,
@@ -114,7 +114,7 @@ GuiStyle :: struct {
     Colors                  : [GuiCol.COUNT]Vec4,
 }
 
-GuiIO :: struct {
+GuiIO :: struct #ordered {
     DisplaySize             : Vec2,
     DeltaTime               : f32,
     IniSavingRate           : f32,

@@ -18,6 +18,9 @@
 #import "engine.odin";
 #import "game.odin";
 #import "jmap.odin";
+#import "render_queue.odin";
+#import "renderer.odin";
+#import ja "asset.odin";
 #import wgl "jwgl.odin";
 #import debugWnd "debug_windows.odin";
 #import p32 "platform_win32.odin";
@@ -90,15 +93,26 @@ main :: proc() {
     //soundCat, _   := catalog.CreateNew(catalog.Kind.Sound,   "data/sounds/",   ".ogg");
     shaderCat, _  := catalog.CreateNew(catalog.Kind.Shader,  "data/shaders/",  ".frag,.vert");
     textureCat, _ := catalog.CreateNew(catalog.Kind.Texture, "data/textures/", ".png,.jpg,.jpeg");
+    mapCat, _ := catalog.CreateNew(catalog.Kind.Texture, "data/maps/", ".png");
 
     render.Init(shaderCat, textureCat);
+    EngineContext.RenderState = renderer.Init(shaderCat);
 
     console.AddCommand("Help", console.DefaultHelpCommand);
     console.AddCommand("Clear", console.DefaultClearCommand);
 
     GameContext := new(game.Context_t);
     GameContext.EntityList = entity.MakeList();
-    GameContext.Map = jmap.CreateMap(50, 20);
+    GameContext.Map = jmap.CreateMap(20, 10, textureCat);
+    camera := new(renderer.Camera_t);
+    camera.Pos = math.Vec3{0, 0, 15};
+    camera.Zoom = 50;
+    camera.Near = 0.1;
+    camera.Far = 50;
+    camera.Rot = 45;
+    GameContext.GameCamera = camera;
+
+    game.SetupCameraBindings(EngineContext.Input);
 
     entity.AddEntity(GameContext.EntityList, entity.CreateSlowTower());
 
@@ -114,7 +128,6 @@ main :: proc() {
         }
         EngineContext.WindowSize = p32.GetWindowSize(EngineContext.Win32.WindowHandle);
         
-
         p32.ChangeWindowTitle(EngineContext.Win32.WindowHandle, 
                           "Jaze - DEV VERSION | <%.0f, %.0f> | <%d, %d, %d, %d>",
                           EngineContext.WindowSize.x, EngineContext.WindowSize.y,
@@ -134,6 +147,11 @@ main :: proc() {
         ClearGameScreen(EngineContext);
         gl.Clear(gl.ClearFlags.DEPTH_BUFFER);
 
+        game.CameraLogic(EngineContext, GameContext.GameCamera);
+
+
+        queue := jmap.DrawMap(GameContext.Map);
+        renderer.RenderQueue(EngineContext, GameContext.GameCamera, queue);
         render.Draw(EngineContext);
         
         if EngineContext.Settings.ShowDebugMenu {

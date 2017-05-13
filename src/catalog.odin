@@ -172,8 +172,11 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
 }
 
 Find :: proc(catalog : ^Catalog, assetName : string) -> (^ja.Asset, Err) {
+    return Find(catalog, assetName, true);
+}
+Find :: proc(catalog : ^Catalog, assetName : string, upload : bool) -> (^ja.Asset, Err) {
     LoadTexture :: proc(e : ^ja.Asset.Texture) {
-        if e.GLID == 0 {
+        if e.GLID == 0 && upload{
             c_str := strings.new_c_string(e.FileInfo.Path); defer free(c_str);
             w, h, c : i32;
             data := stbi.load(c_str, &w, &h, &c, 0); defer stbi.image_free(data);
@@ -228,7 +231,7 @@ Find :: proc(catalog : ^Catalog, assetName : string) -> (^ja.Asset, Err) {
             cat.CurrentSize += uint(len(data));
         }
 
-        if e.GLID == 0 {
+        if e.GLID == 0 && upload {
             e.GLID, _ = glUtil.CreateAndCompileShader(e.Type, e.Source);
         }
     }

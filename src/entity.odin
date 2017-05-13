@@ -34,16 +34,6 @@ Tower :: union {
     },
 }
 
-ListItem :: struct {
-    Entity : ^Entity,
-    Next : ^ListItem,
-}
-
-List :: struct {
-    Front : ^ListItem,
-    End : ^ListItem,
-    Count : int,
-}
 
 CreateEntity :: proc() -> ^Entity {
     e := new(Entity);
@@ -79,6 +69,17 @@ CreateSlowTower :: proc() -> ^Entity {
     return e;
 }
 
+ListItem :: struct {
+    Entity : ^Entity,
+    Next : ^ListItem,
+}
+
+List :: struct {
+    Front : ^ListItem,
+    End : ^ListItem,
+    Count : int,
+}
+
 AddEntity :: proc(list : ^List, entity : ^Entity) {
     if list.Front.Entity == nil {
         list.Front.Entity = entity;
@@ -98,8 +99,9 @@ RemoveEntity :: proc(list : ^List, entity : ^Entity) {
         e = e.Next {
         if e.Entity.GUID == entity.GUID {
             p.Next = e.Next;
-            free(e.Entity);
+            free(e.Entity); //Note(@Hoej): Should this free the entity?
             free(e);
+            list.Count--;
         }
         p = e;
     }

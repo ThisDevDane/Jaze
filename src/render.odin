@@ -108,10 +108,10 @@ Draw :: proc(ctx : ^engine.Context_t) {
         gl.DrawElements(gl.DrawModes.Triangles, 6, gl.DrawElementsType.UInt, nil);
     }
     
-    for p, i in pos {
+/*    for p, i in pos {
         gl.BindTexture(gl.TextureTargets.Texture2D, textures[i]);
         TestRender(mainProgram, p, 0, math.Vec3{1, 1, 1});
-    }
+    }*/
 
     gl.UseProgram(basicProgram);
     gl.BindVertexArray(basicvao);
@@ -282,3 +282,4 @@ Test :: proc(shaderCat : ^catalog.Catalog, textureCat : ^catalog.Catalog) {
     gl.EnableVertexAttribArray(u32(mainProgram.Attributes["UV"]));
     gl.BindFragDataLocation(mainProgram, 0, "OutColor");
 }
+

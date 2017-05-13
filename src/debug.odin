@@ -29,6 +29,7 @@ MakeMenuBar :: proc(ctx : ^engine.Context_t) {
 
     if imgui.BeginMenu("Game", true) {
         MakeMenuItem("Entity List", "ShowEntityList");
+        MakeMenuItem("Game Info", "ShowGameInfo");
         imgui.EndMenu();
     }
    
@@ -121,6 +122,12 @@ TryToRenderWindows :: proc(ctx : ^engine.Context_t, gameCtx : ^game.Context_t) {
         debugWnd.SetWindowState("ShowEntityList", b);
     }
 
+        if debugWnd.GetWindowState("ShowGameInfo") {
+        b := debugWnd.GetWindowState("ShowGameInfo");
+        debugWnd.ShowStructInfo("Game Info", &b, gameCtx^);
+        debugWnd.SetWindowState("ShowGameInfo", b);
+    }
+
     if debugWnd.GetWindowState("ShowTimeData") {
         b := debugWnd.GetWindowState("ShowTimeData");
         debugWnd.ShowStructInfo("Time", &b, ctx.Time^);
@@ -132,6 +139,7 @@ TryToRenderWindows :: proc(ctx : ^engine.Context_t, gameCtx : ^game.Context_t) {
         debugWnd.ShowStructInfo("Engine Info", &b, ctx^);
         debugWnd.SetWindowState("ShowEngineInfo", b);
     }
+
 
     debugWnd.TryShowWindow("ShowXinputInfo",        debugWnd.ShowXinputInfoWindow);
     debugWnd.TryShowWindow("ShowXinputState",       debugWnd.ShowXinputStateWindow);

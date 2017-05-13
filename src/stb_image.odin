@@ -3,7 +3,7 @@
 //
 // load image by filename, open file, or memory buffer
 //
-Io_Callbacks :: struct {
+Io_Callbacks :: struct #ordered {
     read: proc(user: rawptr, data: ^byte, size: i32) -> i32 #cc_c, // fill 'data' with 'size' bytes.  return number of bytes actually read
     skip: proc(user: rawptr, n: i32) #cc_c,                        // skip the next 'n' bytes, or 'unget' the last -n bytes if negative
     eof:  proc(user: rawptr) -> i32 #cc_c,                         // returns nonzero if we are at end of file/data
