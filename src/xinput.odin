@@ -239,7 +239,7 @@ DebugInfo : DebugInfo_t;
 
 Version := XInputVersion.NotLoaded;
 
-Init :: proc() -> bool {
+Init :: proc(initalState : bool) -> bool {
     lib1_4   := "xinput1_4.dll\x00";
     lib1_3   := "xinput1_3.dll\x00";
     lib9_1_0 := "xinput9_1_0.dll\x00";
@@ -294,5 +294,6 @@ Init :: proc() -> bool {
     set_proc_address(lib, &_GetState,              "XInputGetState"             );
     set_proc_address(lib, &_SetState,              "XInputSetState"             );
 
+    Enable(initalState);
     return true;
 }

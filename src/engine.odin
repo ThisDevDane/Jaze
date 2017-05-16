@@ -1,6 +1,5 @@
 #import "math.odin";
 
-#import "render.odin";
 #import "main.odin";
 #import "input.odin";
 #import "jimgui.odin";
@@ -11,7 +10,7 @@
 Context_t :: struct {
     Settings           : ^Setting_t,
     Input              : ^input.Input_t,
-    VirtualScreen      : ^render.VirtualScreen_t,
+    VirtualScreen      : ^renderer.VirtualScreen_t,
     Win32              : ^p32.Data_t,
     ImguiState         : ^jimgui.State_t,
     Time               : ^time.Data_t,
@@ -19,7 +18,7 @@ Context_t :: struct {
 
     AdaptiveVSync      : bool,
     ScaleFactor        : math.Vec2,
-    GameDrawRegion     : render.DrawRegion,
+    GameDrawRegion     : renderer.DrawRegion,
     WindowSize         : math.Vec2,
 }
 
@@ -33,7 +32,7 @@ CreateContext :: proc() -> ^Context_t {
     ctx              := new(Context_t);
     ctx.Input         = new(input.Input_t);
     ctx.Settings      = new(Setting_t);
-    ctx.VirtualScreen = render.CreateVirtualScreen(1920, 1080);
+    ctx.VirtualScreen = renderer.CreateVirtualScreen(1920, 1080);
     ctx.Win32         = new(p32.Data_t);
     ctx.ImguiState    = new(jimgui.State_t);
     ctx.Time          = time.CreateData();

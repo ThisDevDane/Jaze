@@ -40,6 +40,27 @@ Camera_t :: struct {
     Far  : f32,
 }
 
+DrawRegion :: struct {
+    X : i32,
+    Y : i32,
+    Width : i32,
+    Height : i32,
+}
+
+VirtualScreen_t :: struct {
+    Dimension : math.Vec2,
+    AspectRatio : f32,
+}
+
+CreateVirtualScreen :: proc(w, h : int) -> ^VirtualScreen_t {
+    screen := new(VirtualScreen_t);
+    screen.Dimension.x = 1280;
+    screen.Dimension.y = 720;
+    screen.AspectRatio = screen.Dimension.x / screen.Dimension.y;
+
+    return screen;
+}
+
 Init :: proc(shaderCat : ^catalog.Catalog) -> ^State_t {
     state := new(State_t); 
 
@@ -112,6 +133,27 @@ CreateViewMatrixFromCamera :: proc(immutable camera : ^Camera_t) -> math.Mat4 {
     tr := math.mat4_translate(-camera.Pos);
     return math.mul(view, tr);
 }
+
+ScreenToWorld :: proc(screenPos : math.Vec2, proj, view : math.Mat4, area : DrawRegion, cam : Camera_t) -> math.Vec3 {
+    MapToRange :: proc(t : f32, min : f32, max : f32) -> f32 {
+        return (t - min) / (max - min);
+    }
+    u := MapToRange(screenPos.x, f32(area.X), f32(area.X + area.Width));
+    v := MapToRange(screenPos.y, f32(area.Y), f32(area.Y + area.Height));
+    p := math.Vec4{u * 2 - 1,
+                   v * 2 - 1,
+                   -1, 1};
+
+    p = math.mul(math.inverse(proj), p);
+    p = math.Vec4{p.x, p.y, -1, 0};
+    world := math.mul(math.inverse(view), p);
+    return math.Vec3{world.x + cam.Pos.x, -world.y + cam.Pos.y, 0}; 
+}
+
+/*    TestRender(mainProgram, 
+               ScreenToWorld(ctx.Input.MousePos, proj, view, ctx.GameDrawRegion, Camera), 
+               f32(ctx.Time.TimeSinceStart * 200.0),
+               math.Vec3{0.4, 0.4, 0.4});*/
 
 RenderQueue :: proc(ctx : ^engine.Context_t, camera : ^Camera_t, queue : ^render_queue.Queue) {
     gl.Enable(gl.Capabilities.DepthTest);

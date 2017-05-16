@@ -44,6 +44,10 @@ Dequeue :: proc(queue : ^Queue) -> (renderer.Command, bool) {
         queue.Front = node.Next;
         queue.Count--;
         free(node);
+        if queue.Count == 0 {
+            queue.Front = nil;
+            queue.Tail = nil;
+        }
         return cmd, true;
 
     } else {

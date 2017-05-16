@@ -1,8 +1,10 @@
+#import "fmt.odin";
 #import "math.odin";
 
 #import "render_queue.odin";
 #import "renderer.odin";
 #import "catalog.odin";
+#import "console.odin";
 #import ja "asset.odin";
 
 Tile :: union {
@@ -15,49 +17,59 @@ Tile :: union {
 Data_t :: struct {
     Width : int,
     Height : int,
-          // H  W
-    Tiles : [ ][ ]Tile,
-    WalkTexture : ^ja.Asset.Texture,
-    BuildTexture : ^ja.Asset.Texture,
+          
+    Tiles : [/*H*/][/*W*/]Tile,
+    WalkTexture  : [2]^ja.Asset.Texture,
+    BuildTexture : [2]^ja.Asset.Texture,
 }
 
-CreateMap :: proc(w, h : int, textureCat : ^catalog.Catalog) -> ^Data_t {
+CreateMap :: proc(mapData : ^ja.Asset.Texture, textureCat : ^catalog.Catalog) -> ^Data_t {
     res := new(Data_t);
-    res.Width = w;
-    res.Height = h;
+    res.Width = mapData.Width;
+    res.Height = mapData.Height;
 
     walk, _ := catalog.Find(textureCat, "towerDefense_tile162");
-    res.WalkTexture = walk.(^ja.Asset.Texture);
+    walk1, _ := catalog.Find(textureCat, "towerDefense_tile044");
+    res.WalkTexture[0] = walk.(^ja.Asset.Texture);
+    res.WalkTexture[1] = walk1.(^ja.Asset.Texture);
 
     build, _ := catalog.Find(textureCat, "towerDefense_tile158");
-    res.BuildTexture = build.(^ja.Asset.Texture);
+    build1, _ := catalog.Find(textureCat, "towerDefense_tile066");
+    res.BuildTexture[0] = build.(^ja.Asset.Texture);
+    res.BuildTexture[1] = build1.(^ja.Asset.Texture);
 
 
-    res.Tiles = make([][]Tile, h);
+    res.Tiles = make([][]Tile, res.Height);
     for _, i in res.Tiles {
-        res.Tiles[i] = make([]Tile, w);
+        res.Tiles[i] = make([]Tile, res.Width);
     }
 
     i := 0;
-    for y := 0; y < h; y++ {
+    datap := mapData.Data;
+    for y := 0; y < res.Height; y++ {
         i++;
-        for x := 0; x < w; x++ {
-            i++;
-            if i % 2 == 1 {
+        for x := 0; x < res.Width; x++ {
+            r := datap^;
+            datap += 1;
+            g := datap^;
+            datap += 1;
+            b := datap^;
+            datap += 1;
+
+            if r == 0 {
                 res.Tiles[y][x] = Tile.Walk{};
             } else {
                 res.Tiles[y][x] = Tile.Build{};
             }
-            res.Tiles[y][x].Pos = math.Vec3{f32(x), f32(y), 0};
 
+            res.Tiles[y][x].Pos = math.Vec3{f32(x), f32(y), 0};
         }
     }
 
     return res;
 }
 
-DrawMap :: proc(immutable data : ^Data_t) -> ^render_queue.Queue {
-    queue := render_queue.Make();
+DrawMap :: proc(immutable data : ^Data_t, queue : ^render_queue.Queue, inBuildMode : bool) {
     for y := 0; y < data.Height; y++ {
         for x := 0; x < data.Width; x++ {
             tile := data.Tiles[y][x];
@@ -67,16 +79,16 @@ DrawMap :: proc(immutable data : ^Data_t) -> ^render_queue.Queue {
             cmd.Rotation = 0;
             match t in tile {
                 case Tile.Walk : {
-                    cmd.Texture = data.WalkTexture;
+                    i := inBuildMode ? 1 : 0;
+                    cmd.Texture =  data.WalkTexture[i];
                 }
 
                 case Tile.Build : {
-                    cmd.Texture = data.BuildTexture;
+                    i := inBuildMode ? 1 : 0;
+                    cmd.Texture = data.BuildTexture[i];
                 }
             }
             render_queue.Enqueue(queue, cmd);
         }
     }
-
-    return queue;
 }

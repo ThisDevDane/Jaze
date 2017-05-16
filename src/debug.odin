@@ -79,7 +79,6 @@ MakeMenuBar :: proc(ctx : ^engine.Context_t) {
     }
 
     if imgui.BeginMenu("Misc", true) {
-        MakeMenuItem("Camera Settings", "ShowCameraSettings");
         MakeMenuItem("Console", "Alt+C", "ShowConsoleWindow");
         MakeMenuItem("Debug Window States", "ShowDebugWindowStates");
         MakeMenuItem("Show Test Window", "ShowTestWindow");

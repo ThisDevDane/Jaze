@@ -9,7 +9,6 @@
 #import "debug.odin";
 #import "jimgui.odin";
 #import "xinput.odin";
-#import "render.odin";
 #import "time.odin";
 #import "catalog.odin";
 #import "console.odin";
@@ -20,13 +19,14 @@
 #import "jmap.odin";
 #import "render_queue.odin";
 #import "renderer.odin";
+#import store "key_value_store.odin";
 #import ja "asset.odin";
 #import wgl "jwgl.odin";
 #import debugWnd "debug_windows.odin";
 #import p32 "platform_win32.odin";
 
-CalculateViewport :: proc(newSize : math.Vec2, targetAspectRatio : f32) -> render.DrawRegion {
-    res : render.DrawRegion;
+CalculateViewport :: proc(newSize : math.Vec2, targetAspectRatio : f32) -> renderer.DrawRegion {
+    res : renderer.DrawRegion;
     res.Width = i32(newSize.x);
     res.Height = i32(f32(res.Width) / targetAspectRatio + 0.5);
 
@@ -64,12 +64,7 @@ main :: proc() {
     EngineContext := engine.CreateContext();
     engine.SetContextDefaults(EngineContext);
 
-//    input.AddBinding(EngineContext.Input, "Fire", win32.Key_Code.LBUTTON);
-//    input.AddBinding(EngineContext.Input, "Zoom", win32.Key_Code.RBUTTON);
-//    input.AddBinding(EngineContext.Input, "Build", win32.Key_Code.B);
-
     {
-       // EngineContext.Win32.WindowPlacement.length = size_of(win32.Window_Placement);
         EngineContext.Win32.AppHandle = p32.GetProgramHandle();
         EngineContext.Win32.WindowHandle = p32.CreateWindow(EngineContext.Win32.AppHandle, math.Vec2{1280, 720}); 
         EngineContext.Win32.DeviceCtx = p32.GetDC(EngineContext.Win32.WindowHandle);
@@ -88,31 +83,22 @@ main :: proc() {
     jimgui.Init(EngineContext);
 
     wgl.SwapIntervalEXT(-1);
-    xinput.Init();
-    xinput.Enable(true);
-    //soundCat, _   := catalog.CreateNew(catalog.Kind.Sound,   "data/sounds/",   ".ogg");
+    xinput.Init(true);
+
     shaderCat, _  := catalog.CreateNew(catalog.Kind.Shader,  "data/shaders/",  ".frag,.vert");
     textureCat, _ := catalog.CreateNew(catalog.Kind.Texture, "data/textures/", ".png,.jpg,.jpeg");
     mapCat, _ := catalog.CreateNew(catalog.Kind.Texture, "data/maps/", ".png");
 
-    render.Init(shaderCat, textureCat);
     EngineContext.RenderState = renderer.Init(shaderCat);
 
     console.AddCommand("Help", console.DefaultHelpCommand);
     console.AddCommand("Clear", console.DefaultClearCommand);
 
-    GameContext := new(game.Context_t);
-    GameContext.EntityList = entity.MakeList();
-    GameContext.Map = jmap.CreateMap(20, 10, textureCat);
-    camera := new(renderer.Camera_t);
-    camera.Pos = math.Vec3{0, 0, 15};
-    camera.Zoom = 50;
-    camera.Near = 0.1;
-    camera.Far = 50;
-    camera.Rot = 45;
-    GameContext.GameCamera = camera;
+    GameContext    := game.CreateContext();
+    mapTex, _      := catalog.Find(mapCat, "map1");
+    GameContext.Map = jmap.CreateMap(mapTex.(^ja.Asset.Texture), textureCat);
 
-    game.SetupCameraBindings(EngineContext.Input);
+    game.SetupBindings(EngineContext.Input);
 
     entity.AddEntity(GameContext.EntityList, entity.CreateSlowTower());
 
@@ -147,12 +133,11 @@ main :: proc() {
         ClearGameScreen(EngineContext);
         gl.Clear(gl.ClearFlags.DEPTH_BUFFER);
 
-        game.CameraLogic(EngineContext, GameContext.GameCamera);
+        game.InputLogic(EngineContext, GameContext);
 
 
-        queue := jmap.DrawMap(GameContext.Map);
-        renderer.RenderQueue(EngineContext, GameContext.GameCamera, queue);
-        render.Draw(EngineContext);
+        jmap.DrawMap(GameContext.Map, GameContext.MapRenderQueue, GameContext.BuildMode);
+        renderer.RenderQueue(EngineContext, GameContext.GameCamera, GameContext.MapRenderQueue);
         
         if EngineContext.Settings.ShowDebugMenu {
             jimgui.BeginNewFrame(EngineContext.Time.UnscaledDeltaTime, EngineContext);

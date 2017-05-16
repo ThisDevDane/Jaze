@@ -53,7 +53,11 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
         texture.FileInfo = file;
         texture.LoadedFromDisk = false;
         c_str := strings.new_c_string(file.Path); defer free(c_str);
-        stbi.info(c_str, &texture.Width, &texture.Height, &texture.Comp);
+        w, h, c : i32;
+        stbi.info(c_str, &w, &h, &c);
+        texture.Width  = int(w);
+        texture.Height = int(h);
+        texture.Comp   = int(c);
         asset^ = texture;
         res.Items[asset.FileInfo.Name] = asset;
     }
@@ -171,49 +175,45 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
     }
 }
 
-Find :: proc(catalog : ^Catalog, assetName : string) -> (^ja.Asset, Err) {
+/*Find :: proc(catalog : ^Catalog, assetName : string) -> (^ja.Asset, Err) {
     return Find(catalog, assetName, true);
-}
-Find :: proc(catalog : ^Catalog, assetName : string, upload : bool) -> (^ja.Asset, Err) {
-    LoadTexture :: proc(e : ^ja.Asset.Texture) {
-        if e.GLID == 0 && upload{
+}*/
+Find :: proc(catalog : ^Catalog, assetName : string/*, upload : bool*/) -> (^ja.Asset, Err) {
+    LoadTexture :: proc(e : ^ja.Asset.Texture, cat : ^Catalog) {
+        if e.GLID == 0/* && upload*/ {
             c_str := strings.new_c_string(e.FileInfo.Path); defer free(c_str);
             w, h, c : i32;
-            data := stbi.load(c_str, &w, &h, &c, 0); defer stbi.image_free(data);
-            e.Width = w;
-            e.Height = h;
-            e.Comp = c;
+            e.Data = stbi.load(c_str, &w, &h, &c, 0); //defer stbi.image_free(data);
+            e.LoadedFromDisk = true;
+            cat.CurrentSize += uint(e.FileInfo.Size);
+            e.Width  = int(w);
+            e.Height = int(h);
+            e.Comp   = int(c);
             e.GLID = gl.GenTexture();
             gl.BindTexture(gl.TextureTargets.Texture2D, e.GLID);
+            format : gl.PixelDataFormat;
             match e.Comp {
                 case 1 : {
-                    gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
-                                  e.Width, e.Height, gl.PixelDataFormat.Red, 
-                                  gl.Texture2DDataType.UByte, data);
-                    gl.GenerateMipmap(gl.MipmapTargets.Texture2D);
+                    format = gl.PixelDataFormat.Red;
                 }
 
                 case 2 : {
-                    gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
-                                  e.Width, e.Height, gl.PixelDataFormat.RG, 
-                                  gl.Texture2DDataType.UByte, data);
-                    gl.GenerateMipmap(gl.MipmapTargets.Texture2D);
+                    format = gl.PixelDataFormat.RG;
                 }
 
                 case 3 : {
-                    gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
-                                  e.Width, e.Height, gl.PixelDataFormat.RGB, 
-                                  gl.Texture2DDataType.UByte, data);
-                    gl.GenerateMipmap(gl.MipmapTargets.Texture2D);
+                    format = gl.PixelDataFormat.RGB;
                 }
 
                 case 4 : {
-                    gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
-                                  e.Width, e.Height, gl.PixelDataFormat.RGBA, 
-                                  gl.Texture2DDataType.UByte, data);
-                    gl.GenerateMipmap(gl.MipmapTargets.Texture2D);
+                    format = gl.PixelDataFormat.RGBA;
                 }
             }
+            gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
+                          i32(e.Width), i32(e.Height), format, 
+                          gl.Texture2DDataType.UByte, e.Data);
+            gl.GenerateMipmap(gl.MipmapTargets.Texture2D);
+
             gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MinFilter, gl.TextureParametersValues.LinearMipmapLinear);
             gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MagFilter, gl.TextureParametersValues.Linear);
 
@@ -231,7 +231,7 @@ Find :: proc(catalog : ^Catalog, assetName : string, upload : bool) -> (^ja.Asse
             cat.CurrentSize += uint(len(data));
         }
 
-        if e.GLID == 0 && upload {
+        if e.GLID == 0/* && upload*/ {
             e.GLID, _ = glUtil.CreateAndCompileShader(e.Type, e.Source);
         }
     }
@@ -244,7 +244,7 @@ Find :: proc(catalog : ^Catalog, assetName : string, upload : bool) -> (^ja.Asse
 
             match e in asset {
                 case ja.Asset.Texture : {
-                    LoadTexture(e);
+                    LoadTexture(e, catalog);
                 }
 
                 case ja.Asset.Shader : {

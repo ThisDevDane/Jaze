@@ -13,9 +13,9 @@ Asset :: union {
 
     Texture {
         GLID : gl.Texture,
-        Width : i32,
-        Height : i32,
-        Comp : i32,
+        Width : int,
+        Height : int,
+        Comp : int,
         Data : ^byte,
     },
     Shader {
