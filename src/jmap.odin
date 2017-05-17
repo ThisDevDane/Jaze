@@ -18,7 +18,8 @@ Data_t :: struct {
     Width : int,
     Height : int,
           
-    Tiles : [/*H*/][/*W*/]Tile,
+    Tiles        : [/*H*/][/*W*/]Tile,
+    Occupied     : [/*H*/][/*W*/]bool,
     WalkTexture  : [2]^ja.Asset.Texture,
     BuildTexture : [2]^ja.Asset.Texture,
 }
@@ -34,14 +35,16 @@ CreateMap :: proc(mapData : ^ja.Asset.Texture, textureCat : ^catalog.Catalog) ->
     res.WalkTexture[1] = walk1.(^ja.Asset.Texture);
 
     build, _ := catalog.Find(textureCat, "towerDefense_tile158");
-    build1, _ := catalog.Find(textureCat, "towerDefense_tile066");
+    build1, _ := catalog.Find(textureCat, "towerDefense_tile065");
     res.BuildTexture[0] = build.(^ja.Asset.Texture);
     res.BuildTexture[1] = build1.(^ja.Asset.Texture);
 
 
-    res.Tiles = make([][]Tile, res.Height);
+    res.Tiles    = make([][]Tile, res.Height);
+    res.Occupied = make([][]bool, res.Height);
     for _, i in res.Tiles {
-        res.Tiles[i] = make([]Tile, res.Width);
+        res.Tiles[i]    = make([]Tile, res.Width);
+        res.Occupied[i] = make([]bool, res.Width);
     }
 
     i := 0;
@@ -67,6 +70,17 @@ CreateMap :: proc(mapData : ^ja.Asset.Texture, textureCat : ^catalog.Catalog) ->
     }
 
     return res;
+}
+
+TileIsBuildable :: proc(immutable data : ^Data_t, pos : math.Vec2) -> bool {
+    tile := data.Tiles[int(pos.y)][int(pos.x)];
+    match t in tile {
+        case Tile.Build : {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 DrawMap :: proc(immutable data : ^Data_t, queue : ^render_queue.Queue, inBuildMode : bool) {

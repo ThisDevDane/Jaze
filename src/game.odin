@@ -9,6 +9,7 @@
 #import "catalog.odin";
 #import "input.odin";
 #import "console.odin";
+#import ja "asset.odin";
 
 Context_t :: struct {
     EntityList : ^entity.List,
@@ -20,9 +21,14 @@ Context_t :: struct {
     EnemyRenderQueue : ^render_queue.Queue,
     
     BuildMode  : bool,
+    BuildHoverTexture : ^ja.Asset.Texture,
+
+    TowerBasicBottomTexture : ^ja.Asset.Texture, 
+    TowerBasicTopTexture : ^ja.Asset.Texture, 
 }
 
-_CAMERA_SPEED :: 10;
+_CAMERA_SPEED :: 5;
+_CAMERA_SPEED_FAST :: 10;
 _CAMERA_ZOOM_SPEED :: 0.5;
 _MAX_CAMERA_ZOOM :: 100;
 _MIN_CAMERA_ZOOM :: 30;
@@ -45,6 +51,13 @@ CreateContext :: proc() -> ^Context_t {
     return ctx;
 }
 
+UploadTowerTextures :: proc(ctx : ^Context_t, textureCat : ^catalog.Catalog) {
+    t, _ := catalog.Find(textureCat, "towerDefense_tile249");
+    ctx.TowerBasicTopTexture = t.(^ja.Asset.Texture); 
+    t, _ = catalog.Find(textureCat, "towerDefense_tile180");
+    ctx.TowerBasicBottomTexture = t.(^ja.Asset.Texture); 
+}
+
 SetupBindings :: proc(input_ : ^input.Input_t) {
     input.AddBinding(input_, "CameraUp",       win32.Key_Code.W);
     input.AddBinding(input_, "CameraLeft",     win32.Key_Code.A);
@@ -52,8 +65,10 @@ SetupBindings :: proc(input_ : ^input.Input_t) {
     input.AddBinding(input_, "CameraDown",     win32.Key_Code.S);
     input.AddBinding(input_, "CameraZoomIn",   win32.Key_Code.E);
     input.AddBinding(input_, "CameraZoomOut",  win32.Key_Code.Q);
+    input.AddBinding(input_, "CameraFastMov",  win32.Key_Code.SHIFT);
 
     input.AddBinding(input_, "ToggleBuild",  win32.Key_Code.B);
+    input.AddBinding(input_, "Build",  win32.Key_Code.LBUTTON);
 }
 
 CameraLogic :: proc(ctx : ^engine.Context_t, camera : ^renderer.Camera_t) {
@@ -86,7 +101,8 @@ CameraLogic :: proc(ctx : ^engine.Context_t, camera : ^renderer.Camera_t) {
         camera.Zoom = _MIN_CAMERA_ZOOM;
     }
 
-    camera.Pos += (dir * _CAMERA_SPEED * f32(ctx.Time.DeltaTime));
+    speed : f32 = input.IsButtonHeld(ctx.Input, "CameraFastMov") ? _CAMERA_SPEED_FAST : _CAMERA_SPEED;
+    camera.Pos += (dir * speed * f32(ctx.Time.DeltaTime));
 }
 
 InputLogic :: proc(ctx : ^engine.Context_t, gCtx : ^Context_t) {
@@ -94,5 +110,49 @@ InputLogic :: proc(ctx : ^engine.Context_t, gCtx : ^Context_t) {
 
     if input.IsButtonDown(ctx.Input, "ToggleBuild") {
         gCtx.BuildMode = !gCtx.BuildMode;
+    }
+}
+
+BuildModeLogic :: proc(ctx : ^engine.Context_t, gCtx : ^Context_t) {
+    view := renderer.CreateViewMatrixFromCamera(gCtx.GameCamera);
+    proj := renderer.CalculateOrtho(ctx.WindowSize, 
+                                    ctx.ScaleFactor, 
+                                    gCtx.GameCamera.Far, 
+                                    gCtx.GameCamera.Near);
+    wp := renderer.ScreenToWorld(ctx.Input.MousePos, 
+                                 proj, view, 
+                                 ctx.GameDrawRegion, 
+                                 gCtx.GameCamera) + 0.5;
+
+    withinMap := wp.x >= 0 && 
+                 wp.y >= 0 && 
+                 wp.x < f32(gCtx.Map.Width) && 
+                 wp.y < f32(gCtx.Map.Height);
+
+    if withinMap {
+        wp.x = f32(int(wp.x));
+        wp.y = f32(int(wp.y));
+        wp.z = -4;
+
+        if jmap.TileIsBuildable(gCtx.Map, math.Vec2{wp.x, wp.y}) && 
+           !gCtx.Map.Occupied[int(wp.y)][int(wp.x)] {
+                cmd := renderer.Command.Bitmap{};
+                cmd.RenderPos = wp;
+                cmd.Scale = math.Vec3{1, 1, 1};
+                cmd.Rotation = 0;
+                cmd.Texture = gCtx.BuildHoverTexture;
+                render_queue.Enqueue(gCtx.MapRenderQueue, cmd);
+        }
+    }
+
+    if input.IsButtonDown(ctx.Input, "Build") && withinMap {
+        if jmap.TileIsBuildable(gCtx.Map, math.Vec2{wp.x, wp.y}) && 
+           !gCtx.Map.Occupied[int(wp.y)][int(wp.x)] {
+            console.Log("Build at %v", wp);
+            e := entity.CreateTower();
+            e.(^entity.Entity.Tower).T.Position = math.Vec3{wp.x, wp.y, -1};
+            gCtx.Map.Occupied[int(wp.y)][int(wp.x)] = true;
+            entity.AddEntity(gCtx.EntityList, e);
+        }
     }
 }

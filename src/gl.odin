@@ -61,6 +61,8 @@ DebugInfo_t :: struct {
     NumberOfFunctionsLoadedSuccessed : i32,
     Statuses : [dynamic]DebugFunctionLoadStatus,
     LoadedTextures : [dynamic]Texture,
+
+    DrawCalls : int,
 }
 
 DebugInfo : DebugInfo_t;
@@ -343,6 +345,7 @@ GetAttribLocation :: proc(program : Program, name : string) -> i32 {
 DrawElements :: proc(mode : DrawModes, count : i32, type : DrawElementsType, indices : rawptr) {
     if _DrawElements != nil {
         _DrawElements(i32(mode), count, i32(type), indices);
+        DebugInfo.DrawCalls++;
     } else {
         console.Log("%s isn't loaded!", #procedure);
     }    
@@ -351,6 +354,7 @@ DrawElements :: proc(mode : DrawModes, count : i32, type : DrawElementsType, ind
 DrawArrays :: proc(mode : DrawModes, first : i32, count : i32) {
     if _DrawArrays != nil {
         _DrawArrays(i32(mode), first, count);
+        DebugInfo.DrawCalls++;
     } else {
         console.Log("%s isn't loaded!", #procedure);
     }    

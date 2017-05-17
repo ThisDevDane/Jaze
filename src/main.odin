@@ -95,15 +95,18 @@ main :: proc() {
     console.AddCommand("Clear", console.DefaultClearCommand);
 
     GameContext    := game.CreateContext();
-    mapTex, _      := catalog.Find(mapCat, "map1");
+    mapTex, _      := catalog.Find(mapCat, "map2");
     GameContext.Map = jmap.CreateMap(mapTex.(^ja.Asset.Texture), textureCat);
 
-    game.SetupBindings(EngineContext.Input);
+    hover, _ := catalog.Find(textureCat, "towerDefense_tile016");
+    GameContext.BuildHoverTexture = hover.(^ja.Asset.Texture);
 
-    entity.AddEntity(GameContext.EntityList, entity.CreateSlowTower());
+    game.SetupBindings(EngineContext.Input);
+    game.UploadTowerTextures(GameContext, textureCat);
 
     for EngineContext.Settings.ProgramRunning {
         p32.MessageLoop(EngineContext);
+        gl.DebugInfo.DrawCalls = 0;
         
         time.Update(EngineContext.Time);
         if p32.IsWindowActive(EngineContext.Win32.WindowHandle) {
@@ -132,15 +135,21 @@ main :: proc() {
                     EngineContext.GameDrawRegion.Height);
         ClearGameScreen(EngineContext);
         gl.Clear(gl.ClearFlags.DEPTH_BUFFER);
+        jimgui.BeginNewFrame(EngineContext.Time.UnscaledDeltaTime, EngineContext);
 
         game.InputLogic(EngineContext, GameContext);
-
-
         jmap.DrawMap(GameContext.Map, GameContext.MapRenderQueue, GameContext.BuildMode);
+        if GameContext.BuildMode {
+            game.BuildModeLogic(EngineContext, GameContext);
+        }
+        
+        entity.DrawTowers(GameContext, GameContext.TowerRenderQueue);
+
         renderer.RenderQueue(EngineContext, GameContext.GameCamera, GameContext.MapRenderQueue);
+        renderer.RenderQueue(EngineContext, GameContext.GameCamera, GameContext.TowerRenderQueue);
+        renderer.RenderQueue(EngineContext, GameContext.GameCamera, GameContext.EnemyRenderQueue);
         
         if EngineContext.Settings.ShowDebugMenu {
-            jimgui.BeginNewFrame(EngineContext.Time.UnscaledDeltaTime, EngineContext);
             debug.RenderDebugUI(EngineContext, GameContext);
             jimgui.RenderProc(EngineContext);
         }

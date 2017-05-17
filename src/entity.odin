@@ -1,4 +1,8 @@
 #import "math.odin";
+
+#import "render_queue.odin";
+#import "game.odin";
+#import "renderer.odin";
 #import ja "asset.odin";
 
 GUID : int = 0;
@@ -34,6 +38,33 @@ Tower :: union {
     },
 }
 
+DrawTowers :: proc(ctx : ^game.Context_t, queue : ^render_queue.Queue) {
+    for i := ctx.EntityList.Front;
+        i != nil;
+        i = i.Next {
+        if i.Entity == nil {
+            continue;
+        }
+        match e in i.Entity {
+            case Entity.Tower : {
+                match t in e.T {
+                    case Tower.Basic : {
+                        cmd := renderer.Command.Bitmap{};
+                        cmd.RenderPos = t.Position;
+                        cmd.Scale = math.Vec3{1, 1, 1};
+                        cmd.Rotation = 0;        
+                        cmd.Texture = ctx.TowerBasicBottomTexture;
+                        render_queue.Enqueue(queue, cmd);
+
+                        cmd.RenderPos = t.Position + math.Vec3{0, 0.17, -1};
+                        cmd.Texture = ctx.TowerBasicTopTexture;
+                        render_queue.Enqueue(queue, cmd);
+                    }
+                }
+            }
+        }
+    }
+} 
 
 CreateEntity :: proc() -> ^Entity {
     e := new(Entity);

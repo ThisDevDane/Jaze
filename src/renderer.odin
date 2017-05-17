@@ -134,7 +134,7 @@ CreateViewMatrixFromCamera :: proc(immutable camera : ^Camera_t) -> math.Mat4 {
     return math.mul(view, tr);
 }
 
-ScreenToWorld :: proc(screenPos : math.Vec2, proj, view : math.Mat4, area : DrawRegion, cam : Camera_t) -> math.Vec3 {
+ScreenToWorld :: proc(screenPos : math.Vec2, proj, view : math.Mat4, area : DrawRegion, cam : ^Camera_t) -> math.Vec3 {
     MapToRange :: proc(t : f32, min : f32, max : f32) -> f32 {
         return (t - min) / (max - min);
     }

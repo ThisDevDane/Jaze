@@ -123,7 +123,9 @@ ShowEntityList :: proc(gameCtx : ^game.Context_t, show : ^bool) {
             for i := gameCtx.EntityList.Front;
                 i != nil;
                 i = i.Next {
-
+                if i.Entity == nil {
+                    continue;
+                }
                 buf : [256]byte;
                 str := fmt.bprintf(buf[..], "%s(%d)", i.Entity.Name, i.Entity.GUID);
                 if imgui.Button(str, imgui.Vec2{-1, 0}) {
@@ -204,6 +206,7 @@ StatOverlay :: proc(show : ^bool) {
         io := imgui.GetIO();
         imgui.Text("Framerate: %.1ffps (%fms) ", io.Framerate, 1000.0 / io.Framerate);
         imgui.Separator();
+        imgui.Text("Draw Calls: %d calls", gl.DebugInfo.DrawCalls);
     }   
     imgui.End();
     imgui.PopStyleColor(1);
