@@ -1,3 +1,16 @@
+/*
+ *  @Name:     xinput
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 02-05-2017 21:38:35
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:44:12
+ *  
+ *  @Description:
+ *  
+ */
 #import win32 "sys/windows.odin";
 #import "fmt.odin";
 #import "strings.odin";

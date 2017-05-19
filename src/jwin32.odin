@@ -1,3 +1,16 @@
+/*
+ *  @Name:     jwin32
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 02-05-2017 21:38:35
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:44:53
+ *  
+ *  @Description:
+ *  
+ */
 #foreign_system_library user32 "User32.lib";
 #foreign_system_library kernel32 "Kernel32.lib";
 #import win32 "sys/windows.odin";

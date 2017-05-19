@@ -1,3 +1,16 @@
+/*
+ *  @Name:     renderer
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 13-05-2017 23:48:58
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:44:28
+ *  
+ *  @Description:
+ *  
+ */
 #import "math.odin";
 
 #import "render_queue.odin";

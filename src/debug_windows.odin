@@ -1,3 +1,16 @@
+/*
+ *  @Name:     debug_windows
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 10-05-2017 21:11:30
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:45:29
+ *  
+ *  @Description:
+ *  
+ */
 #import "fmt.odin";
 #import win32 "sys/windows.odin";
 #import "gl.odin";

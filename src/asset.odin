@@ -1,3 +1,16 @@
+/*
+ *  @Name:     asset
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 21-04-2017 03:04:34
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:45:37
+ *  
+ *  @Description:
+ *  
+ */
 #import "gl.odin";
 
 FileInfo_t :: struct {

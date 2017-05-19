@@ -1,3 +1,16 @@
+/*
+ *  @Name:     jimgui
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 02-05-2017 21:38:35
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:45:02
+ *  
+ *  @Description:
+ *  
+ */
 #import "imgui.odin";
 #import win32 "sys/windows.odin";
 #import "fmt.odin";

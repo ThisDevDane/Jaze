@@ -1,3 +1,16 @@
+/*
+ *  @Name:     jmap
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 04-05-2017 16:09:02
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:44:59
+ *  
+ *  @Description:
+ *  
+ */
 #import "fmt.odin";
 #import "math.odin";
 

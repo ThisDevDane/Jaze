@@ -1,3 +1,16 @@
+/*
+ *  @Name:     catalog
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 01-05-2017 18:28:11
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:45:40
+ *  
+ *  @Description:
+ *  
+ */
 #import "fmt.odin";
 #import "os.odin";
 #import "strings.odin";

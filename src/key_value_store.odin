@@ -1,3 +1,16 @@
+/*
+ *  @Name:     key_value_store
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 16-05-2017 21:52:47
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:44:51
+ *  
+ *  @Description:
+ *  
+ */
 KeyValueStore :: struct {
     _data : map[string]any,
 }

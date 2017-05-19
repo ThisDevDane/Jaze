@@ -1,3 +1,16 @@
+/*
+ *  @Name:     input
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 03-05-2017 17:54:46
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:45:04
+ *  
+ *  @Description:
+ *  
+ */
 #import win32 "sys/windows.odin";
 #import "math.odin";
 

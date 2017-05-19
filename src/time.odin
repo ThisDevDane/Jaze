@@ -1,3 +1,16 @@
+/*
+ *  @Name:     time
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 21-04-2017 03:04:34
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:44:16
+ *  
+ *  @Description:
+ *  
+ */
 #import win32 "sys/windows.odin";
 
 Data_t :: struct {

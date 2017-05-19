@@ -1,3 +1,16 @@
+/*
+ *  @Name:     pcg
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 17-04-2017 17:54:01
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:44:38
+ *  
+ *  @Description:
+ *  
+ */
 #import "fmt.odin";
 GlobalState : state_t;
 

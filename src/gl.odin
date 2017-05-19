@@ -1,3 +1,16 @@
+/*
+ *  @Name:     gl
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 26-04-2017 16:23:18
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:45:18
+ *  
+ *  @Description:
+ *  
+ */
 #foreign_system_library lib "opengl32.lib";
 #import win32 "sys/windows.odin";
 #import win32wgl "sys/wgl.odin";

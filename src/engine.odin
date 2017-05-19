@@ -1,3 +1,16 @@
+/*
+ *  @Name:     engine
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 04-05-2017 15:13:05
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:45:26
+ *  
+ *  @Description:
+ *  
+ */
 #import "math.odin";
 
 #import "main.odin";

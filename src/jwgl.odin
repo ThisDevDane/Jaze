@@ -1,3 +1,16 @@
+/*
+ *  @Name:     jwgl
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 05-05-2017 22:12:56
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:44:56
+ *  
+ *  @Description:
+ *  
+ */
 #import win32 "sys/windows.odin";
 #import win32wgl "sys/wgl.odin";
 #import "gl.odin";

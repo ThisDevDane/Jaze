@@ -1,5 +1,17 @@
-//#import win32 "sys/windows.odin" when ODIN_OS == "windows";
-//#import win32wgl "sys/wgl.odin" when ODIN_OS == "windows";
+/*
+ *  @Name:     main
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 10-05-2017 21:11:30
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:53:22
+ *  
+ *  @Description:
+ *  
+ */
+
 #import "fmt.odin";
 #import "strings.odin";
 #import "math.odin";
@@ -145,9 +157,14 @@ main :: proc() {
         
         entity.DrawTowers(GameContext, GameContext.TowerRenderQueue);
 
+        { // A* test
+            
+        }
+
         renderer.RenderQueue(EngineContext, GameContext.GameCamera, GameContext.MapRenderQueue);
         renderer.RenderQueue(EngineContext, GameContext.GameCamera, GameContext.TowerRenderQueue);
         renderer.RenderQueue(EngineContext, GameContext.GameCamera, GameContext.EnemyRenderQueue);
+        renderer.RenderQueue(EngineContext, GameContext.GameCamera, GameContext.DebugRenderQueue);
         
         if EngineContext.Settings.ShowDebugMenu {
             debug.RenderDebugUI(EngineContext, GameContext);

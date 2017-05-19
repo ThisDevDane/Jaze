@@ -1,3 +1,16 @@
+/*
+ *  @Name:     debug
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 10-05-2017 21:11:30
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:45:35
+ *  
+ *  @Description:
+ *  
+ */
 #import win32 "sys/windows.odin";
 #import "jwin32.odin";
 #import debugWnd "debug_windows.odin";

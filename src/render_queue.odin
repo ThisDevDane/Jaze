@@ -1,3 +1,16 @@
+/*
+ *  @Name:     render_queue
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 13-05-2017 23:48:32
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:44:24
+ *  
+ *  @Description:
+ *  
+ */
 #import "renderer.odin";
 
 QueueNode :: struct {

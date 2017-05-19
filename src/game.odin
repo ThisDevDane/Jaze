@@ -1,3 +1,16 @@
+/*
+ *  @Name:     game
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 04-05-2017 15:53:25
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:45:21
+ *  
+ *  @Description:
+ *  
+ */
 #import win32 "sys/windows.odin";
 #import "math.odin";
 
@@ -19,6 +32,7 @@ Context_t :: struct {
     MapRenderQueue   : ^render_queue.Queue,
     TowerRenderQueue : ^render_queue.Queue,
     EnemyRenderQueue : ^render_queue.Queue,
+    DebugRenderQueue : ^render_queue.Queue,
     
     BuildMode  : bool,
     BuildHoverTexture : ^ja.Asset.Texture,

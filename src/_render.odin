@@ -1,3 +1,16 @@
+/*
+ *  @Name:     _render
+ *  
+ *  @Author:   Mikkel Hjortshoej
+ *  @Email:    hjortshoej@handmade.network
+ *  @Creation: 02-05-2017 21:38:35
+ *
+ *  @Last By:   Mikkel Hjortshoej
+ *  @Last Time: 20-05-2017 00:44:08
+ *  
+ *  @Description:
+ *  
+ */
 #import "fmt.odin";
 #import "math.odin";
 #import "os.odin";
