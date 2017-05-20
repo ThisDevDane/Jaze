@@ -6,7 +6,7 @@
  *  @Creation: 04-05-2017 16:09:02
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:44:59
+ *  @Last Time: 20-05-2017 01:41:03
  *  
  *  @Description:
  *  
@@ -30,6 +30,9 @@ Tile :: union {
 Data_t :: struct {
     Width : int,
     Height : int,
+
+    StartTile : math.Vec2,
+    EndTile   : math.Vec2,
           
     Tiles        : [/*H*/][/*W*/]Tile,
     Occupied     : [/*H*/][/*W*/]bool,
@@ -76,6 +79,14 @@ CreateMap :: proc(mapData : ^ja.Asset.Texture, textureCat : ^catalog.Catalog) ->
                 res.Tiles[y][x] = Tile.Walk{};
             } else {
                 res.Tiles[y][x] = Tile.Build{};
+            }
+
+            if g == 0 {
+                res.StartTile = math.Vec2{f32(x), f32(y)};
+            } 
+
+            if b == 0 {
+                res.EndTile = math.Vec2{f32(x), f32(y)};
             }
 
             res.Tiles[y][x].Pos = math.Vec3{f32(x), f32(y), 0};

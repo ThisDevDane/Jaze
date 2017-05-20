@@ -6,7 +6,7 @@
  *  @Creation: 21-04-2017 23:32:08
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:45:23
+ *  @Last Time: 20-05-2017 01:18:55
  *  
  *  @Description:
  *  
@@ -15,6 +15,7 @@
 
 #import "render_queue.odin";
 #import "game.odin";
+#import "engine.odin";
 #import "renderer.odin";
 #import ja "asset.odin";
 
@@ -51,8 +52,8 @@ Tower :: union {
     },
 }
 
-DrawTowers :: proc(ctx : ^game.Context_t, queue : ^render_queue.Queue) {
-    for i := ctx.EntityList.Front;
+DrawTowers :: proc(ctx : ^engine.Context_t, gCtx : ^game.Context_t, queue : ^render_queue.Queue) {
+    for i := gCtx.EntityList.Front;
         i != nil;
         i = i.Next {
         if i.Entity == nil {
@@ -66,11 +67,12 @@ DrawTowers :: proc(ctx : ^game.Context_t, queue : ^render_queue.Queue) {
                         cmd.RenderPos = t.Position;
                         cmd.Scale = math.Vec3{1, 1, 1};
                         cmd.Rotation = 0;        
-                        cmd.Texture = ctx.TowerBasicBottomTexture;
+                        cmd.Texture = gCtx.TowerBasicBottomTexture;
                         render_queue.Enqueue(queue, cmd);
 
-                        cmd.RenderPos = t.Position + math.Vec3{0, 0.17, -1};
-                        cmd.Texture = ctx.TowerBasicTopTexture;
+                        cmd.RenderPos = t.Position;
+                        cmd.Rotation = f32(ctx.Time.TimeSinceStart) * 20;        
+                        cmd.Texture = gCtx.TowerBasicTopTexture;
                         render_queue.Enqueue(queue, cmd);
                     }
                 }

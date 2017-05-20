@@ -6,7 +6,7 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:53:22
+ *  @Last Time: 20-05-2017 02:00:29
  *  
  *  @Description:
  *  
@@ -78,7 +78,8 @@ main :: proc() {
 
     {
         EngineContext.Win32.AppHandle = p32.GetProgramHandle();
-        EngineContext.Win32.WindowHandle = p32.CreateWindow(EngineContext.Win32.AppHandle, math.Vec2{1280, 720}); 
+        EngineContext.Win32.WindowHandle = p32.CreateWindow(EngineContext.Win32.AppHandle, 
+                                                            math.Vec2{1280, 720}); 
         EngineContext.Win32.DeviceCtx = p32.GetDC(EngineContext.Win32.WindowHandle);
         EngineContext.Win32.Ogl.VersionMajorMax, EngineContext.Win32.Ogl.VersionMinorMax = p32.GetMaxGLVersion();
         EngineContext.Win32.Ogl.Ctx = p32.CreateOpenGLContext(EngineContext.Win32.DeviceCtx, true);
@@ -137,7 +138,8 @@ main :: proc() {
 
 
 
-        EngineContext.GameDrawRegion = CalculateViewport(EngineContext.WindowSize, EngineContext.VirtualScreen.AspectRatio);
+        EngineContext.GameDrawRegion = CalculateViewport(EngineContext.WindowSize,
+                                                         EngineContext.VirtualScreen.AspectRatio);
         EngineContext.ScaleFactor.x = EngineContext.WindowSize.x / f32(EngineContext.VirtualScreen.Dimension.x);
         EngineContext.ScaleFactor.y = EngineContext.WindowSize.y / f32(EngineContext.VirtualScreen.Dimension.y);
         ClearScreen(EngineContext);
@@ -155,9 +157,21 @@ main :: proc() {
             game.BuildModeLogic(EngineContext, GameContext);
         }
         
-        entity.DrawTowers(GameContext, GameContext.TowerRenderQueue);
+        entity.DrawTowers(EngineContext, GameContext, GameContext.TowerRenderQueue);
 
         { // A* test
+            SendSquare :: proc(pos : math.Vec3, col : math.Vec4, queue : ^render_queue.Queue) {
+                cmd := renderer.Command.Rect{};
+                cmd.RenderPos = pos;
+                cmd.Scale = math.Vec3{1, 1, 1};
+                cmd.Rotation = 0;        
+                cmd.Color = col;
+                render_queue.Enqueue(queue, cmd);
+            }
+            s := GameContext.Map.StartTile;
+            e := GameContext.Map.EndTile;
+            SendSquare(math.Vec3{s.x, s.y,-14}, math.Vec4{0, 0, 1, 0.5}, GameContext.DebugRenderQueue);
+            SendSquare(math.Vec3{e.x, e.y,-14}, math.Vec4{0, 0, 1, 0.5}, GameContext.DebugRenderQueue);
             
         }
 

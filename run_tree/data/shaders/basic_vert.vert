@@ -1,6 +1,7 @@
 #version 330
 
 in vec3 VertPos;
+in vec2 UV;
 
 uniform mat4 Model;
 uniform mat4 View;

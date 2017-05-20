@@ -6,7 +6,7 @@
  *  @Creation: 13-05-2017 23:48:58
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:44:28
+ *  @Last Time: 20-05-2017 01:32:34
  *  
  *  @Description:
  *  
@@ -24,13 +24,14 @@ PixelsToUnits :: 64;
 
 Command :: union {
     RenderPos : math.Vec3,
-    Rotation : f32, 
-    Scale : math.Vec3,
+    Rotation  : f32, 
+    Scale     : math.Vec3,
     
     Bitmap{
         Texture : ^ja.Asset.Texture,
     },
     Rect{
+        Color : math.Vec4,
     },
     Circle{
         Diameter : f32,
@@ -88,7 +89,17 @@ Init :: proc(shaderCat : ^catalog.Catalog) -> ^State_t {
     frag :=   fragAsset.(^ja.Asset.Shader);
     state.BitmapProgram = glUtil.CreateProgram(vertex^, frag^);
 
-    gl.UseProgram(state.BitmapProgram);
+    vertexAsset, ok1 = catalog.Find(shaderCat, "basic_vert");
+    fragAsset, ok2 = catalog.Find(shaderCat, "basic_frag");
+
+    if ok1 != catalog.ERR_SUCCESS || ok2 != catalog.ERR_SUCCESS {
+        panic("Couldn't find the Solid shaders");
+    }
+
+    vertex = vertexAsset.(^ja.Asset.Shader);
+    frag   = fragAsset.(^ja.Asset.Shader);
+    state.SolidProgram = glUtil.CreateProgram(vertex^, frag^);
+
 
     state.VAO = gl.GenVertexArray();
     gl.BindVertexArray(state.VAO);
@@ -123,7 +134,18 @@ Init :: proc(shaderCat : ^catalog.Catalog) -> ^State_t {
     gl.VertexAttribPointer(u32(state.BitmapProgram.Attributes["UV"]),       2, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), rawptr(int(3 * size_of(f32))));
     gl.EnableVertexAttribArray(u32(state.BitmapProgram.Attributes["Position"]));
     gl.EnableVertexAttribArray(u32(state.BitmapProgram.Attributes["UV"]));
-    gl.BindFragDataLocation(state.BitmapProgram, 0, "OutColor");
+
+    state.SolidProgram.Uniforms["Model"] = gl.GetUniformLocation(state.SolidProgram, "Model");
+    state.SolidProgram.Uniforms["View"]  = gl.GetUniformLocation(state.SolidProgram, "View");
+    state.SolidProgram.Uniforms["Proj"]  = gl.GetUniformLocation(state.SolidProgram, "Proj");
+
+    state.SolidProgram.Uniforms["Color"]  = gl.GetUniformLocation(state.SolidProgram, "Color");
+
+    state.SolidProgram.Attributes["VertPos"] = gl.GetAttribLocation(state.SolidProgram, "VertPos");
+    gl.VertexAttribPointer(u32(state.BitmapProgram.Attributes["VertPos"]),  3, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), nil);
+    gl.VertexAttribPointer(u32(state.BitmapProgram.Attributes["UV"]),       2, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), rawptr(int(3 * size_of(f32))));
+    gl.EnableVertexAttribArray(u32(state.SolidProgram.Attributes["VertPos"]));
+
 
     return state;
 }
@@ -175,6 +197,22 @@ RenderQueue :: proc(ctx : ^engine.Context_t, camera : ^Camera_t, queue : ^render
     gl.BlendFunc(gl.BlendFactors.SrcAlpha, gl.BlendFactors.OneMinusSrcAlpha);  
     view := CreateViewMatrixFromCamera(camera);
     proj := CalculateOrtho(ctx.WindowSize, ctx.ScaleFactor, camera.Far, camera.Near);
+
+    CreateModelMat :: proc(pos, texSize, scale : math.Vec3, rotation_ : f32) -> math.Mat4 {
+        textureScale := math.scale(math.mat4_identity(), texSize);
+        cmdScale := math.scale(math.mat4_identity(), scale);
+        matScale := math.mul(textureScale, cmdScale);
+
+        rotation := math.mat4_rotate(math.Vec3{0, 0, 1}, math.to_radians(rotation_));
+        model := math.mul(matScale, rotation);
+
+        offset := math.mat4_translate(math.Vec3{-0.5, -0.5, 0});
+        model = math.mul(model, offset);                
+
+        translation := math.mat4_translate(pos);
+        model = math.mul(translation, model);
+        return model;
+    }
     
     for !render_queue.IsEmpty(queue) {
         rcmd, _ := render_queue.Dequeue(queue);
@@ -183,26 +221,30 @@ RenderQueue :: proc(ctx : ^engine.Context_t, camera : ^Camera_t, queue : ^render
             case Command.Bitmap : {
                 height := f32(cmd.Texture.Height) / PixelsToUnits;
                 width := f32(cmd.Texture.Width) / PixelsToUnits;
+                texSize := math.Vec3{width, height, 1};
 
                 gl.UseProgram(ctx.RenderState.BitmapProgram);
                 gl.BindVertexArray(ctx.RenderState.VAO);
 
                 gl.UniformMatrix4fv(ctx.RenderState.BitmapProgram.Uniforms["View"],  view,  false);
                 gl.UniformMatrix4fv(ctx.RenderState.BitmapProgram.Uniforms["Proj"],  proj,  false);
-
-                textureScale := math.scale(math.mat4_identity(), math.Vec3{width, height, 1});
-                cmdScale := math.scale(math.mat4_identity(), cmd.Scale);
-                matScale := math.mul(textureScale, cmdScale);
-                rotation := math.mat4_rotate(math.Vec3{0, 0, 1}, math.to_radians(cmd.Rotation));
-                model := math.mul(matScale, rotation);
-                offset := math.mat4_translate(math.Vec3{-0.5, -0.5, 0});
-                model = math.mul(model, offset);
-                translation := math.mat4_translate(cmd.RenderPos);
-                model = math.mul(translation, model);
-
-                gl.UniformMatrix4fv(ctx.RenderState.BitmapProgram.Uniforms["Model"], model, false);
+                gl.UniformMatrix4fv(ctx.RenderState.BitmapProgram.Uniforms["Model"], CreateModelMat(cmd.RenderPos, texSize, cmd.Scale, cmd.Rotation), false);
 
                 gl.BindTexture(gl.TextureTargets.Texture2D, cmd.Texture.GLID);
+                gl.DrawElements(gl.DrawModes.Triangles, 6, gl.DrawElementsType.UInt, nil);
+            }
+
+            case Command.Rect : {
+
+                gl.UseProgram(ctx.RenderState.SolidProgram);
+                gl.BindVertexArray(ctx.RenderState.VAO);
+
+                gl.UniformMatrix4fv(ctx.RenderState.SolidProgram.Uniforms["View"],  view,  false);
+                gl.UniformMatrix4fv(ctx.RenderState.SolidProgram.Uniforms["Proj"],  proj,  false);
+                gl.UniformMatrix4fv(ctx.RenderState.SolidProgram.Uniforms["Model"], CreateModelMat(cmd.RenderPos, math.Vec3{1,1,1}, cmd.Scale, cmd.Rotation), false);
+
+                gl.Uniform(ctx.RenderState.SolidProgram.Uniforms["Color"], cmd.Color);
+
                 gl.DrawElements(gl.DrawModes.Triangles, 6, gl.DrawElementsType.UInt, nil);
             }
         }

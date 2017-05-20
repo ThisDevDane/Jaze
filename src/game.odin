@@ -6,7 +6,7 @@
  *  @Creation: 04-05-2017 15:53:25
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:45:21
+ *  @Last Time: 20-05-2017 01:03:59
  *  
  *  @Description:
  *  
@@ -53,6 +53,7 @@ CreateContext :: proc() -> ^Context_t {
     ctx.MapRenderQueue   = render_queue.Make();
     ctx.TowerRenderQueue = render_queue.Make();
     ctx.EnemyRenderQueue = render_queue.Make();
+    ctx.DebugRenderQueue = render_queue.Make();
     ctx.EntityList       = entity.MakeList();
 
     ctx.GameCamera      = new(renderer.Camera_t);

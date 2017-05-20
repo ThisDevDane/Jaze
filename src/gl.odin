@@ -6,7 +6,7 @@
  *  @Creation: 26-04-2017 16:23:18
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:45:18
+ *  @Last Time: 20-05-2017 01:31:00
  *  
  *  @Description:
  *  
@@ -323,6 +323,10 @@ Uniform :: proc(loc: i32, v0, v1, v2, v3: f32) {
     } else {
         console.Log("%s isn't loaded!", #procedure);
     }
+}
+
+Uniform :: proc(loc: i32, v: math.Vec4) {
+    Uniform(loc, v.x, v.y, v.z, v.w);
 }
 
 UniformMatrix4fv :: proc(loc : i32, matrix : math.Mat4, transpose : bool) {
