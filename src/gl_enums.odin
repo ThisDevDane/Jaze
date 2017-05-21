@@ -6,10 +6,10 @@
  *  @Creation: 02-05-2017 21:38:35
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:45:16
+ *  @Last Time: 22-05-2017 00:46:21
  *  
  *  @Description:
- *  
+ *      Part of the GL Wrapper, makes enum for all constants.
  */
 #import const "opengl_constants.odin";
 

@@ -6,10 +6,12 @@
  *  @Creation: 26-04-2017 16:23:18
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 01:31:00
+ *  @Last Time: 22-05-2017 00:46:00
  *  
  *  @Description:
- *  
+ *      This is an OpenGL wrapper. Currently assumes GL 3.3 Core.
+ *      It late binds requested functions. Currently a hardcoded list.
+ *      It wraps each function to check if it has been loaded and will output to in engine console if not.
  */
 #foreign_system_library lib "opengl32.lib";
 #import win32 "sys/windows.odin";
