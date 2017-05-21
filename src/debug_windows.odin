@@ -6,10 +6,10 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:45:29
+ *  @Last Time: 22-05-2017 00:54:17
  *  
  *  @Description:
- *  
+ *      Contains all the drawing code for debug windows.
  */
 #import "fmt.odin";
 #import win32 "sys/windows.odin";

@@ -6,10 +6,11 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:45:35
+ *  @Last Time: 22-05-2017 00:54:08
  *  
  *  @Description:
- *  
+ *      Contains all the debug menu stuff related to the Menu bar.
+ *      Also contains the function to try and render debug windows.
  */
 #import win32 "sys/windows.odin";
 #import "jwin32.odin";

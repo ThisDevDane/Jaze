@@ -6,10 +6,11 @@
  *  @Creation: 21-04-2017 23:32:08
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 01:18:55
+ *  @Last Time: 22-05-2017 00:55:02
  *  
  *  @Description:
- *  
+ *      Contains the entity construct.
+ *      Also has the functions for creating different entites and drawing them.
  */
 #import "math.odin";
 

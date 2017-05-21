@@ -6,10 +6,10 @@
  *  @Creation: 04-05-2017 15:13:05
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:45:26
+ *  @Last Time: 22-05-2017 00:54:30
  *  
  *  @Description:
- *  
+ *      Contains the engine context.
  */
 #import "math.odin";
 

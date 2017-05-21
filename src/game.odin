@@ -6,10 +6,11 @@
  *  @Creation: 04-05-2017 15:53:25
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 00:35:02
+ *  @Last Time: 22-05-2017 01:01:37
  *  
  *  @Description:
- *  
+ *      Contains the Game Context.
+ *      Also contains functions for "game" logic and drawing.
  */
 #import win32 "sys/windows.odin";
 #import "math.odin";

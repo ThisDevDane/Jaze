@@ -6,10 +6,10 @@
  *  @Creation: 13-05-2017 23:48:32
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:44:24
+ *  @Last Time: 22-05-2017 01:04:23
  *  
  *  @Description:
- *  
+ *      Contains the render queue construct.
  */
 #import "renderer.odin";
 

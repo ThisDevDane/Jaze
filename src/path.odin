@@ -6,10 +6,10 @@
  *  @Creation: 21-05-2017 15:35:05
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 21-05-2017 15:51:00
+ *  @Last Time: 22-05-2017 01:03:23
  *  
  *  @Description:
- *  
+ *      *Unfinished* BFS pathfinding.
  */
 #import "math.odin";
 

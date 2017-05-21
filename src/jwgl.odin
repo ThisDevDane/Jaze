@@ -6,10 +6,10 @@
  *  @Creation: 05-05-2017 22:12:56
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:44:56
+ *  @Last Time: 22-05-2017 01:02:19
  *  
  *  @Description:
- *  
+ *      Contains functions and constructs related to windows specific OpenGL.
  */
 #import win32 "sys/windows.odin";
 #import win32wgl "sys/wgl.odin";

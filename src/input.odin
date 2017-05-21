@@ -6,10 +6,12 @@
  *  @Creation: 03-05-2017 17:54:46
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:45:04
+ *  @Last Time: 22-05-2017 00:50:50
  *  
  *  @Description:
- *  
+ *      Contains constructs related to Input.
+ *      A windows key can be bound to a binding which is identified by a string.
+ *      Also contains mouse coordinate in window space.
  */
 #import win32 "sys/windows.odin";
 #import "math.odin";

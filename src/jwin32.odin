@@ -6,10 +6,10 @@
  *  @Creation: 02-05-2017 21:38:35
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:44:53
+ *  @Last Time: 22-05-2017 01:02:35
  *  
  *  @Description:
- *  
+ *      Contains windows API not covered by Odin Core.
  */
 #foreign_system_library user32 "User32.lib";
 #foreign_system_library kernel32 "Kernel32.lib";

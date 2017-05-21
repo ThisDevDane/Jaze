@@ -6,10 +6,10 @@
  *  @Creation: 13-05-2017 23:48:58
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 01:32:34
+ *  @Last Time: 22-05-2017 01:04:38
  *  
  *  @Description:
- *  
+ *      Functions and data related to the renderer. 
  */
 #import "math.odin";
 

@@ -6,10 +6,10 @@
  *  @Creation: 02-05-2017 21:38:35
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:45:02
+ *  @Last Time: 22-05-2017 00:51:46
  *  
  *  @Description:
- *  
+ *      Contains user specific data and functions related to using Dear ImGui.
  */
 #import "imgui.odin";
 #import win32 "sys/windows.odin";

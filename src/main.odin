@@ -6,10 +6,10 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 21-05-2017 15:37:16
+ *  @Last Time: 22-05-2017 01:03:05
  *  
  *  @Description:
- *  
+ *      The main file for Jaze.
  */
 
 #import "fmt.odin";

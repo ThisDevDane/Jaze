@@ -6,10 +6,10 @@
  *  @Creation: 16-05-2017 21:52:47
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:44:51
+ *  @Last Time: 22-05-2017 01:02:56
  *  
  *  @Description:
- *  
+ *      Contains a "generic" key value storage.
  */
 KeyValueStore :: struct {
     _data : map[string]any,

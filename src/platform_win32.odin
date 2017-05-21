@@ -6,10 +6,10 @@
  *  @Creation: 05-05-2017 22:12:56
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:44:35
+ *  @Last Time: 22-05-2017 01:03:56
  *  
  *  @Description:
- *  
+ *      Contains data and functions related to interacting with windows.
  */
 #import win32 "sys/windows.odin" when ODIN_OS == "windows";
 #import win32wgl "sys/wgl.odin" when ODIN_OS == "windows";
