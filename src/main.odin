@@ -6,7 +6,7 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 02:00:29
+ *  @Last Time: 21-05-2017 15:37:16
  *  
  *  @Description:
  *  
@@ -24,6 +24,7 @@
 #import "time.odin";
 #import "catalog.odin";
 #import "console.odin";
+#import "path.odin";
 #import "entity.odin";
 #import "input.odin";
 #import "engine.odin";
@@ -159,7 +160,7 @@ main :: proc() {
         
         entity.DrawTowers(EngineContext, GameContext, GameContext.TowerRenderQueue);
 
-        { // A* test
+        {
             SendSquare :: proc(pos : math.Vec3, col : math.Vec4, queue : ^render_queue.Queue) {
                 cmd := renderer.Command.Rect{};
                 cmd.RenderPos = pos;
@@ -170,9 +171,10 @@ main :: proc() {
             }
             s := GameContext.Map.StartTile;
             e := GameContext.Map.EndTile;
-            SendSquare(math.Vec3{s.x, s.y,-14}, math.Vec4{0, 0, 1, 0.5}, GameContext.DebugRenderQueue);
-            SendSquare(math.Vec3{e.x, e.y,-14}, math.Vec4{0, 0, 1, 0.5}, GameContext.DebugRenderQueue);
-            
+            SendSquare(math.Vec3{s.Pos.x, s.Pos.y,-14}, math.Vec4{0, 0, 1, 0.5}, GameContext.DebugRenderQueue);
+            SendSquare(math.Vec3{e.Pos.x, e.Pos.y,-14}, math.Vec4{0, 0, 1, 0.5}, GameContext.DebugRenderQueue);
+    
+            p := path.Find(GameContext.Map, s, e);
         }
 
         renderer.RenderQueue(EngineContext, GameContext.GameCamera, GameContext.MapRenderQueue);

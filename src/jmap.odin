@@ -6,7 +6,7 @@
  *  @Creation: 04-05-2017 16:09:02
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 21-05-2017 15:22:36
+ *  @Last Time: 21-05-2017 16:01:50
  *  
  *  @Description:
  *  
@@ -32,8 +32,8 @@ Data_t :: struct {
     Width : int,
     Height : int,
 
-    StartTile : math.Vec2,
-    EndTile   : math.Vec2,
+    StartTile : Tile,
+    EndTile   : Tile,
           
     Tiles        : [/*H*/][/*W*/]Tile,
     Occupied     : [/*H*/][/*W*/]bool,
@@ -46,7 +46,9 @@ _id := 0;
 CreateMap :: proc(mapData : ^ja.Asset.Texture, textureCat : ^catalog.Catalog) -> ^Data_t {
     res := new(Data_t);
     res.Width = mapData.Width;
+    res.Width = 3;
     res.Height = mapData.Height;
+    res.Height = 2;
 
     walk, _ := catalog.Find(textureCat, "towerDefense_tile162");
     walk1, _ := catalog.Find(textureCat, "towerDefense_tile044");
@@ -84,17 +86,19 @@ CreateMap :: proc(mapData : ^ja.Asset.Texture, textureCat : ^catalog.Catalog) ->
                 res.Tiles[y][x] = Tile.Build{};
             }
 
-            if g == 0 {
-                res.StartTile = math.Vec2{f32(x), f32(y)};
-            } 
 
-            if b == 0 {
-                res.EndTile = math.Vec2{f32(x), f32(y)};
-            }
 
             res.Tiles[y][x].Pos = math.Vec3{f32(x), f32(y), 0};
             res.Tiles[y][x].ID = _id;
             _id++;
+            
+            if g == 0 {
+                res.StartTile = res.Tiles[y][x];
+            } 
+            
+            if b == 0 {
+                res.EndTile = res.Tiles[y][x];
+            }
         }
     }
 
@@ -134,4 +138,24 @@ DrawMap :: proc(immutable data : ^Data_t, queue : ^render_queue.Queue, inBuildMo
             render_queue.Enqueue(queue, cmd);
         }
     }
+}
+
+
+GetNeighbors :: proc(immutable map_ : ^Data_t, tile : Tile, onlyWalkable : bool) -> []Tile {
+    IsInsideMap :: proc(immutable map_ : ^Data_t, x, y : f32) {
+        foo := x < map_.Width && x > -1;
+        bar := y < map_.Width && y > -1;
+        return foo && bar;
+    }
+
+    tilePos := Tile.Pos;
+    for y := tilePos.y-1; y < tilePos.y+1; y++ {
+        for x := tilePos.x-1; x < tilePos.x+1; x++ {
+            if !IsInsideMap(map_, x, y) { continue; }
+
+
+        }
+    }
+
+    return nil;
 }
