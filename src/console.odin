@@ -6,10 +6,12 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:45:42
+ *  @Last Time: 22-05-2017 00:42:40
  *  
  *  @Description:
- *  
+ *      The console is an in engine window that can be pulled up for viewing.
+ *      It also takes care of outputting to a log file if enabled.
+ *      The console can also execute commands if matched with input.
  */
 #import "fmt.odin";
 #import "os.odin";
