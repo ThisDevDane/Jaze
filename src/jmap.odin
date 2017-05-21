@@ -6,7 +6,7 @@
  *  @Creation: 04-05-2017 16:09:02
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 00:53:16
+ *  @Last Time: 22-05-2017 01:19:31
  *  
  *  @Description:
  *      
@@ -138,7 +138,7 @@ DrawMap :: proc(immutable data : ^Data_t, queue : ^render_queue.Queue, inBuildMo
     }
 }
 
-GetNeighbors :: proc(immutable map_ : ^Data_t, tile : Tile, onlyWalkable : bool) -> []Tile {
+/*GetNeighbors :: proc(immutable map_ : ^Data_t, tile : Tile, onlyWalkable : bool) -> []Tile {
     IsInsideMap :: proc(immutable map_ : ^Data_t, x, y : f32) {
         foo := x < map_.Width && x > -1;
         bar := y < map_.Width && y > -1;
@@ -161,4 +161,4 @@ GetNeighbors :: proc(immutable map_ : ^Data_t, tile : Tile, onlyWalkable : bool)
     }
 
     return nil;
-}
+}*/

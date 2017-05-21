@@ -6,7 +6,7 @@
  *  @Creation: 04-05-2017 15:53:25
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 01:01:37
+ *  @Last Time: 22-05-2017 01:23:23
  *  
  *  @Description:
  *      Contains the Game Context.
@@ -44,7 +44,7 @@ Context_t :: struct {
 
 _CAMERA_SPEED :: 5;
 _CAMERA_SPEED_FAST :: 10;
-_CAMERA_ZOOM_SPEED :: 0.5;
+_CAMERA_ZOOM_SPEED :: 30;
 _MAX_CAMERA_ZOOM :: 100;
 _MIN_CAMERA_ZOOM :: 30;
 

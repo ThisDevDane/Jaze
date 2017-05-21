@@ -6,7 +6,7 @@
  *  @Creation: 13-05-2017 23:48:58
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 01:04:38
+ *  @Last Time: 22-05-2017 01:44:19
  *  
  *  @Description:
  *      Functions and data related to the renderer. 
@@ -17,6 +17,7 @@
 #import "gl.odin";
 #import "engine.odin";
 #import "catalog.odin";
+#import "console.odin";
 #import glUtil "gl_util.odin";
 #import ja "asset.odin";
 
@@ -213,7 +214,12 @@ RenderQueue :: proc(ctx : ^engine.Context_t, camera : ^Camera_t, queue : ^render
         model = math.mul(translation, model);
         return model;
     }
-    
+    lastTex := 0;
+    lastProgram := 0;
+    vpu := false;
+
+    gl.BindVertexArray(ctx.RenderState.VAO);    
+
     for !render_queue.IsEmpty(queue) {
         rcmd, _ := render_queue.Dequeue(queue);
 
@@ -223,24 +229,36 @@ RenderQueue :: proc(ctx : ^engine.Context_t, camera : ^Camera_t, queue : ^render
                 width := f32(cmd.Texture.Width) / PixelsToUnits;
                 texSize := math.Vec3{width, height, 1};
 
-                gl.UseProgram(ctx.RenderState.BitmapProgram);
-                gl.BindVertexArray(ctx.RenderState.VAO);
+                if lastProgram != int(ctx.RenderState.BitmapProgram.ID) {
+                    gl.UseProgram(ctx.RenderState.BitmapProgram);
+                    lastProgram = int(ctx.RenderState.BitmapProgram.ID);
+                }
+                if !vpu {
+                    gl.UniformMatrix4fv(ctx.RenderState.BitmapProgram.Uniforms["View"],  view,  false);
+                    gl.UniformMatrix4fv(ctx.RenderState.BitmapProgram.Uniforms["Proj"],  proj,  false);
+                    vpu = true;
+                }
 
-                gl.UniformMatrix4fv(ctx.RenderState.BitmapProgram.Uniforms["View"],  view,  false);
-                gl.UniformMatrix4fv(ctx.RenderState.BitmapProgram.Uniforms["Proj"],  proj,  false);
                 gl.UniformMatrix4fv(ctx.RenderState.BitmapProgram.Uniforms["Model"], CreateModelMat(cmd.RenderPos, texSize, cmd.Scale, cmd.Rotation), false);
 
-                gl.BindTexture(gl.TextureTargets.Texture2D, cmd.Texture.GLID);
+                if lastTex != int(cmd.Texture.GLID) {
+                    gl.BindTexture(gl.TextureTargets.Texture2D, cmd.Texture.GLID);
+                    lastTex = int(cmd.Texture.GLID);
+                }
                 gl.DrawElements(gl.DrawModes.Triangles, 6, gl.DrawElementsType.UInt, nil);
             }
 
             case Command.Rect : {
 
-                gl.UseProgram(ctx.RenderState.SolidProgram);
-                gl.BindVertexArray(ctx.RenderState.VAO);
-
-                gl.UniformMatrix4fv(ctx.RenderState.SolidProgram.Uniforms["View"],  view,  false);
-                gl.UniformMatrix4fv(ctx.RenderState.SolidProgram.Uniforms["Proj"],  proj,  false);
+                if lastProgram != int(ctx.RenderState.SolidProgram.ID) {
+                    gl.UseProgram(ctx.RenderState.SolidProgram);
+                    lastProgram = int(ctx.RenderState.SolidProgram.ID);
+                }
+                if !vpu {
+                    gl.UniformMatrix4fv(ctx.RenderState.SolidProgram.Uniforms["View"],  view,  false);
+                    gl.UniformMatrix4fv(ctx.RenderState.SolidProgram.Uniforms["Proj"],  proj,  false);
+                    vpu = true;
+                }
                 gl.UniformMatrix4fv(ctx.RenderState.SolidProgram.Uniforms["Model"], CreateModelMat(cmd.RenderPos, math.Vec3{1,1,1}, cmd.Scale, cmd.Rotation), false);
 
                 gl.Uniform(ctx.RenderState.SolidProgram.Uniforms["Color"], cmd.Color);
