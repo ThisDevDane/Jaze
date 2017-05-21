@@ -6,7 +6,7 @@
  *  @Creation: 04-05-2017 16:09:02
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 21-05-2017 16:01:50
+ *  @Last Time: 22-05-2017 00:33:54
  *  
  *  @Description:
  *  
@@ -46,9 +46,7 @@ _id := 0;
 CreateMap :: proc(mapData : ^ja.Asset.Texture, textureCat : ^catalog.Catalog) -> ^Data_t {
     res := new(Data_t);
     res.Width = mapData.Width;
-    res.Width = 3;
     res.Height = mapData.Height;
-    res.Height = 2;
 
     walk, _ := catalog.Find(textureCat, "towerDefense_tile162");
     walk1, _ := catalog.Find(textureCat, "towerDefense_tile044");
@@ -140,20 +138,25 @@ DrawMap :: proc(immutable data : ^Data_t, queue : ^render_queue.Queue, inBuildMo
     }
 }
 
-
 GetNeighbors :: proc(immutable map_ : ^Data_t, tile : Tile, onlyWalkable : bool) -> []Tile {
     IsInsideMap :: proc(immutable map_ : ^Data_t, x, y : f32) {
         foo := x < map_.Width && x > -1;
         bar := y < map_.Width && y > -1;
         return foo && bar;
     }
-
+    res := new([]Tile);
     tilePos := Tile.Pos;
     for y := tilePos.y-1; y < tilePos.y+1; y++ {
         for x := tilePos.x-1; x < tilePos.x+1; x++ {
             if !IsInsideMap(map_, x, y) { continue; }
 
-
+            if onlyWalkable {
+                match t in map_.Tiles[y][x] {
+                    case Tile.Walk : {
+                        append(res, map_.Tiles[y][x]);
+                    }
+                }
+            }
         }
     }
 
