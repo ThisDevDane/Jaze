@@ -6,7 +6,7 @@
  *  @Creation: 04-05-2017 15:53:25
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 01:03:59
+ *  @Last Time: 22-05-2017 00:35:02
  *  
  *  @Description:
  *  
@@ -109,7 +109,7 @@ CameraLogic :: proc(ctx : ^engine.Context_t, camera : ^renderer.Camera_t) {
         zoom--;
     }
 
-    camera.Zoom += f32(zoom) * _CAMERA_ZOOM_SPEED;
+    camera.Zoom += (f32(zoom) * _CAMERA_ZOOM_SPEED) * f32(ctx.Time.DeltaTime);
     if camera.Zoom > _MAX_CAMERA_ZOOM {
         camera.Zoom = _MAX_CAMERA_ZOOM;
     } else if camera.Zoom < _MIN_CAMERA_ZOOM {
@@ -117,7 +117,7 @@ CameraLogic :: proc(ctx : ^engine.Context_t, camera : ^renderer.Camera_t) {
     }
 
     speed : f32 = input.IsButtonHeld(ctx.Input, "CameraFastMov") ? _CAMERA_SPEED_FAST : _CAMERA_SPEED;
-    camera.Pos += (dir * speed * f32(ctx.Time.DeltaTime));
+    camera.Pos += (dir * speed) * f32(ctx.Time.DeltaTime);
 }
 
 InputLogic :: proc(ctx : ^engine.Context_t, gCtx : ^Context_t) {
