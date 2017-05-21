@@ -6,10 +6,10 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:45:10
+ *  @Last Time: 22-05-2017 00:46:38
  *  
  *  @Description:
- *  
+ *      Wrapper for Dear ImGui.
  */
 #foreign_library "../external/cimgui.lib";
 #import "fmt.odin";
