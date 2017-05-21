@@ -6,10 +6,15 @@
  *  @Creation: 01-05-2017 18:28:11
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:45:40
+ *  @Last Time: 22-05-2017 00:41:12
  *  
  *  @Description:
- *  
+ *      Contains the catalog construct.
+ *      A catalog is a collection of asset that may or may not have been put in memory.
+ *      When querying a catalog for an asset it may do relevant work related to the asset to make it ready for usage,
+ *      such include;
+ *          - Texture: it will be uploaded the the GPU.
+ *          - Shader:  it will be compiled and if success it will upload it to the GPU.
  */
 #import "fmt.odin";
 #import "os.odin";
@@ -188,9 +193,6 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
     }
 }
 
-/*Find :: proc(catalog : ^Catalog, assetName : string) -> (^ja.Asset, Err) {
-    return Find(catalog, assetName, true);
-}*/
 Find :: proc(catalog : ^Catalog, assetName : string/*, upload : bool*/) -> (^ja.Asset, Err) {
     LoadTexture :: proc(e : ^ja.Asset.Texture, cat : ^Catalog) {
         if e.GLID == 0/* && upload*/ {
