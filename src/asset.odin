@@ -6,10 +6,10 @@
  *  @Creation: 21-04-2017 03:04:34
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 00:45:37
+ *  @Last Time: 22-05-2017 00:37:41
  *  
  *  @Description:
- *  
+ *      Contains the asset construct and associated data.
  */
 #import "gl.odin";
 
