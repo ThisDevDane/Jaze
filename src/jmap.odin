@@ -6,7 +6,7 @@
  *  @Creation: 04-05-2017 16:09:02
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 20-05-2017 01:41:03
+ *  @Last Time: 21-05-2017 15:22:36
  *  
  *  @Description:
  *  
@@ -21,6 +21,7 @@
 #import ja "asset.odin";
 
 Tile :: union {
+    ID  : int,
     Pos : math.Vec3,
 
     Build{},
@@ -39,6 +40,8 @@ Data_t :: struct {
     WalkTexture  : [2]^ja.Asset.Texture,
     BuildTexture : [2]^ja.Asset.Texture,
 }
+
+_id := 0;
 
 CreateMap :: proc(mapData : ^ja.Asset.Texture, textureCat : ^catalog.Catalog) -> ^Data_t {
     res := new(Data_t);
@@ -90,6 +93,8 @@ CreateMap :: proc(mapData : ^ja.Asset.Texture, textureCat : ^catalog.Catalog) ->
             }
 
             res.Tiles[y][x].Pos = math.Vec3{f32(x), f32(y), 0};
+            res.Tiles[y][x].ID = _id;
+            _id++;
         }
     }
 
