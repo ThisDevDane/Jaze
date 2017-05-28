@@ -6,7 +6,7 @@
  *  @Creation: 01-05-2017 18:28:11
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 22:44:07
+ *  @Last Time: 28-05-2017 23:39:31
  *  
  *  @Description:
  *      Contains the catalog construct.
@@ -26,6 +26,8 @@
 #import gl_util "gl_util.odin";
 #import "console.odin";
 #import stbi "stb_image.odin";
+
+CREATE_META_FILES :: false;
 
 Err :: int;
 
@@ -150,14 +152,14 @@ create_new :: proc(kind : Kind, identifier : string, path : string, acceptedExte
                 nameBuf := make([]byte, len(data.file_name));
                 copy(nameBuf, data.file_name[..]);
                 str := strings.to_odin_string(&nameBuf[0]);
-                for ext in res.accepted_extensions {
-                    if _get_file_extension(str) == ext {                        
-                        file := _create_file_info(res.path, str, data);
+                ext := _get_file_extension(str);
+                accepted := false;
+                file := ja.FileInfo{};
+                for accepted_ext in res.accepted_extensions {
+                    if ext == accepted_ext {                        
+                        file = _create_file_info(res.path, str, data);
                         res.max_size += uint(file.size);
                         //Check for meta file and make if not existing
-                        if !_meta_file_check(res.path) {
-
-                        }
                         match kind {
                             case Kind.Texture : {
                                 add_texture(res, file);
@@ -176,9 +178,12 @@ create_new :: proc(kind : Kind, identifier : string, path : string, acceptedExte
                                 panic("FUCK");
                             }
                         }
-
+                        accepted = true;
                         break;
                     }
+                }
+                if accepted {
+                    _meta_file_check_and_create(file);
                 }
                 res.files_in_folder++;
             }
@@ -323,6 +328,18 @@ _create_file_info :: proc(path : string filename : string, data : win32.FindData
     return file;
 }
 
-_meta_file_check :: proc(asset_path : string) {
-    console.log(asset_path);
+_meta_file_check_and_create :: proc(asset_file : ja.FileInfo) {
+    if asset_file.ext == ".jeta" {
+        return;
+    }
+    buf : [1024]byte;
+    meta_path := fmt.bprintf(buf[..], "%s.jeta", asset_file.path);
+    data := win32.FindData{};
+    fileH := win32.find_first_file_a(&buf[0], &data);
+    if fileH == win32.INVALID_HANDLE {
+        when CREATE_META_FILES {
+            console.log("meta file for %s not found. Creating meta file.", asset_file.path);
+            os.open(meta_path, os.O_WRONLY|os.O_CREAT, 0);
+        }
+    }
 }
