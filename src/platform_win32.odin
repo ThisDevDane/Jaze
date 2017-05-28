@@ -6,7 +6,7 @@
  *  @Creation: 05-05-2017 22:12:56
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 19:10:51
+ *  @Last Time: 28-05-2017 20:19:30
  *  
  *  @Description:
  *      Contains data and functions related to interacting with windows.
@@ -32,7 +32,7 @@ Data_t :: struct {
     WindowHandle       : WndHandle,
     DeviceCtx          : win32.Hdc,
     Ogl                : gl.OpenGLVars_t,
-    WindowPlacement    : win32.Window_Placement,
+    WindowPlacement    : win32.WindowPlacement,
 }
 
 WindowProc :: proc(hwnd: win32.Hwnd, 
@@ -41,24 +41,24 @@ WindowProc :: proc(hwnd: win32.Hwnd,
                    lparam: win32.Lparam) -> win32.Lresult #cc_c {
     match(msg) {       
         case win32.WM_DESTROY : {
-            win32.PostQuitMessage(0);
+            win32.post_quit_message(0);
             return 0;
         }
 
         case : {
-            return win32.DefWindowProcA(hwnd, msg, wparam, lparam);
+            return win32.def_window_proc_a(hwnd, msg, wparam, lparam);
         }
     }
 }
 
 GetProgramHandle :: proc() -> AppHandle {
-    return AppHandle(win32.GetModuleHandleA(nil));
+    return AppHandle(win32.get_module_handle_a(nil));
 }
 
 GetWindowSize :: proc(handle : WndHandle) -> math.Vec2 {
     res : math.Vec2;
     rect : win32.Rect;
-    win32.GetClientRect(win32.Hwnd(handle), &rect);
+    win32.get_client_rect(win32.Hwnd(handle), &rect);
     res.x = f32(rect.right);
     res.y = f32(rect.bottom);
 
@@ -66,7 +66,7 @@ GetWindowSize :: proc(handle : WndHandle) -> math.Vec2 {
 }
 
 SwapBuffers :: proc(dc : win32.Hdc) {
-    win32.SwapBuffers(dc);
+    win32.swap_buffers(dc);
 }
 
 Event :: union {
@@ -80,18 +80,18 @@ Event :: union {
 
 MessageLoop :: proc(ctx : ^engine.Context){
     msg : win32.Msg;
-    for win32.PeekMessageA(&msg, nil, 0, 0, win32.PM_REMOVE) == win32.TRUE {
+    for win32.peek_message_a(&msg, nil, 0, 0, win32.PM_REMOVE) == win32.TRUE {
         match msg.message {
             case win32.WM_QUIT : {
                 ctx.settings.program_running = false;
             }
 
             case win32.WM_SYSKEYDOWN : {
-                if win32.Key_Code(msg.wparam) == win32.Key_Code.RETURN {
+                if win32.KeyCode(msg.wparam) == win32.KeyCode.Return {
                     ToggleBorderlessFullscreen(ctx.win32.WindowHandle, &ctx.win32.WindowPlacement);
                 }
 
-                if win32.Key_Code(msg.wparam) == win32.Key_Code.C {
+                if win32.KeyCode(msg.wparam) == win32.KeyCode.C {
                     debugWnd.toggle_window_state("ShowConsoleWindow");
                 }
 
@@ -102,8 +102,8 @@ MessageLoop :: proc(ctx : ^engine.Context){
             }
 
             case win32.WM_KEYDOWN : {
-                if win32.Key_Code(msg.wparam) == win32.Key_Code.ESCAPE {
-                    win32.PostQuitMessage(0);
+                if win32.KeyCode(msg.wparam) == win32.KeyCode.Escape {
+                    win32.post_quit_message(0);
                 }
             } 
 
@@ -126,17 +126,17 @@ MessageLoop :: proc(ctx : ^engine.Context){
 
         }
 
-        win32.TranslateMessage(&msg);
-        win32.DispatchMessageA(&msg);
+        win32.translate_message(&msg);
+        win32.dispatch_message_a(&msg);
     }
 }
 
 GetDC :: proc(handle : WndHandle) -> win32.Hdc {
-    return win32.GetDC(win32.Hwnd(handle));
+    return win32.get_d_c(win32.Hwnd(handle));
 }
 
 IsWindowActive :: proc(handle : WndHandle) -> bool {
-    return win32.GetActiveWindow() == win32.Hwnd(handle);
+    return win32.get_active_window() == win32.Hwnd(handle);
 }
 
 /*GetGlobalCursorPos :: proc() -> math.Vec2 {
@@ -148,8 +148,8 @@ IsWindowActive :: proc(handle : WndHandle) -> bool {
 
 GetCursorPos :: proc(handle : WndHandle) -> math.Vec2 {
     mousePos : win32.Point;
-    win32.GetCursorPos(&mousePos);
-    win32.ScreenToClient(win32.Hwnd(handle), &mousePos);
+    win32.get_cursor_pos(&mousePos);
+    win32.screen_to_client(win32.Hwnd(handle), &mousePos);
     return math.Vec2{f32(mousePos.x), f32(mousePos.y)};
 }
 
@@ -158,18 +158,18 @@ CreateWindow :: proc (instance : AppHandle, windowSize : math.Vec2) -> WndHandle
     wndClass : WndClassExA;
     wndClass.size = size_of(WndClassExA);
     wndClass.style = CS_OWNDC|CS_HREDRAW|CS_VREDRAW;
-    wndClass.wnd_proc = WindowProc;
+    wndClass.wndproc = WindowProc;
     wndClass.instance = win32.Hinstance(instance);
     wndClass.class_name = strings.new_c_string("jaze_class");
 
-    if RegisterClassExA(&wndClass) == 0 {
+    if register_class_ex_a(&wndClass) == 0 {
         panic("Could not register main window class");
     }
 
     windowStyle : u32 = WS_OVERLAPPEDWINDOW|WS_VISIBLE;
     clientRect := Rect{0, 0, i32(windowSize.x), i32(windowSize.y)};
-    AdjustWindowRect(&clientRect, windowStyle, 0);
-    windowHandle := CreateWindowExA(0,
+    adjust_window_rect(&clientRect, windowStyle, 0);
+    windowHandle := create_window_ex_a(0,
                                     wndClass.class_name,
                                     strings.new_c_string("Jaze - DEV VERSION"),
                                     windowStyle,
@@ -189,7 +189,7 @@ CreateWindow :: proc (instance : AppHandle, windowSize : math.Vec2) -> WndHandle
 }
 
 GetMaxGLVersion :: proc() -> (i32, i32) {
-    wndHandle := win32.CreateWindowExA(0, 
+    wndHandle := win32.create_window_ex_a(0, 
                                        strings.new_c_string("STATIC"), 
                                        strings.new_c_string("OpenGL Version Checker"), 
                                        win32.WS_OVERLAPPED, 
@@ -198,29 +198,29 @@ GetMaxGLVersion :: proc() -> (i32, i32) {
     if wndHandle == nil {
         panic("Could not create opengl version checker window");
     }
-    deviceCtx := win32.GetDC(wndHandle);
+    deviceCtx := win32.get_d_c(wndHandle);
     if deviceCtx == nil {
         panic("Could not get DC for opengl version checker window");
     }
 
-    pfd := win32.PIXELFORMATDESCRIPTOR {};
-    pfd.size = size_of(win32.PIXELFORMATDESCRIPTOR);
+    pfd := win32.PixelFormatDescriptor{};
+    pfd.size = size_of(win32.PixelFormatDescriptor);
     pfd.version = 1;
     pfd.flags = win32.PFD_DRAW_TO_WINDOW | win32.PFD_SUPPORT_OPENGL | win32.PFD_DOUBLEBUFFER;
     pfd.color_bits = 32;
     pfd.alpha_bits = 8;
     pfd.depth_bits = 24;
-    format := win32.ChoosePixelFormat(deviceCtx, &pfd);
+    format := win32.choose_pixel_format(deviceCtx, &pfd);
 
-    win32.DescribePixelFormat(deviceCtx, format, size_of(win32.PIXELFORMATDESCRIPTOR), &pfd);
+    win32.describe_pixel_format(deviceCtx, format, size_of(win32.PixelFormatDescriptor), &pfd);
 
-    win32.SetPixelFormat(deviceCtx, format, &pfd);
+    win32.set_pixel_format(deviceCtx, format, &pfd);
 
-    ctx := win32wgl.CreateContext(deviceCtx);
+    ctx := win32wgl.create_context(deviceCtx);
     if deviceCtx == nil {
         panic("Could not get OpenGL Context for opengl version checker window");
     }
-    win32wgl.MakeCurrent(deviceCtx, ctx);
+    win32wgl.make_current(deviceCtx, ctx);
 
     major : i32;
     minor : i32;
@@ -234,29 +234,29 @@ GetMaxGLVersion :: proc() -> (i32, i32) {
 CreateOpenGLContext :: proc (DeviceCtx : win32.Hdc, modern : bool, major, minor : int) -> win32wgl.Hglrc
 {
     if !modern {
-        pfd := win32.PIXELFORMATDESCRIPTOR {};
-        pfd.size = size_of(win32.PIXELFORMATDESCRIPTOR);
+        pfd := win32.PixelFormatDescriptor {};
+        pfd.size = size_of(win32.PixelFormatDescriptor);
         pfd.version = 1;
         pfd.flags = win32.PFD_DRAW_TO_WINDOW | win32.PFD_SUPPORT_OPENGL | win32.PFD_DOUBLEBUFFER;
         pfd.color_bits = 32;
         pfd.alpha_bits = 8;
         pfd.depth_bits = 24;
-        format := win32.ChoosePixelFormat(DeviceCtx, &pfd);
+        format := win32.choose_pixel_format(DeviceCtx, &pfd);
 
-        win32.DescribePixelFormat(DeviceCtx, format, size_of(win32.PIXELFORMATDESCRIPTOR), &pfd);
+        win32.describe_pixel_format(DeviceCtx, format, size_of(win32.PixelFormatDescriptor), &pfd);
 
-        win32.SetPixelFormat(DeviceCtx, format, &pfd);
+        win32.set_pixel_format(DeviceCtx, format, &pfd);
 
-        ctx := win32wgl.CreateContext(DeviceCtx);
+        ctx := win32wgl.create_context(DeviceCtx);
 
         assert(ctx != nil);
-        win32wgl.MakeCurrent(DeviceCtx, ctx);
+        win32wgl.make_current(DeviceCtx, ctx);
 
         return ctx;
     } else {
         {
     
-            wndHandle := win32.CreateWindowExA(0, 
+            wndHandle := win32.create_window_ex_a(0, 
                            strings.new_c_string("STATIC"), 
                            strings.new_c_string("OpenGL Loader"), 
                            win32.WS_OVERLAPPED, 
@@ -265,7 +265,7 @@ CreateOpenGLContext :: proc (DeviceCtx : win32.Hdc, modern : bool, major, minor 
             if wndHandle == nil {
                 panic("Could not create opengl loader window");
             }
-            wndDc := win32.GetDC(wndHandle);
+            wndDc := win32.get_d_c(wndHandle);
             assert(wndDc != nil);
             temp := DeviceCtx;
             DeviceCtx = wndDc;
@@ -280,10 +280,10 @@ CreateOpenGLContext :: proc (DeviceCtx : win32.Hdc, modern : bool, major, minor 
             wgl.TryGetExtension(&extensions, &wgl.GetExtensionsStringARB,  "wglGetExtensionsStringARB");
             wgl.TryGetExtension(&extensions, &wgl.SwapIntervalEXT,         "wglSwapIntervalEXT");
             wgl.LoadExtensions(oldCtx, wndDc, extensions);
-            win32wgl.MakeCurrent(nil, nil);
-            win32wgl.DeleteContext(oldCtx);
-            win32.ReleaseDC(wndHandle, wndDc);
-            win32.DestroyWindow(wndHandle);
+            win32wgl.make_current(nil, nil);
+            win32wgl.delete_context(oldCtx);
+            win32.release_d_c(wndHandle, wndDc);
+            win32.destroy_window(wndHandle);
     
         }
         
@@ -305,12 +305,12 @@ CreateOpenGLContext :: proc (DeviceCtx : win32.Hdc, modern : bool, major, minor 
         if (success == win32.TRUE) && (formats == 0) {
             panic("Couldn't find suitable pixel format");
         }
-        pfd : win32.PIXELFORMATDESCRIPTOR;
+        pfd : win32.PixelFormatDescriptor;
         pfd.version = 1;
-        pfd.size = size_of(win32.PIXELFORMATDESCRIPTOR);
+        pfd.size = size_of(win32.PixelFormatDescriptor);
 
-        win32.DescribePixelFormat(DeviceCtx, format, size_of(win32.PIXELFORMATDESCRIPTOR), &pfd);
-        win32.SetPixelFormat(DeviceCtx, format, &pfd);
+        win32.describe_pixel_format(DeviceCtx, format, size_of(win32.PixelFormatDescriptor), &pfd);
+        win32.set_pixel_format(DeviceCtx, format, &pfd);
         createAttr : [dynamic]wgl.Attrib;
         append(createAttr, wgl.CONTEXT_MAJOR_VERSION_ARB(i32(major)),
                            wgl.CONTEXT_MINOR_VERSION_ARB(i32(minor)),
@@ -320,29 +320,29 @@ CreateOpenGLContext :: proc (DeviceCtx : win32.Hdc, modern : bool, major, minor 
         
         ctx := wgl.CreateContextAttribsARB(DeviceCtx, nil, &attribArray[0]);
         assert(ctx != nil);
-        win32wgl.MakeCurrent(DeviceCtx, ctx);
+        win32wgl.make_current(DeviceCtx, ctx);
         return ctx;
     }
 }
 
-ToggleBorderlessFullscreen :: proc(wnd : WndHandle, WindowPlacement : ^win32.Window_Placement) {
-    Style : u32 = u32(win32.GetWindowLongPtrA(win32.Hwnd(wnd), win32.GWL_STYLE));
+ToggleBorderlessFullscreen :: proc(wnd : WndHandle, WindowPlacement : ^win32.WindowPlacement) {
+    Style : u32 = u32(win32.get_window_long_ptr_a(win32.Hwnd(wnd), win32.GWL_STYLE));
     if(Style & win32.WS_OVERLAPPEDWINDOW == win32.WS_OVERLAPPEDWINDOW) {
-        monitorInfo : win32.Monitor_Info;
-        monitorInfo.size = size_of(win32.Monitor_Info);
+        monitorInfo : win32.MonitorInfo;
+        monitorInfo.size = size_of(win32.MonitorInfo);
 
-        win32.GetWindowPlacement(win32.Hwnd(wnd), WindowPlacement);
-        win32.GetMonitorInfoA(win32.MonitorFromWindow(win32.Hwnd(wnd), win32.MONITOR_DEFAULTTOPRIMARY), &monitorInfo);
-        win32.SetWindowLongPtrA(win32.Hwnd(wnd), win32.GWL_STYLE, i64(Style) & ~win32.WS_OVERLAPPEDWINDOW);
-        win32.SetWindowPos(win32.Hwnd(wnd), win32.Hwnd_TOP,
+        win32.get_window_placement(win32.Hwnd(wnd), WindowPlacement);
+        win32.get_monitor_info_a(win32.monitor_from_window(win32.Hwnd(wnd), win32.MONITOR_DEFAULTTOPRIMARY), &monitorInfo);
+        win32.set_window_long_ptr_a(win32.Hwnd(wnd), win32.GWL_STYLE, i64(Style) & ~win32.WS_OVERLAPPEDWINDOW);
+        win32.set_window_pos(win32.Hwnd(wnd), win32.Hwnd_TOP,
                                 monitorInfo.monitor.left, monitorInfo.monitor.top,
                                 monitorInfo.monitor.right - monitorInfo.monitor.left,
                                 monitorInfo.monitor.bottom - monitorInfo.monitor.top,
                                 win32.SWP_FRAMECHANGED | win32.SWP_NOOWNERZORDER);
     } else {
-        win32.SetWindowLongPtrA(win32.Hwnd(wnd), win32.GWL_STYLE, i64(Style | win32.WS_OVERLAPPEDWINDOW));
-        win32.SetWindowPlacement(win32.Hwnd(wnd), WindowPlacement);
-        win32.SetWindowPos(win32.Hwnd(wnd), nil, 0, 0, 0, 0,
+        win32.set_window_long_ptr_a(win32.Hwnd(wnd), win32.GWL_STYLE, i64(Style | win32.WS_OVERLAPPEDWINDOW));
+        win32.set_window_placement(win32.Hwnd(wnd), WindowPlacement);
+        win32.set_window_pos(win32.Hwnd(wnd), nil, 0, 0, 0, 0,
                                 win32.SWP_NOMOVE | win32.SWP_NOSIZE | win32.SWP_NOZORDER |
                                 win32.SWP_NOOWNERZORDER | win32.SWP_FRAMECHANGED);
     }       
@@ -351,5 +351,5 @@ ToggleBorderlessFullscreen :: proc(wnd : WndHandle, WindowPlacement : ^win32.Win
 ChangeWindowTitle :: proc(window : WndHandle, fmt_ : string, args : ..any) {
     buf : [1024]byte;
     fmt.bprintf(buf[..], fmt_, ..args);
-    win32.SetWindowTextA(win32.Hwnd(window), &buf[0]);
+    win32.set_window_text_a(win32.Hwnd(window), &buf[0]);
 }

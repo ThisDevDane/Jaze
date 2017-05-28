@@ -6,7 +6,7 @@
  *  @Creation: 02-05-2017 21:38:35
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 17:35:38
+ *  @Last Time: 28-05-2017 20:19:42
  *  
  *  @Description:
  *      This is a XInput wrapper which uses late-binding.
@@ -238,7 +238,7 @@ DebugFunctionLoadStatus :: struct {
     Name    : string,
     Address : int,
     Success : bool,
-    TypeInfo : ^Type_Info,
+    TypeInfo : ^TypeInfo,
 }
 
 DebugInfo_t :: struct {
@@ -257,20 +257,18 @@ Init :: proc(initalState : bool) -> bool {
     lib1_3   := "xinput1_3.dll\x00";
     lib9_1_0 := "xinput9_1_0.dll\x00";
 
-    lib := win32.LoadLibraryA(&lib1_4[0]);
+    lib := win32.load_library_a(&lib1_4[0]);
     using XInputVersion;
     Version = Version1_4;
     if lib == nil {
-        lib = win32.LoadLibraryA(&lib1_3[0]);
+        lib = win32.load_library_a(&lib1_3[0]);
         Version = Version1_3;
     }
 
     if lib == nil {
-        lib := win32.LoadLibraryA(&lib9_1_0[0]);
+        lib := win32.load_library_a(&lib9_1_0[0]);
         Version = Version9_1_0;
     }
-
-
 
     if lib == nil {
         Version = Error;
@@ -282,7 +280,7 @@ Init :: proc(initalState : bool) -> bool {
 
     set_proc_address :: proc(h : win32.Hmodule, p: rawptr, name: string) #inline {
         txt := strings.new_c_string(name); defer free(txt);
-        res: = win32.GetProcAddress(h, txt);
+        res: = win32.get_proc_address(h, txt);
         ^(proc() #cc_c)(p)^ = res;
 
 

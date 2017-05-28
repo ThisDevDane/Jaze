@@ -6,7 +6,7 @@
  *  @Creation: 03-05-2017 17:54:46
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 17:35:16
+ *  @Last Time: 28-05-2017 20:10:01
  *  
  *  @Description:
  *      Contains constructs related to Input.
@@ -28,7 +28,7 @@ ButtonStates :: enum {
 
 Binding :: struct {
     id       : string,
-    key      : win32.Key_Code,
+    key      : win32.KeyCode,
     x_button : xinput.Buttons, 
 }
 
@@ -55,8 +55,8 @@ update_mouse_position :: proc(input : ^Input, handle : p32.WndHandle) {
 }
 
 update_keyboard :: proc(input : ^Input) {
-    for k in win32.Key_Code {
-        if win32.GetKeyState(i32(k)) < 0 {
+    for k in win32.KeyCode {
+        if win32.get_key_state(i32(k)) < 0 {
             if input._old_key_states[k] == ButtonStates.Down || 
                input._old_key_states[k] == ButtonStates.Held {
                 input.key_states[k] = ButtonStates.Held;
@@ -86,13 +86,13 @@ update_xinput :: proc(input : ^Input) {
 }
 
 set_input_neutral :: proc(input : ^Input) {
-    for k in win32.Key_Code { //@TODO(Hoej): should probably do a memset here instead;
+    for k in win32.KeyCode { //@TODO(Hoej): should probably do a memset here instead;
        input.key_states[k] = ButtonStates.Neutral;
        input._old_key_states[k] = ButtonStates.Neutral;
     }
 }
 
-add_binding :: proc(input : ^Input, name : string, key : win32.Key_Code) {
+add_binding :: proc(input : ^Input, name : string, key : win32.KeyCode) {
     _, ok := input.bindings[name];
     if ok {
         input.bindings[name].key = key;
@@ -112,7 +112,7 @@ add_binding :: proc(input : ^Input, name : string, xKey : xinput.Buttons) {
     } else {
         new : Binding;
         new.id = name;
-        new.key = win32.Key_Code.NONAME;
+        new.key = win32.KeyCode.Noname;
         new.x_button = xKey;
         input.bindings[name] = new;
     }

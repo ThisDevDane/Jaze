@@ -6,7 +6,7 @@
  *  @Creation: 01-05-2017 18:28:11
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 17:01:45
+ *  @Last Time: 28-05-2017 20:09:16
  *  
  *  @Description:
  *      Contains the catalog construct.
@@ -129,7 +129,7 @@ create_new :: proc(kind : Kind, identifier : string, path : string, acceptedExte
 
     //Check if path exists
     pstr := strings.new_c_string(path); defer free(pstr);
-    attr := win32.GetFileAttributesA(pstr);
+    attr := win32.get_file_attributes_a(pstr);
     if _is_directory(attr) {
 
         res := new(Catalog);
@@ -138,12 +138,12 @@ create_new :: proc(kind : Kind, identifier : string, path : string, acceptedExte
         res.path = fmt.bprintf(buf[..], "%s%s", path, path[len(path)-1] == '/' ? "" : "/");
         res.kind = kind;
         extract_accepted_extensions(res, acceptedExtensions);
-        data := win32.Find_Data{};
+        data := win32.FindData{};
         fmt.bprintf(buf[..], "%s%s", path, path[len(path)-1] == '\\' ? "*" : "\\*");
-        fileH := win32.FindFirstFileA(&buf[0], &data);
+        fileH := win32.find_first_file_a(&buf[0], &data);
 
         if fileH != win32.INVALID_HANDLE {
-            for win32.FindNextFileA(fileH, &data) == win32.TRUE {
+            for win32.find_next_file_a(fileH, &data) == win32.TRUE {
                 if _is_directory(data.file_attributes) {
                     continue;
                 }
@@ -308,7 +308,7 @@ _is_directory :: proc(attr : u32) -> bool {
           ((attr & win32.FILE_ATTRIBUTE_DIRECTORY) == win32.FILE_ATTRIBUTE_DIRECTORY);
 }
 
-_create_file_info :: proc(path : string filename : string, data : win32.Find_Data) -> ja.FileInfo {
+_create_file_info :: proc(path : string filename : string, data : win32.FindData) -> ja.FileInfo {
     file := ja.FileInfo{};
     file.name = _get_file_name_without_extension(filename);
     file.ext  = _get_file_extension(filename);

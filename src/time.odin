@@ -6,7 +6,7 @@
  *  @Creation: 21-04-2017 03:04:34
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 17:41:11
+ *  @Last Time: 28-05-2017 20:08:41
  *  
  *  @Description:
  *      Contains the time construct.
@@ -27,8 +27,8 @@ Data :: struct {
 create_data :: proc() -> ^Data {
     res := new(Data);
 
-    win32.QueryPerformanceFrequency(&res._pf_freq);
-    win32.QueryPerformanceCounter(&res._pf_old);
+    win32.query_performance_frequency(&res._pf_freq);
+    win32.query_performance_counter(&res._pf_old);
     res.time_scale = 1;
 
     return res;
@@ -36,7 +36,7 @@ create_data :: proc() -> ^Data {
 
 update :: proc(data : ^Data) {
     newTime : i64;
-    win32.QueryPerformanceCounter(&newTime);
+    win32.query_performance_counter(&newTime);
     data.unscaled_delta_time = f64((newTime - data._pf_old));
     data._pf_old = newTime;
     data.unscaled_delta_time /= f64(data._pf_freq);

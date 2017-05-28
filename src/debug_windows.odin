@@ -6,7 +6,7 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 19:06:11
+ *  @Last Time: 28-05-2017 20:20:28
  *  
  *  @Description:
  *      Contains all the drawing code for debug windows.
@@ -57,13 +57,13 @@ try_show_window :: proc(id : string, p : proc(b : ^bool)) {
 show_struct_info :: proc(name : string, show : ^bool, data : any) {
     imgui.begin(name, show, STD_WINDOW);
     {
-        imgui.columns(2, nil, true);
-        info := type_info_base(data.type_info).(^Type_Info.Struct);
+        imgui.columns(2, "nil", true);
+        info := type_info_base(data.type_info).(^TypeInfo.Struct);
         for n, i in info.names {
             imgui.text("%s", n);
             imgui.next_column();
             match t in info.types[i] {
-                case Type_Info.Pointer : {
+                case TypeInfo.Pointer : {
                     if t.elem == nil {
                         imgui.text("RAWPTR");
                     } else {
@@ -78,7 +78,7 @@ show_struct_info :: proc(name : string, show : ^bool, data : any) {
                     }
                 }
 
-                case Type_Info.Boolean : {
+                case TypeInfo.Boolean : {
                     value := ^byte(data.data) + info.offsets[i];
                     col := bool(value^) ? imgui.Vec4{0, 1, 0, 1} : imgui.Vec4{1, 0, 0, 1};
                     v := any{rawptr(value), type_info_base(info.types[i])};
@@ -130,7 +130,7 @@ show_entity_list :: proc(gameCtx : ^game.Context, show : ^bool) {
 
     imgui.begin("Entity List", show, STD_WINDOW);
     {
-        imgui.columns(2, nil, false);
+        imgui.columns(2, "nil", false);
         imgui.begin_child("Entities", imgui.Vec2{0, -20}, true, 0);
         {
             for i := gameCtx.entity_list.Front;
@@ -176,7 +176,7 @@ show_entity_list :: proc(gameCtx : ^game.Context, show : ^bool) {
             }
         }
         imgui.end_child();
-        imgui.columns(1, nil, false);
+        imgui.columns(1, "nil", false);
         imgui.separator();
         imgui.text_colored(imgui.Vec4{1, 1, 1, 0.2}, "Entities: %d", gameCtx.entity_list.Count);
     }
@@ -194,7 +194,7 @@ show_debug_windows_states :: proc(show : ^bool) {
         imgui.separator();
 
         imgui.begin_child("Window States", imgui.Vec2{0, 0}, true, 0);
-        imgui.columns(2, nil, true);
+        imgui.columns(2, "nil", true);
         for val, id in _GlobalDebugWndBools {
             imgui.text("%s", id);
             imgui.next_column();
@@ -202,7 +202,7 @@ show_debug_windows_states :: proc(show : ^bool) {
             imgui.next_column();
             imgui.separator();
         }
-        imgui.columns(1, nil, true);
+        imgui.columns(1, "nil", true);
         imgui.end_child();
     }
     imgui.end();
@@ -255,7 +255,7 @@ opengl_texture_overview :: proc(show : ^bool) {
         columns := _CalculateMaxcolumns(size.x, _PreviewSize.x + 24, i32(len(gl.DebugInfo.LoadedTextures)));
         imgui.begin_child("", imgui.Vec2{0, 0}, false, 0);
         {
-            imgui.columns(columns, nil, false);
+            imgui.columns(columns, "nil", false);
             for id in gl.DebugInfo.LoadedTextures {
                 imgui.image(imgui.TextureID(uint(id)), _PreviewSize, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0.91, 0.4, 0.23, 1});
                 if imgui.is_item_hovered() {
@@ -270,7 +270,7 @@ opengl_texture_overview :: proc(show : ^bool) {
                 }
                 imgui.next_column();
             }
-            imgui.columns(1, nil, false);
+            imgui.columns(1, "nil", false);
             }
         imgui.end_child();
     }
@@ -316,7 +316,7 @@ opengl_info :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
         imgui.separator();
         if imgui.collapsing_header("Loaded Functions", 0) {
             imgui.begin_child("Functions###FuncLoad", imgui.Vec2{0, 0}, true, 0);
-            imgui.columns(2, nil, false);
+            imgui.columns(2, "nil", false);
             suc : string;
             for status in gl.DebugInfo.Statuses {
                 imgui.text(status.Name);
@@ -354,7 +354,7 @@ opengl_info :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
                 imgui.next_column();
 
             }
-            imgui.columns(1, nil, false);
+            imgui.columns(1, "nil", false);
             imgui.end_child();
         }
     }
@@ -398,7 +398,7 @@ show_xinput_info_window :: proc(show : ^bool) {
         imgui.text("Number of functions loaded: %d/%d", xinput.DebugInfo.NumberOfFunctionsLoadedSuccessed, xinput.DebugInfo.NumberOfFunctionsLoaded); 
         if imgui.collapsing_header("Loaded Functions", 0) {
             imgui.begin_child("Functions", imgui.Vec2{0, 150}, true, 0);
-            imgui.columns(2, nil, false);
+            imgui.columns(2, "nil", false);
             for status in xinput.DebugInfo.Statuses {
                 imgui.text(status.Name);
                 imgui.next_column();
@@ -406,11 +406,11 @@ show_xinput_info_window :: proc(show : ^bool) {
                 imgui.next_column();
 
             }
-            imgui.columns(1, nil, false);
+            imgui.columns(1, "nil", false);
             imgui.end_child();
         }
 
-        imgui.columns(2, nil, true);
+        imgui.columns(2, "nil", true);
         for user, i in xinput.User {
             cap, err := xinput.GetCapabilities(user);
             _print_gamepad_name(i, err);
@@ -443,7 +443,7 @@ show_xinput_info_window :: proc(show : ^bool) {
                 imgui.separator();
             }
         }
-        imgui.columns(1, nil, false);
+        imgui.columns(1, "nil", false);
     }
     imgui.end();
 }
@@ -451,7 +451,7 @@ show_xinput_info_window :: proc(show : ^bool) {
 show_xinput_state_window :: proc(show : ^bool) {
     imgui.begin("XInput State", show, STD_WINDOW);
     {
-        imgui.columns(2, nil, true);
+        imgui.columns(2, "nil", true);
         for user, i in xinput.User {
             state, err := xinput.GetState(user);
             _print_gamepad_name(i, err);
@@ -508,7 +508,7 @@ show_xinput_state_window :: proc(show : ^bool) {
                 imgui.separator();
             }
         }
-        imgui.columns(1, nil, false);
+        imgui.columns(1, "nil", false);
     }
     imgui.end();
 }
@@ -592,7 +592,7 @@ show_catalog_window :: proc(show : ^bool) {
 show_input_window :: proc(input : ^jinput.Input, show : ^bool) {
     imgui.begin("Input##TESTIUYHSEIFUSEYGF", show, STD_WINDOW);
     {
-    imgui.columns(4, nil, true);
+    imgui.columns(4, "nil", true);
         imgui.text("ID");
         imgui.next_column();
         imgui.text("Key");
@@ -625,16 +625,16 @@ show_input_window :: proc(input : ^jinput.Input, show : ^bool) {
             imgui.next_column();
         }
 
-        imgui.columns(1, nil, true);
+        imgui.columns(1, "nil", true);
 
         PrintDownHeld :: proc(keyStates : []jinput.ButtonStates) {
-            imgui.columns(2, nil, true);
+            imgui.columns(2, "nil", true);
             imgui.text("Key");
             imgui.next_column();
             imgui.text("State");
             imgui.separator();
             imgui.next_column();
-            for k in win32.Key_Code {
+            for k in win32.KeyCode {
                 if keyStates[k] == jinput.ButtonStates.Down || 
                    keyStates[k] == jinput.ButtonStates.Held {
                     imgui.text("%v", k);
@@ -646,13 +646,13 @@ show_input_window :: proc(input : ^jinput.Input, show : ^bool) {
         }
 
         PrintUpNeutral :: proc(keyStates : []jinput.ButtonStates) {
-            imgui.columns(2, nil, true);
+            imgui.columns(2, "nil", true);
             imgui.text("Key");
             imgui.next_column();
             imgui.text("State");
             imgui.separator();
             imgui.next_column();
-            for k in win32.Key_Code {
+            for k in win32.KeyCode {
                 if keyStates[k] == jinput.ButtonStates.Up || 
                    keyStates[k] == jinput.ButtonStates.Neutral {
                     imgui.text("%v", k);
@@ -665,7 +665,7 @@ show_input_window :: proc(input : ^jinput.Input, show : ^bool) {
 
         imgui.separator();
         if imgui.collapsing_header("Key states", 0) {
-            imgui.columns(2, nil, true);
+            imgui.columns(2, "nil", true);
             imgui.begin_child("Down Held", imgui.Vec2{0, 0}, true, 0);
             PrintDownHeld(input.key_states[..]);
             imgui.end_child();

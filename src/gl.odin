@@ -6,7 +6,7 @@
  *  @Creation: 26-04-2017 16:23:18
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 16:20:20
+ *  @Last Time: 28-05-2017 20:19:38
  *  
  *  @Description:
  *      This is an OpenGL wrapper. Currently assumes GL 3.3 Core.
@@ -67,7 +67,7 @@ DebugFunctionLoadStatus :: struct {
     Name    : string,
     Address : int,
     Success : bool,
-    TypeInfo : ^Type_Info,
+    TypeInfo : ^TypeInfo,
 }
 
 DebugInfo_t :: struct {
@@ -660,14 +660,14 @@ GetInfo :: proc(vars : ^OpenGLVars_t) {
 
 Init :: proc() {
     libString := "opengl32.dll\x00";
-    lib := win32.LoadLibraryA(&libString[0]); defer win32.FreeLibrary(lib);
+    lib := win32.load_library_a(&libString[0]); defer win32.free_library(lib);
     DebugInfo.LibAddress = int(lib);
-    set_proc_address :: proc(h : win32.Hmodule, p: rawptr, name: string, info : ^Type_Info) #inline {
+    set_proc_address :: proc(h : win32.Hmodule, p: rawptr, name: string, info : ^TypeInfo) #inline {
         txt := strings.new_c_string(name); defer free(txt);
 
-        res := win32wgl.GetProcAddress(txt);
+        res := win32wgl.get_proc_address(txt);
         if res == nil {
-            res = win32.GetProcAddress(h, txt);
+            res = win32.get_proc_address(h, txt);
         }   
 
         ^(proc() #cc_c)(p)^ = res;

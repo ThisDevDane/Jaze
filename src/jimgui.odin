@@ -6,7 +6,7 @@
  *  @Creation: 02-05-2017 21:38:35
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 19:18:16
+ *  @Last Time: 28-05-2017 20:07:22
  *  
  *  @Description:
  *      Contains user specific data and functions related to using Dear ImGui.
@@ -76,19 +76,19 @@ init :: proc(ctx : ^engine.Context) {
     io.ime_window_handle = ctx.win32.WindowHandle;
     //io.RenderDrawListsFn = RenderProc;
 
-    io.key_map[imgui.GuiKey.Tab]        = i32(win32.Key_Code.TAB);
-    io.key_map[imgui.GuiKey.LeftArrow]  = i32(win32.Key_Code.LEFT);
-    io.key_map[imgui.GuiKey.RightArrow] = i32(win32.Key_Code.RIGHT);
-    io.key_map[imgui.GuiKey.UpArrow]    = i32(win32.Key_Code.UP);
-    io.key_map[imgui.GuiKey.DownArrow]  = i32(win32.Key_Code.DOWN);
-    io.key_map[imgui.GuiKey.PageUp]     = i32(win32.Key_Code.NEXT);
-    io.key_map[imgui.GuiKey.PageDown]   = i32(win32.Key_Code.PRIOR);
-    io.key_map[imgui.GuiKey.Home]       = i32(win32.Key_Code.HOME);
-    io.key_map[imgui.GuiKey.End]        = i32(win32.Key_Code.END);
-    io.key_map[imgui.GuiKey.Delete]     = i32(win32.Key_Code.DELETE);
-    io.key_map[imgui.GuiKey.Backspace]  = i32(win32.Key_Code.BACK);
-    io.key_map[imgui.GuiKey.Enter]      = i32(win32.Key_Code.RETURN);
-    io.key_map[imgui.GuiKey.Escape]     = i32(win32.Key_Code.ESCAPE);
+    io.key_map[imgui.GuiKey.Tab]        = i32(win32.KeyCode.Tab);
+    io.key_map[imgui.GuiKey.LeftArrow]  = i32(win32.KeyCode.Left);
+    io.key_map[imgui.GuiKey.RightArrow] = i32(win32.KeyCode.Right);
+    io.key_map[imgui.GuiKey.UpArrow]    = i32(win32.KeyCode.Up);
+    io.key_map[imgui.GuiKey.DownArrow]  = i32(win32.KeyCode.Down);
+    io.key_map[imgui.GuiKey.PageUp]     = i32(win32.KeyCode.Next);
+    io.key_map[imgui.GuiKey.PageDown]   = i32(win32.KeyCode.Prior);
+    io.key_map[imgui.GuiKey.Home]       = i32(win32.KeyCode.Home);
+    io.key_map[imgui.GuiKey.End]        = i32(win32.KeyCode.End);
+    io.key_map[imgui.GuiKey.Delete]     = i32(win32.KeyCode.Delete);
+    io.key_map[imgui.GuiKey.Backspace]  = i32(win32.KeyCode.Back);
+    io.key_map[imgui.GuiKey.Enter]      = i32(win32.KeyCode.Return);
+    io.key_map[imgui.GuiKey.Escape]     = i32(win32.KeyCode.Escape);
     io.key_map[imgui.GuiKey.A]          = 'A';
     io.key_map[imgui.GuiKey.C]          = 'C';
     io.key_map[imgui.GuiKey.V]          = 'V';
@@ -182,21 +182,21 @@ begin_new_frame :: proc(deltaTime : f64, ctx : ^engine.Context) {
     io.display_size.x = ctx.window_size.x;
     io.display_size.y = ctx.window_size.y;
 
-    if win32.GetActiveWindow() == win32.Hwnd(io.ime_window_handle) {
+    if win32.get_active_window() == win32.Hwnd(io.ime_window_handle) {
         io.mouse_pos.x = ctx.input.mouse_pos.x;
         io.mouse_pos.y = ctx.input.mouse_pos.y;
-        io.mouse_down[0] = win32.is_key_down(win32.Key_Code.LBUTTON);
-        io.mouse_down[1] = win32.is_key_down(win32.Key_Code.RBUTTON);
+        io.mouse_down[0] = win32.is_key_down(win32.KeyCode.Lbutton);
+        io.mouse_down[1] = win32.is_key_down(win32.KeyCode.Rbutton);
 
         io.mouse_wheel = f32(ctx.imgui_state.mouse_wheel_delta); 
 
-        io.key_ctrl =  win32.is_key_down(win32.Key_Code.LCONTROL) || win32.is_key_down(win32.Key_Code.RCONTROL);
-        io.key_shift = win32.is_key_down(win32.Key_Code.LSHIFT)   || win32.is_key_down(win32.Key_Code.RSHIFT);
-        io.key_alt =   win32.is_key_down(win32.Key_Code.LMENU)    || win32.is_key_down(win32.Key_Code.RMENU);
-        io.key_super = win32.is_key_down(win32.Key_Code.LWIN)     || win32.is_key_down(win32.Key_Code.RWIN);
+        io.key_ctrl =  win32.is_key_down(win32.KeyCode.Lcontrol) || win32.is_key_down(win32.KeyCode.Rcontrol);
+        io.key_shift = win32.is_key_down(win32.KeyCode.Lshift)   || win32.is_key_down(win32.KeyCode.Rshift);
+        io.key_alt =   win32.is_key_down(win32.KeyCode.Lmenu)    || win32.is_key_down(win32.KeyCode.Rmenu);
+        io.key_super = win32.is_key_down(win32.KeyCode.Lwin)     || win32.is_key_down(win32.KeyCode.Rwin);
 
         for i in 0..257 {
-            io.keys_down[i] = win32.is_key_down(win32.Key_Code(i));
+            io.keys_down[i] = win32.is_key_down(win32.KeyCode(i));
         }
     } else {
         io.mouse_down[0] = false;
@@ -222,7 +222,7 @@ render_proc :: proc(ctx : ^engine.Context) {
 
     io := imgui.get_io();
     rect : win32.Rect;
-    win32.GetClientRect(win32.Hwnd(io.ime_window_handle), &rect);
+    win32.get_client_rect(win32.Hwnd(io.ime_window_handle), &rect);
     io.display_size.x = f32(rect.right);
     io.display_size.y = f32(rect.bottom);
     width := i32(io.display_size.x * io.display_framebuffer_scale.x);

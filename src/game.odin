@@ -6,7 +6,7 @@
  *  @Creation: 04-05-2017 15:53:25
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 17:33:07
+ *  @Last Time: 28-05-2017 20:10:14
  *  
  *  @Description:
  *      Contains the Game Context.
@@ -75,16 +75,16 @@ upload_tower_textures :: proc(ctx : ^Context, textureCat : ^catalog.Catalog) {
 }
 
 setup_bindings :: proc(input_ : ^input.Input) {
-    input.add_binding(input_, "CameraUp",       win32.Key_Code.W);
-    input.add_binding(input_, "CameraLeft",     win32.Key_Code.A);
-    input.add_binding(input_, "CameraRight",    win32.Key_Code.D);
-    input.add_binding(input_, "CameraDown",     win32.Key_Code.S);
-    input.add_binding(input_, "CameraZoomIn",   win32.Key_Code.E);
-    input.add_binding(input_, "CameraZoomOut",  win32.Key_Code.Q);
-    input.add_binding(input_, "CameraFastMov",  win32.Key_Code.SHIFT);
+    input.add_binding(input_, "CameraUp",       win32.KeyCode.W);
+    input.add_binding(input_, "CameraLeft",     win32.KeyCode.A);
+    input.add_binding(input_, "CameraRight",    win32.KeyCode.D);
+    input.add_binding(input_, "CameraDown",     win32.KeyCode.S);
+    input.add_binding(input_, "CameraZoomIn",   win32.KeyCode.E);
+    input.add_binding(input_, "CameraZoomOut",  win32.KeyCode.Q);
+    input.add_binding(input_, "CameraFastMov",  win32.KeyCode.Shift);
 
-    input.add_binding(input_, "ToggleBuild",  win32.Key_Code.B);
-    input.add_binding(input_, "Build",  win32.Key_Code.LBUTTON);
+    input.add_binding(input_, "ToggleBuild",  win32.KeyCode.B);
+    input.add_binding(input_, "Build",  win32.KeyCode.Lbutton);
 }
 
 camera_logic :: proc(ctx : ^engine.Context, camera : ^renderer.Camera_t) {

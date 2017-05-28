@@ -6,7 +6,7 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 18:59:53
+ *  @Last Time: 28-05-2017 20:09:38
  *  
  *  @Description:
  *      The console is an in engine window that can be pulled up for viewing.
@@ -94,8 +94,8 @@ _internal_log :: proc(fmt_ : string, level : LogLevel, args : ..any) {
 
     ft : win32.Filetime;
     st : win32.Systemtime;
-    win32.GetSystemTimeAsFileTime(&ft);
-    win32.FileTimeToSystemTime(&ft, &st);
+    win32.get_system_time_as_file_time(&ft);
+    win32.file_time_to_system_time(&ft, &st);
 
     item.time = st;
 
@@ -110,8 +110,8 @@ _update_log_file :: proc() {
     if len(_internal_data.log_file_name) <= 0 {
         ft : win32.Filetime;
         st : win32.Systemtime;
-        win32.GetSystemTimeAsFileTime(&ft);
-        win32.FileTimeToSystemTime(&ft, &st);
+        win32.get_system_time_as_file_time(&ft);
+        win32.file_time_to_system_time(&ft, &st);
 
         buf := make([]byte, 255);
         _internal_data.log_file_name = fmt.bprintf(buf[..], "%d-%d-%d_%d%d%d.jlog", 

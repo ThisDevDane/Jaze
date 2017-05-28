@@ -6,7 +6,7 @@
  *  @Creation: 05-05-2017 22:12:56
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 01:02:19
+ *  @Last Time: 28-05-2017 20:20:21
  *  
  *  @Description:
  *      Contains functions and constructs related to windows specific OpenGL.
@@ -164,12 +164,12 @@ TryGetExtension :: proc(list : ^TryGetExtensionList, p : rawptr, name : string) 
 }
 
 LoadExtensions :: proc(GLContext : win32wgl.Hglrc, WindowDC : win32.Hdc, list : TryGetExtensionList) {
-     if win32wgl.MakeCurrent(WindowDC, GLContext) == win32.TRUE {
-        defer win32wgl.MakeCurrent(nil, nil);
+     if win32wgl.make_current(WindowDC, GLContext) == win32.TRUE {
+        defer win32wgl.make_current(nil, nil);
 
         set_proc_address :: proc(p: rawptr, name : string) #inline { 
             txt := strings.new_c_string(name); defer free(txt);
-            res := win32wgl.GetProcAddress(txt);
+            res := win32wgl.get_proc_address(txt);
             assert(res != nil);
             ^(proc() #cc_c)(p)^ = res;
         }

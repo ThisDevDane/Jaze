@@ -6,7 +6,7 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 18:59:15
+ *  @Last Time: 28-05-2017 20:06:24
  *  
  *  @Description:
  *      Contains all the debug menu stuff related to the Menu bar.
@@ -86,7 +86,7 @@ make_menu_bar :: proc(ctx : ^engine.Context) {
         }
 
         if imgui.checkbox("Hardware Cursor", &ctx.settings.show_cursor) {
-            win32.ShowCursor(win32.Bool(ctx.settings.show_cursor));
+            win32.show_cursor(win32.Bool(ctx.settings.show_cursor));
         }
         
         imgui.end_menu();
