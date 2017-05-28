@@ -6,7 +6,7 @@
  *  @Creation: 21-04-2017 03:04:34
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 17:32:40
+ *  @Last Time: 28-05-2017 17:41:11
  *  
  *  @Description:
  *      Contains the time construct.

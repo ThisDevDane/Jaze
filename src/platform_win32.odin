@@ -6,7 +6,7 @@
  *  @Creation: 05-05-2017 22:12:56
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 17:25:58
+ *  @Last Time: 28-05-2017 19:10:51
  *  
  *  @Description:
  *      Contains data and functions related to interacting with windows.
@@ -108,8 +108,8 @@ MessageLoop :: proc(ctx : ^engine.Context){
             } 
 
             case win32.WM_CHAR : {
-                imgui.GuiIO_AddInputCharacter(u16(msg.wparam)); 
-            input.add_char_to_queue(ctx.input, rune(msg.wparam));
+                imgui.gui_io_add_input_character(u16(msg.wparam)); 
+                input.add_char_to_queue(ctx.input, rune(msg.wparam));
             }
             break;
 

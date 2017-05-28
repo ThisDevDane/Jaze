@@ -6,7 +6,7 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 17:35:25
+ *  @Last Time: 28-05-2017 19:06:11
  *  
  *  @Description:
  *      Contains all the drawing code for debug windows.
@@ -55,21 +55,21 @@ try_show_window :: proc(id : string, p : proc(b : ^bool)) {
 }
 
 show_struct_info :: proc(name : string, show : ^bool, data : any) {
-    imgui.Begin(name, show, STD_WINDOW);
+    imgui.begin(name, show, STD_WINDOW);
     {
-        imgui.Columns(2, nil, true);
+        imgui.columns(2, nil, true);
         info := type_info_base(data.type_info).(^Type_Info.Struct);
         for n, i in info.names {
-            imgui.Text("%s", n);
-            imgui.NextColumn();
+            imgui.text("%s", n);
+            imgui.next_column();
             match t in info.types[i] {
                 case Type_Info.Pointer : {
                     if t.elem == nil {
-                        imgui.Text("RAWPTR");
+                        imgui.text("RAWPTR");
                     } else {
                         buf : [128]byte;
                         s := fmt.bprintf(buf[..], "%s##%s", "Show Value", n);
-                        if imgui.CollapsingHeader(s, 0) {
+                        if imgui.collapsing_header(s, 0) {
                             ptr := ^byte(data.data) + info.offsets[i];
                             value := ^rawptr(ptr)^;
                             v := any{rawptr(value), t.elem};
@@ -82,56 +82,56 @@ show_struct_info :: proc(name : string, show : ^bool, data : any) {
                     value := ^byte(data.data) + info.offsets[i];
                     col := bool(value^) ? imgui.Vec4{0, 1, 0, 1} : imgui.Vec4{1, 0, 0, 1};
                     v := any{rawptr(value), type_info_base(info.types[i])};
-                    imgui.TextColored(col, "%t", v);
+                    imgui.text_colored(col, "%t", v);
                 }                
 
                 case : {
                     value := ^byte(data.data) + info.offsets[i];
                     v := any{rawptr(value), info.types[i]};
-                    imgui.TextWrapped("%v", v);
+                    imgui.text_wrapped("%v", v);
                 } 
             }
-            imgui.Separator();
-            imgui.NextColumn();
+            imgui.separator();
+            imgui.next_column();
         }
     }
-    imgui.End();
+    imgui.end();
 }
 
 show_entity_list :: proc(gameCtx : ^game.Context, show : ^bool) {
     PrintNormalTower :: proc(t : je.Tower) {
-        imgui.Indent(10);
+        imgui.indent(10);
         {
-            if imgui.CollapsingHeader("Transform", 0) {
-                imgui.Indent(10);
-                imgui.Text("Position: %v", t.Position);
-                imgui.Text("Scale: %v", t.Scale);
-                imgui.Text("Rotation: %v", t.Rotation);
-                imgui.Unindent(10);
+            if imgui.collapsing_header("Transform", 0) {
+                imgui.indent(10);
+                imgui.text("Position: %v", t.Position);
+                imgui.text("Scale: %v", t.Scale);
+                imgui.text("Rotation: %v", t.Rotation);
+                imgui.unindent(10);
             }
-            imgui.Text("Damage: %v", t.Damage);
-            imgui.Text("Attack Speed: %v", t.AttackSpeed);
+            imgui.text("Damage: %v", t.Damage);
+            imgui.text("Attack Speed: %v", t.AttackSpeed);
             if t.Texture != nil {
-                imgui.TextWrapped("Texture: %v", t.Texture^);
+                imgui.text_wrapped("texture: %v", t.Texture^);
             } else {
-                imgui.Text("Texture: N/A");
+                imgui.text("texture: N/A");
             } 
         }
-        imgui.Unindent(10);
+        imgui.unindent(10);
     }
     
     PrintSlowTower :: proc(e : je.Tower.Slow) {
-        imgui.Indent(10);
+        imgui.indent(10);
         {
-            imgui.Text("Slow Rate: %v", e.SlowFactor);
+            imgui.text("Slow Rate: %v", e.SlowFactor);
         }
-        imgui.Unindent(10);
+        imgui.unindent(10);
     }
 
-    imgui.Begin("Entity List", show, STD_WINDOW);
+    imgui.begin("Entity List", show, STD_WINDOW);
     {
-        imgui.Columns(2, nil, false);
-        imgui.BeginChild("Entities", imgui.Vec2{0, -20}, true, 0);
+        imgui.columns(2, nil, false);
+        imgui.begin_child("Entities", imgui.Vec2{0, -20}, true, 0);
         {
             for i := gameCtx.entity_list.Front;
                 i != nil;
@@ -141,209 +141,206 @@ show_entity_list :: proc(gameCtx : ^game.Context, show : ^bool) {
                 }
                 buf : [256]byte;
                 str := fmt.bprintf(buf[..], "%s(%d)", i.Entity.Name, i.Entity.GUID);
-                if imgui.Button(str, imgui.Vec2{-1, 0}) {
+                if imgui.button(str, imgui.Vec2{-1, 0}) {
                     _ChosenEntity = i.Entity;   
                 }
             }
         }
-        imgui.EndChild();
-        imgui.NextColumn();
-        imgui.BeginChild("Entity", imgui.Vec2{0, -20}, true, 0);
+        imgui.end_child();
+        imgui.next_column();
+        imgui.begin_child("Entity", imgui.Vec2{0, -20}, true, 0);
         {
             if _ChosenEntity != nil {
-                imgui.Text("GUID: %v", _ChosenEntity.GUID);
-                imgui.Text("Name: %v", _ChosenEntity.Name);
+                imgui.text("GUID: %v", _ChosenEntity.GUID);
+                imgui.text("Name: %v", _ChosenEntity.Name);
                 match e in _ChosenEntity {
                     case je.Entity.Tower : {
                         match t in e.T {
                             case je.Tower.Slow : {
-                                imgui.Text("Match: %d", e.T.__tag);
+                                imgui.text("Match: %d", e.T.__tag);
                                 PrintNormalTower(e.T);
                                 PrintSlowTower(t);
                             }
 
                             case je.Tower.Basic : {
-                                imgui.Text("Match: %d", e.T.__tag);
+                                imgui.text("Match: %d", e.T.__tag);
                                 PrintNormalTower(e.T);
                             }
 
                             case : {
-                                imgui.Text("Match: %d", e.T.__tag);
+                                imgui.text("Match: %d", e.T.__tag);
                             }
                         }
                     }
                 }
             }
         }
-        imgui.EndChild();
-        imgui.Columns(1, nil, false);
-        imgui.Separator();
-        imgui.TextColored(imgui.Vec4{1, 1, 1, 0.2}, "Entities: %d", gameCtx.entity_list.Count);
+        imgui.end_child();
+        imgui.columns(1, nil, false);
+        imgui.separator();
+        imgui.text_colored(imgui.Vec4{1, 1, 1, 0.2}, "Entities: %d", gameCtx.entity_list.Count);
     }
-    imgui.End();
+    imgui.end();
 
 
 }
 
 show_debug_windows_states :: proc(show : ^bool) {
-    imgui.Begin("Debug Window States", show, STD_WINDOW);
+    imgui.begin("Debug Window States", show, STD_WINDOW);
     {
-        imgui.Text("Chosen Catalog Index: %d", _ChosenCatalog);
-        imgui.Text("Texture Preview Sixe: <%.2f,%.2f>", _PreviewSize.x, _PreviewSize.y);
-        imgui.Text("Texture Show ID:      %d", _ShowID);
-        imgui.Separator();_CurrentViewTexture : gl.Texture;
-_ChosenCatalog : i32;
-_PreviewSize := imgui.Vec2{20, 20};
-_ShowID : gl.Texture = 1;
+        imgui.text("Chosen Catalog Index: %d", _ChosenCatalog);
+        imgui.text("texture Preview Sixe: <%.2f,%.2f>", _PreviewSize.x, _PreviewSize.y);
+        imgui.text("texture Show ID:      %d", _ShowID);
+        imgui.separator();
 
-        imgui.BeginChild("Window States", imgui.Vec2{0, 0}, true, 0);
-        imgui.Columns(2, nil, true);
+        imgui.begin_child("Window States", imgui.Vec2{0, 0}, true, 0);
+        imgui.columns(2, nil, true);
         for val, id in _GlobalDebugWndBools {
-            imgui.Text("%s", id);
-            imgui.NextColumn();
-            imgui.Text("%t", val);
-            imgui.NextColumn();
-            imgui.Separator();
+            imgui.text("%s", id);
+            imgui.next_column();
+            imgui.text("%t", val);
+            imgui.next_column();
+            imgui.separator();
         }
-        imgui.Columns(1, nil, true);
-        imgui.EndChild();
+        imgui.columns(1, nil, true);
+        imgui.end_child();
     }
-    imgui.End();
+    imgui.end();
 }
 
 stat_overlay :: proc(show : ^bool) {
-    imgui.SetNextWindowPos(imgui.Vec2{5, 25}, 0);
-    imgui.PushStyleColor(imgui.GuiCol.WindowBg, imgui.Vec4{0.23, 0.23, 0.23, 0.4});
-    imgui.Begin("Stat Overlay", show, imgui.GuiWindowFlags.NoMove | imgui.GuiWindowFlags.NoTitleBar | imgui.GuiWindowFlags.NoResize | imgui.GuiWindowFlags.NoSavedSettings); 
+    imgui.set_next_window_pos(imgui.Vec2{5, 25}, 0);
+    imgui.push_style_color(imgui.GuiCol.WindowBg, imgui.Vec4{0.23, 0.23, 0.23, 0.4});
+    imgui.begin("Stat Overlay", show, imgui.GuiWindowFlags.NoMove | imgui.GuiWindowFlags.NoTitleBar | imgui.GuiWindowFlags.NoResize | imgui.GuiWindowFlags.NoSavedSettings); 
     {
-        io := imgui.GetIO();
-        imgui.Text("Framerate: %.1ffps (%fms) ", io.Framerate, 1000.0 / io.Framerate);
-        imgui.Separator();
-        imgui.Text("Draw Calls: %d calls", gl.DebugInfo.DrawCalls);
+        io := imgui.get_io();
+        imgui.text("Framerate: %.1ffps (%fms) ", io.framerate, 1000.0 / io.framerate);
+        imgui.separator();
+        imgui.text("Draw Calls: %d calls", gl.DebugInfo.DrawCalls);
     }   
-    imgui.End();
-    imgui.PopStyleColor(1);
+    imgui.end();
+    imgui.pop_style_color(1);
 }
 
 opengl_extensions :: proc(name : string, extensions : [dynamic]string, show : ^bool) {
-    imgui.Begin(name, show, STD_WINDOW); 
+    imgui.begin(name, show, STD_WINDOW); 
     {
         for ext in extensions {
-            imgui.Text(ext);
+            imgui.text(ext);
         }
     }   
-    imgui.End();
+    imgui.end();
 }
 
 opengl_texture_overview :: proc(show : ^bool) {
-    _CalculateMaxColumns :: proc(w : f32, csize : f32, max : i32) -> i32 {
-        Columns := i32(w / csize);
-        if Columns > max {
-            Columns = max;
+    _CalculateMaxcolumns :: proc(w : f32, csize : f32, max : i32) -> i32 {
+        columns := i32(w / csize);
+        if columns > max {
+            columns = max;
         }
 
-        if Columns <= 0 {
-            Columns = 1;
+        if columns <= 0 {
+            columns = 1;
         }
-        return Columns;
+        return columns;
     }
 
-    imgui.Begin("Loaded Textures", show, STD_WINDOW);
+    imgui.begin("Loaded Textures", show, STD_WINDOW);
     {
-        imgui.DragFloat("Preview Size:", &_PreviewSize.x, 0.2, 20, 100, "%.0f", 1);
-        imgui.Separator();
+        imgui.drag_float("Preview Size:", &_PreviewSize.x, 0.2, 20, 100, "%.0f", 1);
+        imgui.separator();
         _PreviewSize.y = _PreviewSize.x;
         size : imgui.Vec2;
-        imgui.GetWindowSize(&size);
-        Columns := _CalculateMaxColumns(size.x, _PreviewSize.x + 24, i32(len(gl.DebugInfo.LoadedTextures)));
-        imgui.BeginChild("", imgui.Vec2{0, 0}, false, 0);
+        imgui.get_window_size(&size);
+        columns := _CalculateMaxcolumns(size.x, _PreviewSize.x + 24, i32(len(gl.DebugInfo.LoadedTextures)));
+        imgui.begin_child("", imgui.Vec2{0, 0}, false, 0);
         {
-            imgui.Columns(Columns, nil, false);
+            imgui.columns(columns, nil, false);
             for id in gl.DebugInfo.LoadedTextures {
-                imgui.Image(imgui.TextureID(uint(id)), _PreviewSize, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0.91, 0.4, 0.23, 1});
-                if imgui.IsItemHovered() {
-                    imgui.BeginTooltip();
+                imgui.image(imgui.TextureID(uint(id)), _PreviewSize, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0.91, 0.4, 0.23, 1});
+                if imgui.is_item_hovered() {
+                    imgui.begin_tooltip();
                     {
-                        imgui.Text("ID: %d", id);
+                        imgui.text("ID: %d", id);
                     }
-                    imgui.EndTooltip();
+                    imgui.end_tooltip();
                 }
-                if imgui.IsItemClicked(0) {
+                if imgui.is_item_clicked(0) {
                     _ShowID = id;
                 }
-                imgui.NextColumn();
+                imgui.next_column();
             }
-            imgui.Columns(1, nil, false);
+            imgui.columns(1, nil, false);
             }
-        imgui.EndChild();
+        imgui.end_child();
     }
-    imgui.End();
+    imgui.end();
 
-    imgui.Begin("Texture View", nil, STD_WINDOW | imgui.GuiWindowFlags.NoScrollbar);
+    imgui.begin("texture View", nil, STD_WINDOW | imgui.GuiWindowFlags.NoScrollbar);
     {
         size : imgui.Vec2;
-        imgui.GetWindowSize(&size);
-        imgui.Image(imgui.TextureID(uint(_ShowID)), imgui.Vec2{size.x-16, size.y-35}, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0.91, 0.4, 0.23, 0});
+        imgui.get_window_size(&size);
+        imgui.image(imgui.TextureID(uint(_ShowID)), imgui.Vec2{size.x-16, size.y-35}, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0.91, 0.4, 0.23, 0});
     }
-    imgui.End();
+    imgui.end();
 }
 
 opengl_info :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
-    imgui.Begin("OpenGL Info", show, STD_WINDOW);
+    imgui.begin("OpenGL Info", show, STD_WINDOW);
     {
-        imgui.Text("Versions:");
-        imgui.Indent(20.0);
-            imgui.Text("Highest: %d.%d", vars.VersionMajorMax, vars.VersionMinorMax);
-            imgui.Text("Current: %d.%d", vars.VersionMajorCur, vars.VersionMajorCur);
-            imgui.Text("GLSL:    %s", vars.GLSLVersionString);
-        imgui.Unindent(20.0);
-        imgui.Text("Lib Address 0x%x", gl.DebugInfo.LibAddress);
-        imgui.Separator();
-            imgui.Text("Vendor:   %s", vars.VendorString);
-            imgui.Text("Render:   %s", vars.RendererString);
-            imgui.Text("CtxFlags: %d", vars.ContextFlags);
-        imgui.Separator();
-            imgui.Text("Number of extensions:       %d", vars.NumExtensions); imgui.SameLine(0, -1);
-            if imgui.SmallButton("View##Ext") {
+        imgui.text("Versions:");
+        imgui.indent(20.0);
+            imgui.text("Highest: %d.%d", vars.VersionMajorMax, vars.VersionMinorMax);
+            imgui.text("Current: %d.%d", vars.VersionMajorCur, vars.VersionMajorCur);
+            imgui.text("GLSL:    %s", vars.GLSLVersionString);
+        imgui.unindent(20.0);
+        imgui.text("Lib Address 0x%x", gl.DebugInfo.LibAddress);
+        imgui.separator();
+            imgui.text("Vendor:   %s", vars.VendorString);
+            imgui.text("Render:   %s", vars.RendererString);
+            imgui.text("CtxFlags: %d", vars.ContextFlags);
+        imgui.separator();
+            imgui.text("Number of extensions:       %d", vars.NumExtensions); imgui.same_line(0, -1);
+            if imgui.small_button("View##Ext") {
                 set_window_state("OpenGLShowExtensions", true);
             }
-            imgui.Text("Number of WGL extensions:   %d", vars.NumWglExtensions);imgui.SameLine(0, -1);
-            if imgui.SmallButton("View##WGL") {
+            imgui.text("Number of WGL extensions:   %d", vars.NumWglExtensions);imgui.same_line(0, -1);
+            if imgui.small_button("View##WGL") {
                 set_window_state("OpenGLShowWGLExtensions", true);
             }
-            imgui.Text("Number of loaded textures: %d", len(gl.DebugInfo.LoadedTextures)); imgui.SameLine(0, -1);
-            if imgui.SmallButton("View##Texture") {
-                set_window_state("ShowGLTextureOverview", true);
+            imgui.text("Number of loaded Textures: %d", len(gl.DebugInfo.LoadedTextures)); imgui.same_line(0, -1);
+            if imgui.small_button("View##texture") {
+                set_window_state("ShowGLtextureOverview", true);
             }
-            imgui.Text("Number of functions loaded: %d/%d", gl.DebugInfo.NumberOfFunctionsLoadedSuccessed, gl.DebugInfo.NumberOfFunctionsLoaded); 
-        imgui.Separator();
-        if imgui.CollapsingHeader("Loaded Functions", 0) {
-            imgui.BeginChild("Functions###FuncLoad", imgui.Vec2{0, 0}, true, 0);
-            imgui.Columns(2, nil, false);
+            imgui.text("Number of functions loaded: %d/%d", gl.DebugInfo.NumberOfFunctionsLoadedSuccessed, gl.DebugInfo.NumberOfFunctionsLoaded); 
+        imgui.separator();
+        if imgui.collapsing_header("Loaded Functions", 0) {
+            imgui.begin_child("Functions###FuncLoad", imgui.Vec2{0, 0}, true, 0);
+            imgui.columns(2, nil, false);
             suc : string;
             for status in gl.DebugInfo.Statuses {
-                imgui.Text(status.Name);
-/*                if(imgui.IsItemHovered()) {
+                imgui.text(status.Name);
+/*                if(imgui.is_item_hovered()) {
                     imgui.BeginTooltip();
-                    imgui.PushTextWrapPos(450.0);
-                    imgui.Text("%s @ 0x%X", status.Name, status.Address);
+                    imgui.PushtextWrapPos(450.0);
+                    imgui.text("%s @ 0x%X", status.Name, status.Address);
                     /*buf : [4095]byte;
                     procString : string;
                     */
                     
                     test1, ok1 := union_cast(^Type_Info.Procedure)status.TypeInfo;
                     test2, ok2 := union_cast(^Type_Info.Tuple)test1.params;
-                    imgui.Text("%t", ok1);
-                    imgui.Text("%t", ok2);
-                    imgui.Text("%d", len(test2.names));
+                    imgui.text("%t", ok1);
+                    imgui.text("%t", ok2);
+                    imgui.text("%d", len(test2.names));
                     for info in test2.names {
-                        imgui.Text(info);
+                        imgui.text(info);
                     }
 
-                    imgui.PopTextWrapPos();
-                    imgui.EndTooltip();
+                    imgui.PoptextWrapPos();
+                    imgui.endTooltip();
                 }*/
-                imgui.NextColumn();
+                imgui.next_column();
                 c : imgui.Vec4;
                 if status.Success {
                     c = imgui.Vec4{0,0.78,0,1};
@@ -353,15 +350,15 @@ opengl_info :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
                     suc = "false";
                 }
 
-                imgui.TextColored(c, "Loaded: %s", suc);
-                imgui.NextColumn();
+                imgui.text_colored(c, "Loaded: %s", suc);
+                imgui.next_column();
 
             }
-            imgui.Columns(1, nil, false);
-            imgui.EndChild();
+            imgui.columns(1, nil, false);
+            imgui.end_child();
         }
     }
-    imgui.End();
+    imgui.end();
 
     if get_window_state("OpenGLShowExtensions") {
         b := get_window_state("OpenGLShowExtensions");
@@ -375,11 +372,11 @@ opengl_info :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
         set_window_state("OpenGLShowWGLExtensions", b);
     }
 
-    try_show_window("ShowGLTextureOverview", opengl_texture_overview);
+    try_show_window("ShowGLtextureOverview", opengl_texture_overview);
 }
 
 _print_gamepad_name :: proc(id : int, err : xinput.Error) {
-    imgui.Text("Gamepad %d(", id+1);
+    imgui.text("Gamepad %d(", id+1);
     b := err == xinput.Success;
     c : imgui.Vec4;
     if b {
@@ -387,145 +384,145 @@ _print_gamepad_name :: proc(id : int, err : xinput.Error) {
     } else {
         c = imgui.Vec4{1,0,0,1};
     }
-    imgui.SameLine(0, 0);
-    imgui.TextColored(c, "%s", b ? "Connected" : "Not Connected");
-    imgui.SameLine(0, 0);
-    imgui.Text("):");
+    imgui.same_line(0, 0);
+    imgui.text_colored(c, "%s", b ? "Connected" : "Not Connected");
+    imgui.same_line(0, 0);
+    imgui.text("):");
 }
 
 show_xinput_info_window :: proc(show : ^bool) {
-    imgui.Begin("XInput Info", show, STD_WINDOW);
+    imgui.begin("XInput Info", show, STD_WINDOW);
     {
-        imgui.Text("Version: %s", xinput.Version);
-        imgui.Text("Lib Address: 0x%x", int(xinput.DebugInfo.LibAddress));
-        imgui.Text("Number of functions loaded: %d/%d", xinput.DebugInfo.NumberOfFunctionsLoadedSuccessed, xinput.DebugInfo.NumberOfFunctionsLoaded); 
-        if imgui.CollapsingHeader("Loaded Functions", 0) {
-            imgui.BeginChild("Functions", imgui.Vec2{0, 150}, true, 0);
-            imgui.Columns(2, nil, false);
+        imgui.text("Version: %s", xinput.Version);
+        imgui.text("Lib Address: 0x%x", int(xinput.DebugInfo.LibAddress));
+        imgui.text("Number of functions loaded: %d/%d", xinput.DebugInfo.NumberOfFunctionsLoadedSuccessed, xinput.DebugInfo.NumberOfFunctionsLoaded); 
+        if imgui.collapsing_header("Loaded Functions", 0) {
+            imgui.begin_child("Functions", imgui.Vec2{0, 150}, true, 0);
+            imgui.columns(2, nil, false);
             for status in xinput.DebugInfo.Statuses {
-                imgui.Text(status.Name);
-                imgui.NextColumn();
-                imgui.Text("Loaded: %t @ 0x%x", status.Success, status.Address);
-                imgui.NextColumn();
+                imgui.text(status.Name);
+                imgui.next_column();
+                imgui.text("Loaded: %t @ 0x%x", status.Success, status.Address);
+                imgui.next_column();
 
             }
-            imgui.Columns(1, nil, false);
-            imgui.EndChild();
+            imgui.columns(1, nil, false);
+            imgui.end_child();
         }
 
-        imgui.Columns(2, nil, true);
+        imgui.columns(2, nil, true);
         for user, i in xinput.User {
             cap, err := xinput.GetCapabilities(user);
             _print_gamepad_name(i, err);
             if err == xinput.Success {
-                imgui.Text("Capabilites:");
-                imgui.Indent(20.0);
-                    imgui.Text("Subtype %s", cap.sub_type);
-                    imgui.Text("Flags:");
-                    imgui.Indent(10.0);
+                imgui.text("Capabilites:");
+                imgui.indent(20.0);
+                    imgui.text("Subtype %s", cap.sub_type);
+                    imgui.text("Flags:");
+                    imgui.indent(10.0);
                         CheckCapability :: proc(cap : xinput.Capabilities, c : xinput.CapabilitiesFlags) -> bool {
                             return cap.flags & c == c;
                         }
 
-                        imgui.Text("Voice:         %t", CheckCapability(cap, xinput.CapabilitiesFlags.Voice)        );
-                        imgui.Text("FFB:           %t", CheckCapability(cap, xinput.CapabilitiesFlags.FFB)          );
-                        imgui.Text("Wireless:      %t", CheckCapability(cap, xinput.CapabilitiesFlags.Wireless)     );
-                        imgui.Text("PMD:           %t", CheckCapability(cap, xinput.CapabilitiesFlags.PMD)          );
-                        imgui.Text("NoNavigations: %t", CheckCapability(cap, xinput.CapabilitiesFlags.NoNavigations));
-                    imgui.Unindent(10.0);    
-                imgui.Unindent(20.0);
-                imgui.Text("Battery Information:");
-                imgui.Indent(20.0);
-                    imgui.Text("Battery Type:  %s", "N/A");
-                    imgui.Text("Battery Level: %s", "N/A");
-                imgui.Unindent(20.0);
+                        imgui.text("Voice:         %t", CheckCapability(cap, xinput.CapabilitiesFlags.Voice)        );
+                        imgui.text("FFB:           %t", CheckCapability(cap, xinput.CapabilitiesFlags.FFB)          );
+                        imgui.text("Wireless:      %t", CheckCapability(cap, xinput.CapabilitiesFlags.Wireless)     );
+                        imgui.text("PMD:           %t", CheckCapability(cap, xinput.CapabilitiesFlags.PMD)          );
+                        imgui.text("NoNavigations: %t", CheckCapability(cap, xinput.CapabilitiesFlags.NoNavigations));
+                    imgui.unindent(10.0);    
+                imgui.unindent(20.0);
+                imgui.text("Battery Information:");
+                imgui.indent(20.0);
+                    imgui.text("Battery Type:  %s", "N/A");
+                    imgui.text("Battery Level: %s", "N/A");
+                imgui.unindent(20.0);
             }
 
-            imgui.NextColumn();
+            imgui.next_column();
             if i%2 == 1 {
-                imgui.Separator();
+                imgui.separator();
             }
         }
-        imgui.Columns(1, nil, false);
+        imgui.columns(1, nil, false);
     }
-    imgui.End();
+    imgui.end();
 }
 
 show_xinput_state_window :: proc(show : ^bool) {
-    imgui.Begin("XInput State", show, STD_WINDOW);
+    imgui.begin("XInput State", show, STD_WINDOW);
     {
-        imgui.Columns(2, nil, true);
+        imgui.columns(2, nil, true);
         for user, i in xinput.User {
             state, err := xinput.GetState(user);
             _print_gamepad_name(i, err);
             if err == xinput.Success {
-                imgui.Indent(10.0);
+                imgui.indent(10.0);
                 {
-                    imgui.Separator();
-                    imgui.Text("Button States:");
-                    imgui.Indent(10.0);
+                    imgui.separator();
+                    imgui.text("button States:");
+                    imgui.indent(10.0);
                     {
                         IsButtonPressed :: proc(state : xinput.State, b : xinput.Buttons) -> bool {
                             return state.gamepad.buttons & u16(b) == u16(b);
                         }
 
-                        imgui.Text("DpadUp:        %t", IsButtonPressed(state, xinput.Buttons.DpadUp)       );
-                        imgui.Text("DpadDown:      %t", IsButtonPressed(state, xinput.Buttons.DpadDown)     );
-                        imgui.Text("DpadLeft:      %t", IsButtonPressed(state, xinput.Buttons.DpadLeft)     );
-                        imgui.Text("DpadRight:     %t", IsButtonPressed(state, xinput.Buttons.DpadRight)    );
-                        imgui.Text("Start:         %t", IsButtonPressed(state, xinput.Buttons.Start)        );
-                        imgui.Text("Back:          %t", IsButtonPressed(state, xinput.Buttons.Back)         );
-                        imgui.Text("LeftThumb:     %t", IsButtonPressed(state, xinput.Buttons.LeftThumb)    );
-                        imgui.Text("RightThumb:    %t", IsButtonPressed(state, xinput.Buttons.RightThumb)   );
-                        imgui.Text("LeftShoulder:  %t", IsButtonPressed(state, xinput.Buttons.LeftShoulder) );
-                        imgui.Text("RightShoulder: %t", IsButtonPressed(state, xinput.Buttons.RightShoulder));
-                        imgui.Text("A:             %t", IsButtonPressed(state, xinput.Buttons.A)            );
-                        imgui.Text("B:             %t", IsButtonPressed(state, xinput.Buttons.B)            );
-                        imgui.Text("X:             %t", IsButtonPressed(state, xinput.Buttons.X)            );
-                        imgui.Text("Y:             %t", IsButtonPressed(state, xinput.Buttons.Y)            );
+                        imgui.text("DpadUp:        %t", IsButtonPressed(state, xinput.Buttons.DpadUp)       );
+                        imgui.text("DpadDown:      %t", IsButtonPressed(state, xinput.Buttons.DpadDown)     );
+                        imgui.text("DpadLeft:      %t", IsButtonPressed(state, xinput.Buttons.DpadLeft)     );
+                        imgui.text("DpadRight:     %t", IsButtonPressed(state, xinput.Buttons.DpadRight)    );
+                        imgui.text("Start:         %t", IsButtonPressed(state, xinput.Buttons.Start)        );
+                        imgui.text("Back:          %t", IsButtonPressed(state, xinput.Buttons.Back)         );
+                        imgui.text("LeftThumb:     %t", IsButtonPressed(state, xinput.Buttons.LeftThumb)    );
+                        imgui.text("RightThumb:    %t", IsButtonPressed(state, xinput.Buttons.RightThumb)   );
+                        imgui.text("LeftShoulder:  %t", IsButtonPressed(state, xinput.Buttons.LeftShoulder) );
+                        imgui.text("RightShoulder: %t", IsButtonPressed(state, xinput.Buttons.RightShoulder));
+                        imgui.text("A:             %t", IsButtonPressed(state, xinput.Buttons.A)            );
+                        imgui.text("B:             %t", IsButtonPressed(state, xinput.Buttons.B)            );
+                        imgui.text("X:             %t", IsButtonPressed(state, xinput.Buttons.X)            );
+                        imgui.text("Y:             %t", IsButtonPressed(state, xinput.Buttons.Y)            );
                     }
-                    imgui.Unindent(10.0);
-                    imgui.Separator();
-                    imgui.Text("Trigger States:");
-                    imgui.Indent(10.0);
+                    imgui.unindent(10.0);
+                    imgui.separator();
+                    imgui.text("Trigger States:");
+                    imgui.indent(10.0);
                     {
-                        imgui.Text("Left Trigger:  %d(%.1f%%)", state.gamepad.left_trigger,  (f32(state.gamepad.left_trigger)/255.0)*100.0);
-                        imgui.Text("Right Trigger: %d(%.1f%%)", state.gamepad.right_trigger, (f32(state.gamepad.right_trigger)/255.0)*100.0);
+                        imgui.text("Left Trigger:  %d(%.1f%%)", state.gamepad.left_trigger,  (f32(state.gamepad.left_trigger)/255.0)*100.0);
+                        imgui.text("Right Trigger: %d(%.1f%%)", state.gamepad.right_trigger, (f32(state.gamepad.right_trigger)/255.0)*100.0);
                     }
-                    imgui.Unindent(10.0);
-                    imgui.Separator();
-                    imgui.Text("Stick States:");
-                    imgui.Indent(10.0);
+                    imgui.unindent(10.0);
+                    imgui.separator();
+                    imgui.text("Stick States:");
+                    imgui.indent(10.0);
                     {
-                        imgui.Text("Left Stick:  <%d, %d>", state.gamepad.lx, state.gamepad.ly);
-                        imgui.Text("Right Stick: <%d, %d>", state.gamepad.rx, state.gamepad.ry);
+                        imgui.text("Left Stick:  <%d, %d>", state.gamepad.lx, state.gamepad.ly);
+                        imgui.text("Right Stick: <%d, %d>", state.gamepad.rx, state.gamepad.ry);
                     }
-                    imgui.Unindent(10.0);
-                    imgui.Separator();
+                    imgui.unindent(10.0);
+                    imgui.separator();
                 }
-                imgui.Unindent(10.0);
+                imgui.unindent(10.0);
             }
             
-            imgui.NextColumn();
+            imgui.next_column();
             if i%2 == 1 {
-                imgui.Separator();
+                imgui.separator();
             }
         }
-        imgui.Columns(1, nil, false);
+        imgui.columns(1, nil, false);
     }
-    imgui.End();
+    imgui.end();
 }
 
 show_catalog_window :: proc(show : ^bool) {
 
     PrintName :: proc(asset : ^ja.Asset) {
         PrintLoadedUploaded :: proc(name : string, load : bool, up : bool, asset : ^ja.Asset) {
-            imgui.Text(name);
+            imgui.text(name);
             ToolTip(asset);
-            imgui.SameLine(0, 0);
-            imgui.TextColored(imgui.Vec4{1,0,0,1}, " %s", load ? "[Loaded]" : "");
-            imgui.SameLine(0, 0);
-            imgui.TextColored(imgui.Vec4{0,0.78,0,1}, "%s", up ? "[Uploaded]" : "");
+            imgui.same_line(0, 0);
+            imgui.text_colored(imgui.Vec4{1,0,0,1}, " %s", load ? "[Loaded]" : "");
+            imgui.same_line(0, 0);
+            imgui.text_colored(imgui.Vec4{0,0.78,0,1}, "%s", up ? "[Uploaded]" : "");
         }
 
         match a in asset {
@@ -538,146 +535,146 @@ show_catalog_window :: proc(show : ^bool) {
             }
 
             case : {
-                imgui.Text("%s %s", a.file_info.name, a.loaded_from_disk ? "[Loaded]" : "");
+                imgui.text("%s %s", a.file_info.name, a.loaded_from_disk ? "[Loaded]" : "");
                 ToolTip(asset);
             }
         }
     }
 
     ToolTip :: proc(val : ^ja.Asset) {
-      if(imgui.IsItemHovered()) {
-            imgui.BeginTooltip();
-            imgui.Text("Path:        %s", val.file_info.path);
-            imgui.Text("Disk Size:   %.2fKB", f32(val.file_info.size)/1024.0);
+      if(imgui.is_item_hovered()) {
+            imgui.begin_tooltip();
+            imgui.text("Path:        %s", val.file_info.path);
+            imgui.text("Disk Size:   %.2fKB", f32(val.file_info.size)/1024.0);
             match e in val {
                 case ja.Asset.Texture : {
-                    imgui.Text("ID:          %d", e.gl_id);
-                    imgui.Text("Size:        %dx%d", e.width, e.height);
-                    imgui.Text("Comp:        %d", e.comp);
+                    imgui.text("ID:          %d", e.gl_id);
+                    imgui.text("Size:        %dx%d", e.width, e.height);
+                    imgui.text("Comp:        %d", e.comp);
                 }
 
                 case ja.Asset.Shader : {
-                    imgui.Text("ID:          %d", e.gl_id);
-                    imgui.Text("Type:        %v", e.type);
+                    imgui.text("ID:          %d", e.gl_id);
+                    imgui.text("Type:        %v", e.type);
                 }
             }
-            imgui.EndTooltip();
+            imgui.end_tooltip();
         }
     }
 
-    imgui.Begin("Catalogs", show, STD_WINDOW);
+    imgui.begin("Catalogs", show, STD_WINDOW);
     {
-        imgui.Combo("Catalog", &_ChosenCatalog, catalog.debug_info.catalog_names[..], -1);
-        imgui.Separator();
+        imgui.combo("Catalog", &_ChosenCatalog, catalog.debug_info.catalog_names[..], -1);
+        imgui.separator();
         cat := catalog.debug_info.catalogs[_ChosenCatalog];
-        imgui.Text("Folder Path:     %s", cat.path);
-        imgui.Text("Kind:            %v", cat.kind);
-        imgui.Text("Accepted Extensions: ");
-        imgui.Indent(10.0);
+        imgui.text("Folder Path:     %s", cat.path);
+        imgui.text("Kind:            %v", cat.kind);
+        imgui.text("Accepted Extensions: ");
+        imgui.indent(10.0);
         for ext in cat.accepted_extensions {
-            imgui.Text(ext);
+            imgui.text(ext);
         }
-        imgui.Unindent(10.0);
-        imgui.Separator();
-        imgui.BeginChild("Files", imgui.Vec2{0, -18}, true, 0);
+        imgui.unindent(10.0);
+        imgui.separator();
+        imgui.begin_child("Files", imgui.Vec2{0, -18}, true, 0);
         for val in cat.items {
             PrintName(val);
         }
-        imgui.EndChild();
-        imgui.Separator();
-        imgui.Text("No. of files: %d/%d", len(cat.items), cat.files_in_folder);
-        imgui.SameLine(0, -1);
-        imgui.Text("In Memory: %.2fKB/%.2fKB", f32(cat.current_size)/1024.0, f32(cat.max_size)/1024.0);
+        imgui.end_child();
+        imgui.separator();
+        imgui.text("No. of files: %d/%d", len(cat.items), cat.files_in_folder);
+        imgui.same_line(0, -1);
+        imgui.text("In Memory: %.2fKB/%.2fKB", f32(cat.current_size)/1024.0, f32(cat.max_size)/1024.0);
     }
-    imgui.End();
+    imgui.end();
 }
 
 show_input_window :: proc(input : ^jinput.Input, show : ^bool) {
-    imgui.Begin("Input##TESTIUYHSEIFUSEYGF", show, STD_WINDOW);
+    imgui.begin("Input##TESTIUYHSEIFUSEYGF", show, STD_WINDOW);
     {
-    imgui.Columns(4, nil, true);
-        imgui.Text("ID");
-        imgui.NextColumn();
-        imgui.Text("Key");
-        imgui.NextColumn();
-        imgui.Text("Xinput Button");
-        imgui.NextColumn();
-        imgui.Text("State");
-        imgui.Separator();
-        imgui.NextColumn();
+    imgui.columns(4, nil, true);
+        imgui.text("ID");
+        imgui.next_column();
+        imgui.text("Key");
+        imgui.next_column();
+        imgui.text("Xinput button");
+        imgui.next_column();
+        imgui.text("State");
+        imgui.separator();
+        imgui.next_column();
 
         if len(input.bindings) > 0 {
             for v in input.bindings {
-                imgui.Text("%v", v.id);
-                imgui.NextColumn();
-                imgui.Text("%v", v.key);
-                imgui.NextColumn();
-                imgui.Text("%v", v.x_button);
-                imgui.NextColumn();
-                imgui.Text("%v", jinput.get_button_state(input, v.id));
-                imgui.NextColumn();
+                imgui.text("%v", v.id);
+                imgui.next_column();
+                imgui.text("%v", v.key);
+                imgui.next_column();
+                imgui.text("%v", v.x_button);
+                imgui.next_column();
+                imgui.text("%v", jinput.get_button_state(input, v.id));
+                imgui.next_column();
             }
         } else {
-            imgui.Text("No bindings found!");
-            imgui.NextColumn();
-            imgui.Text("N/A");
-            imgui.NextColumn();
-            imgui.Text("N/A");
-            imgui.NextColumn();
-            imgui.Text("N/A");
-            imgui.NextColumn();
+            imgui.text("No bindings found!");
+            imgui.next_column();
+            imgui.text("N/A");
+            imgui.next_column();
+            imgui.text("N/A");
+            imgui.next_column();
+            imgui.text("N/A");
+            imgui.next_column();
         }
 
-        imgui.Columns(1, nil, true);
+        imgui.columns(1, nil, true);
 
         PrintDownHeld :: proc(keyStates : []jinput.ButtonStates) {
-            imgui.Columns(2, nil, true);
-            imgui.Text("Key");
-            imgui.NextColumn();
-            imgui.Text("State");
-            imgui.Separator();
-            imgui.NextColumn();
+            imgui.columns(2, nil, true);
+            imgui.text("Key");
+            imgui.next_column();
+            imgui.text("State");
+            imgui.separator();
+            imgui.next_column();
             for k in win32.Key_Code {
                 if keyStates[k] == jinput.ButtonStates.Down || 
                    keyStates[k] == jinput.ButtonStates.Held {
-                    imgui.Text("%v", k);
-                    imgui.NextColumn();
-                    imgui.Text("%v", keyStates[k]);
-                    imgui.NextColumn();
+                    imgui.text("%v", k);
+                    imgui.next_column();
+                    imgui.text("%v", keyStates[k]);
+                    imgui.next_column();
                 }      
             }
         }
 
         PrintUpNeutral :: proc(keyStates : []jinput.ButtonStates) {
-            imgui.Columns(2, nil, true);
-            imgui.Text("Key");
-            imgui.NextColumn();
-            imgui.Text("State");
-            imgui.Separator();
-            imgui.NextColumn();
+            imgui.columns(2, nil, true);
+            imgui.text("Key");
+            imgui.next_column();
+            imgui.text("State");
+            imgui.separator();
+            imgui.next_column();
             for k in win32.Key_Code {
                 if keyStates[k] == jinput.ButtonStates.Up || 
                    keyStates[k] == jinput.ButtonStates.Neutral {
-                    imgui.Text("%v", k);
-                    imgui.NextColumn();
-                    imgui.Text("%v", keyStates[k]);
-                    imgui.NextColumn();
+                    imgui.text("%v", k);
+                    imgui.next_column();
+                    imgui.text("%v", keyStates[k]);
+                    imgui.next_column();
                 }      
             }
         }
 
-        imgui.Separator();
-        if imgui.CollapsingHeader("Key states", 0) {
-            imgui.Columns(2, nil, true);
-            imgui.BeginChild("Down Held", imgui.Vec2{0, 0}, true, 0);
+        imgui.separator();
+        if imgui.collapsing_header("Key states", 0) {
+            imgui.columns(2, nil, true);
+            imgui.begin_child("Down Held", imgui.Vec2{0, 0}, true, 0);
             PrintDownHeld(input.key_states[..]);
-            imgui.EndChild();
-            imgui.NextColumn();
-            imgui.BeginChild("Up Neutral", imgui.Vec2{0, 0}, true, 0);
+            imgui.end_child();
+            imgui.next_column();
+            imgui.begin_child("Up Neutral", imgui.Vec2{0, 0}, true, 0);
             PrintUpNeutral(input.key_states[..]);
-            imgui.EndChild();
-            imgui.NextColumn();
+            imgui.end_child();
+            imgui.next_column();
         }
     }
-    imgui.End();
+    imgui.end();
 }

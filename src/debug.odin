@@ -6,7 +6,7 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 16:52:26
+ *  @Last Time: 28-05-2017 18:59:15
  *  
  *  @Description:
  *      Contains all the debug menu stuff related to the Menu bar.
@@ -33,45 +33,45 @@ make_menu_bar :: proc(ctx : ^engine.Context) {
     }
 
     make_menu_item :: proc(title : string, shortcut : string, id : string) {
-        if imgui.MenuItem(title, shortcut, false, true) {
+        if imgui.menu_item(title, shortcut, false, true) {
             debug_wnd.toggle_window_state(id);
         }
     }
 
-    imgui.PushStyleColor(imgui.GuiCol.MenuBarBg, imgui.Vec4{0.35, 0.35, 0.35, 0.78});
-    imgui.BeginMainMenuBar();
+    imgui.push_style_color(imgui.GuiCol.MenuBarBg, imgui.Vec4{0.35, 0.35, 0.35, 0.78});
+    imgui.begin_main_menu_bar();
 
-    if imgui.BeginMenu("Game", true) {
+    if imgui.begin_menu("Game", true) {
         make_menu_item("Entity List", "ShowEntityList");
         make_menu_item("Game Info", "ShowGameInfo");
-        imgui.EndMenu();
+        imgui.end_menu();
     }
    
-    if imgui.BeginMenu("Data", true) {
+    if imgui.begin_menu("Data", true) {
         make_menu_item("OpenGL Info", "ShowOpenGLInfo");
         make_menu_item("Win32Var Info", "ShowWin32VarInfo");
         make_menu_item("Time Data", "ShowTimeData");
         make_menu_item("Engine Info", "ShowEngineInfo");
-        imgui.EndMenu();
+        imgui.end_menu();
     }
 
-    if imgui.BeginMenu("Input", true) {
+    if imgui.begin_menu("Input", true) {
         make_menu_item("Keyboard & Mouse", "ShowInputWindow");
-        if imgui.BeginMenu("XInput", true) {
+        if imgui.begin_menu("XInput", true) {
             make_menu_item("Info", "ShowXinputInfo");
             make_menu_item("State", "ShowXinputState");
-            imgui.EndMenu();
+            imgui.end_menu();
         }
-        imgui.EndMenu();
+        imgui.end_menu();
     }
 
-    if imgui.BeginMenu("Asset", true) {
+    if imgui.begin_menu("Asset", true) {
         make_menu_item("Catalogs", "ShowCatalogWindow");
-        imgui.EndMenu();
+        imgui.end_menu();
     }
 
-    if imgui.BeginMenu("Visual", true) {
-        if imgui.Checkbox("Adaptive VSync", &ctx.adaptive_vsync) {
+    if imgui.begin_menu("Visual", true) {
+        if imgui.checkbox("Adaptive VSync", &ctx.adaptive_vsync) {
             if ctx.adaptive_vsync {
                 wgl.SwapIntervalEXT(-1);
             } else {
@@ -80,34 +80,34 @@ make_menu_bar :: proc(ctx : ^engine.Context) {
         }
         {
             b := debug_wnd.get_window_state("ShowStatOverlay");
-            if imgui.Checkbox("Stat Overlay", &b) {
+            if imgui.checkbox("Stat Overlay", &b) {
                 debug_wnd.set_window_state("ShowStatOverlay", b);
             }
         }
 
-        if imgui.Checkbox("Hardware Cursor", &ctx.settings.show_cursor) {
+        if imgui.checkbox("Hardware Cursor", &ctx.settings.show_cursor) {
             win32.ShowCursor(win32.Bool(ctx.settings.show_cursor));
         }
         
-        imgui.EndMenu();
+        imgui.end_menu();
     }
 
-    if imgui.BeginMenu("Misc", true) {
+    if imgui.begin_menu("Misc", true) {
         make_menu_item("Console", "Alt+C", "ShowConsoleWindow");
         make_menu_item("Debug Window States", "ShowDebugWindowStates");
         make_menu_item("Show Test Window", "ShowTestWindow");
 
-        imgui.Separator();
-        imgui.MenuItem("Toggle Fullscreen", "Alt+Enter", false, false);
+        imgui.separator();
+        imgui.menu_item("Toggle Fullscreen", "Alt+Enter", false, false);
 
         
-        if imgui.MenuItem("Exit", "Escape", false, true) {
+        if imgui.menu_item("Exit", "Escape", false, true) {
             ctx.settings.program_running = false;
         }
-        imgui.EndMenu();
+        imgui.end_menu();
     }
-    imgui.EndMainMenuBar();
-    imgui.PopStyleColor(1);
+    imgui.end_main_menu_bar();
+    imgui.pop_style_color(1);
 }
 
 try_to_render_windows :: proc(ctx : ^engine.Context, gameCtx : ^game.Context) {
@@ -164,7 +164,7 @@ try_to_render_windows :: proc(ctx : ^engine.Context, gameCtx : ^game.Context) {
 
     if debug_wnd.get_window_state("ShowTestWindow") {
         b := debug_wnd.get_window_state("ShowTestWindow");
-        imgui.ShowTestWindow(&b);
+        imgui.show_test_window(&b);
         debug_wnd.set_window_state("ShowTestWindow", b);
     }
 }

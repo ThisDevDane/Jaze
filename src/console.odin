@@ -6,7 +6,7 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 16:34:42
+ *  @Last Time: 28-05-2017 18:59:53
  *  
  *  @Description:
  *      The console is an in engine window that can be pulled up for viewing.
@@ -153,75 +153,75 @@ add_default_commands :: proc() {
 }
 
 draw_log :: proc(show : ^bool) {
-    imgui.Begin("Log", show, debug_wnd.STD_WINDOW);
-    imgui.BeginChild("Items", imgui.Vec2{0, 0}, true, 0);
+    imgui.begin("Log", show, debug_wnd.STD_WINDOW);
+    imgui.begin_child("Items", imgui.Vec2{0, 0}, true, 0);
     {
         for t in _internal_data.log {
             if t.text[0..<len(_ERROR_STR)] == _ERROR_STR {
-                imgui.TextColored(imgui.Vec4{1, 0, 0, 1}, "[%2d:%2d:%2d-%3d]%s", t.time.hour, t.time.minute, t.time.second, t.time.millisecond, t.text);
+                imgui.text_colored(imgui.Vec4{1, 0, 0, 1}, "[%2d:%2d:%2d-%3d]%s", t.time.hour, t.time.minute, t.time.second, t.time.millisecond, t.text);
             } else if t.text[0..<len(_CINPUT_STR)] == _CINPUT_STR {
-                imgui.TextColored(imgui.Vec4{0.7, 0.7, 0.7, 1}, "[%2d:%2d:%2d-%3d]%s", t.time.hour, t.time.minute, t.time.second, t.time.millisecond, t.text);
+                imgui.text_colored(imgui.Vec4{0.7, 0.7, 0.7, 1}, "[%2d:%2d:%2d-%3d]%s", t.time.hour, t.time.minute, t.time.second, t.time.millisecond, t.text);
             } else {
-                imgui.Text("[%2d:%2d:%2d-%3d]%s", t.time.hour, t.time.minute, t.time.second, t.time.millisecond, t.text);
+                imgui.text("[%2d:%2d:%2d-%3d]%s", t.time.hour, t.time.minute, t.time.second, t.time.millisecond, t.text);
             }
         }
     }
-    imgui.EndChild();
-    imgui.End();
+    imgui.end_child();
+    imgui.end();
 }
 
 draw_console :: proc(show : ^bool) {
-    imgui.Begin("Console", show, debug_wnd.STD_WINDOW | imgui.GuiWindowFlags.MenuBar);
+    imgui.begin("Console", show, debug_wnd.STD_WINDOW | imgui.GuiWindowFlags.MenuBar);
     {
-        if imgui.BeginMenuBar() {
-            if imgui.BeginMenu("Misc", true) {
-                if imgui.MenuItem("Show Log", "", false, len(_internal_data.log) > 0) {
+        if imgui.begin_menu_bar() {
+            if imgui.begin_menu("Misc", true) {
+                if imgui.menu_item("Show Log", "", false, len(_internal_data.log) > 0) {
                     debug_wnd.toggle_window_state("ShowLogWindow");
                 }              
-                if imgui.MenuItem("Clear", "", false, len(_internal_data.items) > 0) {
+                if imgui.menu_item("Clear", "", false, len(_internal_data.items) > 0) {
                     clear_console();
                 }
 
-                imgui.EndMenu();
+                imgui.end_menu();
             }
-            imgui.EndMenuBar();
+            imgui.end_menu_bar();
         }
 
-        imgui.BeginChild("Buffer", imgui.Vec2{-1, -40}, true, 0);
+        imgui.begin_child("Buffer", imgui.Vec2{-1, -40}, true, 0);
         {
             for t in _internal_data.items {
                 if t[0..<len(_ERROR_STR)] == _ERROR_STR {
-                    imgui.TextColored(imgui.Vec4{1, 0, 0, 1}, t);
+                    imgui.text_colored(imgui.Vec4{1, 0, 0, 1}, t);
                 } else if t[0..<len(_CINPUT_STR)] == _CINPUT_STR {
-                    imgui.TextColored(imgui.Vec4{0.7, 0.7, 0.7, 1}, t);
+                    imgui.text_colored(imgui.Vec4{0.7, 0.7, 0.7, 1}, t);
                 } else {
-                    imgui.Text(t);
+                    imgui.text(t);
                 }
             }
 
             if _internal_data._scroll_to_bottom {
-                imgui.SetScrollHere(0.5);
+                imgui.set_scroll_here(0.5);
             }
             _internal_data._scroll_to_bottom = false;
         }
-        imgui.EndChild();
+        imgui.end_child();
 
-        TEXT_FLAGS :: imgui.GuiInputTextFlags.EnterReturnsTrue | imgui.GuiInputTextFlags.CallbackCompletion | imgui.GuiInputTextFlags.CallbackHistory;
+        text_FLAGS :: imgui.GuiInputTextFlags.EnterReturnsTrue | imgui.GuiInputTextFlags.CallbackCompletion | imgui.GuiInputTextFlags.CallbackHistory;
         
-        if imgui.InputText("Input", _internal_data.input_buf[..], TEXT_FLAGS, _text_edit_callback, nil) {
-            imgui.SetKeyboardFocusHere(-1);
+        if imgui.input_text("Input", _internal_data.input_buf[..], text_FLAGS, _text_edit_callback, nil) {
+            imgui.set_keyboard_focus_here(-1);
             enter_input(_internal_data.input_buf[..]);
         }
-        imgui.SameLine(0, -1);
-        if imgui.Button("Enter", imgui.Vec2{-1, 0}) {
+        imgui.same_line(0, -1);
+        if imgui.button("Enter", imgui.Vec2{-1, 0}) {
             enter_input(_internal_data.input_buf[..]);
         }
-        imgui.Separator();
-        imgui.TextColored(imgui.Vec4{1, 1, 1, 0.2}, "Items: %d | History: %d | Log : %d", len(_internal_data.items), 
+        imgui.separator();
+        imgui.text_colored(imgui.Vec4{1, 1, 1, 0.2}, "Items: %d | History: %d | Log : %d", len(_internal_data.items), 
                                                                                           len(_internal_data.history), 
                                                                                           len(_internal_data.log));
     }
-    imgui.End();
+    imgui.end();
 }
 
 enter_input :: proc(input : []byte) {
@@ -272,17 +272,17 @@ execute_command :: proc(cmdString : string) -> bool {
 }
 
 _text_edit_callback :: proc(data : ^imgui.GuiTextEditCallbackData) -> i32 #cc_c {
-    match data.EventFlag {
+    match data.event_flag {
         case imgui.GuiInputTextFlags.CallbackHistory : {
             prev := _internal_data._history_pos;
 
-            if data.EventKey == imgui.GuiKey.UpArrow {
+            if data.event_key == imgui.GuiKey.UpArrow {
                 if _internal_data._history_pos == 0 {
                     _internal_data._history_pos = len(_internal_data.history);
                 } else {
                     _internal_data._history_pos--;
                 }
-            } else if data.EventKey == imgui.GuiKey.DownArrow {
+            } else if data.event_key == imgui.GuiKey.DownArrow {
                 if _internal_data._history_pos != 0 {
                     _internal_data._history_pos++;
                     if _internal_data._history_pos > len(_internal_data.history) {
@@ -293,13 +293,13 @@ _text_edit_callback :: proc(data : ^imgui.GuiTextEditCallbackData) -> i32 #cc_c 
 
             if prev != _internal_data._history_pos {
                 pos := _internal_data._history_pos > 0 ? _internal_data._history_pos-1 : -1;  
-                str := fmt.bprintf(slice_ptr(data.Buf, data.BufSize)[..], "%s", pos < 0 ? "" : _internal_data.history[pos]);
+                str := fmt.bprintf(slice_ptr(data.buf, data.buf_size)[..], "%s", pos < 0 ? "" : _internal_data.history[pos]);
                 strlen := i32(len(str)-1);
-                data.BufTextLen = strlen;
-                data.CursorPos = strlen;
-                data.SelectionStart = strlen;
-                data.SelectionEnd = strlen;
-                data.BufDirty = true;
+                data.buf_text_len = strlen;
+                data.cursor_pos = strlen;
+                data.selection_start = strlen;
+                data.selection_end = strlen;
+                data.buf_dirty = true;
             }
         }
 
