@@ -6,7 +6,7 @@
  *  @Creation: 05-05-2017 22:12:56
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 20:20:21
+ *  @Last Time: 28-05-2017 21:56:03
  *  
  *  @Description:
  *      Contains functions and constructs related to windows specific OpenGL.
@@ -180,13 +180,13 @@ LoadExtensions :: proc(GLContext : win32wgl.Hglrc, WindowDC : win32.Hdc, list : 
     }
 }
 
-GetInfo :: proc(vars : ^gl.OpenGLVars_t, dc : win32.Hdc) {
+GetInfo :: proc(vars : ^gl.OpenGLVars, dc : win32.Hdc) {
     wglExts := strings.to_odin_string(GetExtensionsStringARB(dc));
     s := 0;
     for r, i in wglExts {
         if r == ' ' {
-            append(vars.WglExtensions, wglExts[s..i]);
-            vars.NumWglExtensions += 1;
+            append(vars.wgl_extensions, wglExts[s..i]);
+            vars.num_wgl_extensions += 1;
             s = i+1;
         }
     }

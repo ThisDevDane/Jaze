@@ -6,7 +6,7 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 20:09:38
+ *  @Last Time: 28-05-2017 21:50:00
  *  
  *  @Description:
  *      The console is an in engine window that can be pulled up for viewing.
@@ -19,8 +19,8 @@
 #import "imgui.odin";
 #import debug_wnd "debug_windows.odin";
 
-OUTPUT_TO_CLI  :: true;
-OUTPUT_TO_FILE :: true;
+OUTPUT_TO_CLI  :: false;
+OUTPUT_TO_FILE :: false;
 
 _BUF_SIZE :: 1024;
 

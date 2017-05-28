@@ -6,7 +6,7 @@
  *  @Creation: 04-05-2017 16:09:02
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 17:29:13
+ *  @Last Time: 28-05-2017 22:32:05
  *  
  *  @Description:
  *      
@@ -119,18 +119,18 @@ DrawMap :: proc(immutable data : ^Data_t, queue : ^render_queue.Queue, inBuildMo
         for x := 0; x < data.Width; x++ {
             tile := data.Tiles[y][x];
             cmd := renderer.Command.Bitmap{};
-            cmd.RenderPos = tile.Pos;
-            cmd.Scale = math.Vec3{1, 1, 1};
-            cmd.Rotation = 0;
+            cmd.render_pos = tile.Pos;
+            cmd.scale = math.Vec3{1, 1, 1};
+            cmd.rotation = 0;
             match t in tile {
                 case Tile.Walk : {
                     i := inBuildMode ? 1 : 0;
-                    cmd.Texture =  data.WalkTexture[i];
+                    cmd.texture =  data.WalkTexture[i];
                 }
 
                 case Tile.Build : {
                     i := inBuildMode ? 1 : 0;
-                    cmd.Texture = data.BuildTexture[i];
+                    cmd.texture = data.BuildTexture[i];
                 }
             }
             render_queue.Enqueue(queue, cmd);

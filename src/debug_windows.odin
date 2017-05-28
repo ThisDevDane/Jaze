@@ -6,7 +6,7 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 20:20:28
+ *  @Last Time: 28-05-2017 22:01:15
  *  
  *  @Description:
  *      Contains all the drawing code for debug windows.
@@ -216,7 +216,7 @@ stat_overlay :: proc(show : ^bool) {
         io := imgui.get_io();
         imgui.text("Framerate: %.1ffps (%fms) ", io.framerate, 1000.0 / io.framerate);
         imgui.separator();
-        imgui.text("Draw Calls: %d calls", gl.DebugInfo.DrawCalls);
+        imgui.text("Draw Calls: %d calls", gl.debug_info.draw_calls);
     }   
     imgui.end();
     imgui.pop_style_color(1);
@@ -252,11 +252,11 @@ opengl_texture_overview :: proc(show : ^bool) {
         _PreviewSize.y = _PreviewSize.x;
         size : imgui.Vec2;
         imgui.get_window_size(&size);
-        columns := _CalculateMaxcolumns(size.x, _PreviewSize.x + 24, i32(len(gl.DebugInfo.LoadedTextures)));
+        columns := _CalculateMaxcolumns(size.x, _PreviewSize.x + 24, i32(len(gl.debug_info.loaded_textures)));
         imgui.begin_child("", imgui.Vec2{0, 0}, false, 0);
         {
             imgui.columns(columns, "nil", false);
-            for id in gl.DebugInfo.LoadedTextures {
+            for id in gl.debug_info.loaded_textures {
                 imgui.image(imgui.TextureID(uint(id)), _PreviewSize, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0.91, 0.4, 0.23, 1});
                 if imgui.is_item_hovered() {
                     imgui.begin_tooltip();
@@ -285,41 +285,41 @@ opengl_texture_overview :: proc(show : ^bool) {
     imgui.end();
 }
 
-opengl_info :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
+opengl_info :: proc(vars : ^gl.OpenGLVars, show : ^bool) {
     imgui.begin("OpenGL Info", show, STD_WINDOW);
     {
         imgui.text("Versions:");
         imgui.indent(20.0);
-            imgui.text("Highest: %d.%d", vars.VersionMajorMax, vars.VersionMinorMax);
-            imgui.text("Current: %d.%d", vars.VersionMajorCur, vars.VersionMajorCur);
-            imgui.text("GLSL:    %s", vars.GLSLVersionString);
+            imgui.text("Highest: %d.%d", vars.version_major_max, vars.version_minor_max);
+            imgui.text("Current: %d.%d", vars.version_major_cur, vars.version_major_cur);
+            imgui.text("GLSL:    %s", vars.glsl_version_string);
         imgui.unindent(20.0);
-        imgui.text("Lib Address 0x%x", gl.DebugInfo.LibAddress);
+        imgui.text("Lib Address 0x%x", gl.debug_info.lib_address);
         imgui.separator();
-            imgui.text("Vendor:   %s", vars.VendorString);
-            imgui.text("Render:   %s", vars.RendererString);
-            imgui.text("CtxFlags: %d", vars.ContextFlags);
+            imgui.text("Vendor:   %s", vars.vendor_string);
+            imgui.text("Render:   %s", vars.renderer_string);
+            imgui.text("CtxFlags: %d", vars.context_flags);
         imgui.separator();
-            imgui.text("Number of extensions:       %d", vars.NumExtensions); imgui.same_line(0, -1);
+            imgui.text("Number of extensions:       %d", vars.num_extensions); imgui.same_line(0, -1);
             if imgui.small_button("View##Ext") {
                 set_window_state("OpenGLShowExtensions", true);
             }
-            imgui.text("Number of WGL extensions:   %d", vars.NumWglExtensions);imgui.same_line(0, -1);
+            imgui.text("Number of WGL extensions:   %d", vars.num_wgl_extensions);imgui.same_line(0, -1);
             if imgui.small_button("View##WGL") {
                 set_window_state("OpenGLShowWGLExtensions", true);
             }
-            imgui.text("Number of loaded Textures: %d", len(gl.DebugInfo.LoadedTextures)); imgui.same_line(0, -1);
+            imgui.text("Number of loaded Textures: %d", len(gl.debug_info.loaded_textures)); imgui.same_line(0, -1);
             if imgui.small_button("View##texture") {
                 set_window_state("ShowGLtextureOverview", true);
             }
-            imgui.text("Number of functions loaded: %d/%d", gl.DebugInfo.NumberOfFunctionsLoadedSuccessed, gl.DebugInfo.NumberOfFunctionsLoaded); 
+            imgui.text("Number of functions loaded: %d/%d", gl.debug_info.number_of_functions_loaded_successed, gl.debug_info.number_of_functions_loaded); 
         imgui.separator();
         if imgui.collapsing_header("Loaded Functions", 0) {
             imgui.begin_child("Functions###FuncLoad", imgui.Vec2{0, 0}, true, 0);
             imgui.columns(2, "nil", false);
             suc : string;
-            for status in gl.DebugInfo.Statuses {
-                imgui.text(status.Name);
+            for status in gl.debug_info.statuses {
+                imgui.text(status.name);
 /*                if(imgui.is_item_hovered()) {
                     imgui.BeginTooltip();
                     imgui.PushtextWrapPos(450.0);
@@ -342,7 +342,7 @@ opengl_info :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
                 }*/
                 imgui.next_column();
                 c : imgui.Vec4;
-                if status.Success {
+                if status.success {
                     c = imgui.Vec4{0,0.78,0,1};
                     suc = "true";
                 } else {
@@ -362,13 +362,13 @@ opengl_info :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
 
     if get_window_state("OpenGLShowExtensions") {
         b := get_window_state("OpenGLShowExtensions");
-        opengl_extensions("Extensions##Ext", vars.Extensions, &b);
+        opengl_extensions("Extensions##Ext", vars.extensions, &b);
         set_window_state("OpenGLShowExtensions", b);
     }
 
     if get_window_state("OpenGLShowWGLExtensions") {
         b := get_window_state("OpenGLShowWGLExtensions");
-        opengl_extensions("WGL Extensions", vars.WglExtensions, &b);
+        opengl_extensions("WGL Extensions", vars.wgl_extensions, &b);
         set_window_state("OpenGLShowWGLExtensions", b);
     }
 

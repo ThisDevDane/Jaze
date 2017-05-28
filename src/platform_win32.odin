@@ -6,7 +6,7 @@
  *  @Creation: 05-05-2017 22:12:56
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 20:19:30
+ *  @Last Time: 28-05-2017 21:53:50
  *  
  *  @Description:
  *      Contains data and functions related to interacting with windows.
@@ -31,7 +31,7 @@ Data_t :: struct {
     AppHandle          : AppHandle,
     WindowHandle       : WndHandle,
     DeviceCtx          : win32.Hdc,
-    Ogl                : gl.OpenGLVars_t,
+    Ogl                : gl.OpenGLVars,
     WindowPlacement    : win32.WindowPlacement,
 }
 

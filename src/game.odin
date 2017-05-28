@@ -6,7 +6,7 @@
  *  @Creation: 04-05-2017 15:53:25
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 20:10:14
+ *  @Last Time: 28-05-2017 22:31:52
  *  
  *  @Description:
  *      Contains the Game Context.
@@ -58,11 +58,11 @@ create_context :: proc() -> ^Context {
     ctx.entity_list       = entity.MakeList();
 
     ctx.game_camera      = new(renderer.Camera_t);
-    ctx.game_camera.Pos  = math.Vec3{0, 0, 15};
-    ctx.game_camera.Zoom = 50;
-    ctx.game_camera.Near = 0.1;
-    ctx.game_camera.Far  = 50;
-    ctx.game_camera.Rot  = 45;
+    ctx.game_camera.pos  = math.Vec3{0, 0, 15};
+    ctx.game_camera.zoom = 50;
+    ctx.game_camera.near = 0.1;
+    ctx.game_camera.far  = 50;
+    ctx.game_camera.rot  = 45;
 
     return ctx;
 }
@@ -110,15 +110,15 @@ camera_logic :: proc(ctx : ^engine.Context, camera : ^renderer.Camera_t) {
         zoom--;
     }
 
-    camera.Zoom += (f32(zoom) * _CAMERA_ZOOM_SPEED) * f32(ctx.time.delta_time);
-    if camera.Zoom > _MAX_CAMERA_ZOOM {
-        camera.Zoom = _MAX_CAMERA_ZOOM;
-    } else if camera.Zoom < _MIN_CAMERA_ZOOM {
-        camera.Zoom = _MIN_CAMERA_ZOOM;
+    camera.zoom += (f32(zoom) * _CAMERA_ZOOM_SPEED) * f32(ctx.time.delta_time);
+    if camera.zoom > _MAX_CAMERA_ZOOM {
+        camera.zoom = _MAX_CAMERA_ZOOM;
+    } else if camera.zoom < _MIN_CAMERA_ZOOM {
+        camera.zoom = _MIN_CAMERA_ZOOM;
     }
 
     speed : f32 = input.is_button_held(ctx.input, "CameraFastMov") ? _CAMERA_SPEED_FAST : _CAMERA_SPEED;
-    camera.Pos += (dir * speed) * f32(ctx.time.delta_time);
+    camera.pos += (dir * speed) * f32(ctx.time.delta_time);
 }
 
 input_logic :: proc(ctx : ^engine.Context, gCtx : ^Context) {
@@ -130,12 +130,12 @@ input_logic :: proc(ctx : ^engine.Context, gCtx : ^Context) {
 }
 
 build_mode_logic :: proc(ctx : ^engine.Context, gCtx : ^Context) {
-    view := renderer.CreateViewMatrixFromCamera(gCtx.game_camera);
-    proj := renderer.CalculateOrtho(ctx.window_size, 
+    view := renderer.create_view_matrix_from_camera(gCtx.game_camera);
+    proj := renderer.calculate_ortho(ctx.window_size, 
                                     ctx.scale_factor, 
-                                    gCtx.game_camera.Far, 
-                                    gCtx.game_camera.Near);
-    wp := renderer.ScreenToWorld(ctx.input.mouse_pos, 
+                                    gCtx.game_camera.far, 
+                                    gCtx.game_camera.near);
+    wp := renderer.screen_to_world(ctx.input.mouse_pos, 
                                  proj, view, 
                                  ctx.game_draw_region, 
                                  gCtx.game_camera) + 0.5;
@@ -153,10 +153,10 @@ build_mode_logic :: proc(ctx : ^engine.Context, gCtx : ^Context) {
         if jmap.TileIsBuildable(gCtx.map_, math.Vec2{wp.x, wp.y}) && 
            !gCtx.map_.Occupied[int(wp.y)][int(wp.x)] {
                 cmd := renderer.Command.Bitmap{};
-                cmd.RenderPos = wp;
-                cmd.Scale = math.Vec3{1, 1, 1};
-                cmd.Rotation = 0;
-                cmd.Texture = gCtx.build_hover_texture;
+                cmd.render_pos = wp;
+                cmd.scale = math.Vec3{1, 1, 1};
+                cmd.rotation = 0;
+                cmd.texture = gCtx.build_hover_texture;
                 render_queue.Enqueue(gCtx.map_render_queue, cmd);
         }
     }

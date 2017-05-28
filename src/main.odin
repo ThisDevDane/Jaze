@@ -6,7 +6,7 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 17:31:15
+ *  @Last Time: 28-05-2017 22:30:54
  *  
  *  @Description:
  *      The main file for Jaze.
@@ -38,18 +38,18 @@
 #import debugWnd "debug_windows.odin";
 #import p32 "platform_win32.odin";
 
-calculate_viewport :: proc(newSize : math.Vec2, targetAspectRatio : f32) -> renderer.DrawRegion {
+calculate_viewport :: proc(new_size : math.Vec2, target_aspect_ratio : f32) -> renderer.DrawRegion {
     res : renderer.DrawRegion;
-    res.Width = i32(newSize.x);
-    res.Height = i32(f32(res.Width) / targetAspectRatio + 0.5);
+    res.width = i32(new_size.x);
+    res.height = i32(f32(res.width) / target_aspect_ratio + 0.5);
 
-    if i32(newSize.y) < res.Height {
-        res.Height = i32(newSize.y);
-        res.Width = i32(f32(res.Height) * targetAspectRatio + 0.5);
+    if i32(new_size.y) < res.height {
+        res.height = i32(new_size.y);
+        res.width = i32(f32(res.height) * target_aspect_ratio + 0.5);
     }
 
-    res.X = (i32(newSize.x) / 2) - (res.Width / 2);
-    res.Y = (i32(newSize.y) / 2) - (res.Height / 2);
+    res.x = (i32(new_size.x) / 2) - (res.width / 2);
+    res.y = (i32(new_size.y) / 2) - (res.height / 2);
     return res;
 }
 
@@ -58,19 +58,19 @@ opengl_debug_callback :: proc(source : gl.DebugSource, type : gl.DebugType, id :
 }
 
 clear_screen :: proc(ctx : ^engine.Context) {
-    gl.Scissor(0, 0, i32(ctx.window_size.x), i32(ctx.window_size.y));
-    gl.ClearColor(0, 0, 0, 1);
-    gl.Clear(gl.ClearFlags.COLOR_BUFFER);
+    gl.scissor(0, 0, i32(ctx.window_size.x), i32(ctx.window_size.y));
+    gl.clear_color(0, 0, 0, 1);
+    gl.clear(gl.ClearFlags.COLOR_BUFFER);
 }
 
 clear_game_screen :: proc(ctx : ^engine.Context) {
-        gl.Scissor(ctx.game_draw_region.X, 
-                   ctx.game_draw_region.Y, 
-                   ctx.game_draw_region.Width, 
-                   ctx.game_draw_region.Height);
+        gl.scissor(ctx.game_draw_region.x, 
+                   ctx.game_draw_region.y, 
+                   ctx.game_draw_region.width, 
+                   ctx.game_draw_region.height);
 
-        gl.ClearColor(1, 0, 1, 1);
-        gl.Clear(gl.ClearFlags.COLOR_BUFFER);
+        gl.clear_color(1, 0, 1, 1);
+        gl.clear(gl.ClearFlags.COLOR_BUFFER);
 }
 
 main :: proc() {
@@ -82,15 +82,15 @@ main :: proc() {
         EngineContext.win32.WindowHandle = p32.CreateWindow(EngineContext.win32.AppHandle, 
                                                             math.Vec2{1280, 720}); 
         EngineContext.win32.DeviceCtx = p32.GetDC(EngineContext.win32.WindowHandle);
-        EngineContext.win32.Ogl.VersionMajorMax, EngineContext.win32.Ogl.VersionMinorMax = p32.GetMaxGLVersion();
-        EngineContext.win32.Ogl.Ctx = p32.CreateOpenGLContext(EngineContext.win32.DeviceCtx, true, 3, 3);
+        EngineContext.win32.Ogl.version_major_max, EngineContext.win32.Ogl.version_minor_max = p32.GetMaxGLVersion();
+        EngineContext.win32.Ogl.ctx = p32.CreateOpenGLContext(EngineContext.win32.DeviceCtx, true, 3, 3);
     }
     {
-        gl.Init();
-        gl.DebugMessageCallback(opengl_debug_callback, nil);
-        gl.Enable(gl.Capabilities.DebugOutputSynchronous);
-        gl.DebugMessageControl(gl.DebugSource.DontCare, gl.DebugType.DontCare, gl.DebugSeverity.Notification, 0, nil, false);
-        gl.GetInfo(&EngineContext.win32.Ogl);
+        gl.init();
+        gl.debug_message_callback(opengl_debug_callback, nil);
+        gl.enable(gl.Capabilities.DebugOutputSynchronous);
+        gl.debug_message_control(gl.DebugSource.DontCare, gl.DebugType.DontCare, gl.DebugSeverity.Notification, 0, nil, false);
+        gl.get_info(&EngineContext.win32.Ogl);
         wgl.GetInfo(&EngineContext.win32.Ogl, EngineContext.win32.DeviceCtx);
     }
 
@@ -103,7 +103,7 @@ main :: proc() {
     textureCat, _ := catalog.create_new(catalog.Kind.Texture, "data/textures/", ".png,.jpg,.jpeg");
     mapCat, _ := catalog.create_new(catalog.Kind.Texture, "data/maps/", ".png");
 
-    EngineContext.render_state = renderer.Init(shaderCat);
+    EngineContext.render_state = renderer.init(shaderCat);
 
     console.add_default_commands();
 
@@ -119,7 +119,7 @@ main :: proc() {
 
     for EngineContext.settings.program_running {
         p32.MessageLoop(EngineContext);
-        gl.DebugInfo.DrawCalls = 0;
+        gl.debug_info.draw_calls = 0;
         
         time.update(EngineContext.time);
         if p32.IsWindowActive(EngineContext.win32.WindowHandle) {
@@ -133,22 +133,22 @@ main :: proc() {
         p32.ChangeWindowTitle(EngineContext.win32.WindowHandle, 
                           "Jaze - DEV VERSION | <%.0f, %.0f> | <%d, %d, %d, %d>",
                           EngineContext.window_size.x, EngineContext.window_size.y,
-                          EngineContext.game_draw_region.X, EngineContext.game_draw_region.Y,
-                          EngineContext.game_draw_region.Width, EngineContext.game_draw_region.Height);
+                          EngineContext.game_draw_region.x, EngineContext.game_draw_region.y,
+                          EngineContext.game_draw_region.width, EngineContext.game_draw_region.height);
 
 
 
         EngineContext.game_draw_region = calculate_viewport(EngineContext.window_size,
-                                                            EngineContext.virtual_screen.AspectRatio);
-        EngineContext.scale_factor.x = EngineContext.window_size.x / f32(EngineContext.virtual_screen.Dimension.x);
-        EngineContext.scale_factor.y = EngineContext.window_size.y / f32(EngineContext.virtual_screen.Dimension.y);
+                                                            EngineContext.virtual_screen.aspect_ratio);
+        EngineContext.scale_factor.x = EngineContext.window_size.x / f32(EngineContext.virtual_screen.dimension.x);
+        EngineContext.scale_factor.y = EngineContext.window_size.y / f32(EngineContext.virtual_screen.dimension.y);
         clear_screen(EngineContext);
-        gl.Viewport(EngineContext.game_draw_region.X, 
-                    EngineContext.game_draw_region.Y, 
-                    EngineContext.game_draw_region.Width,
-                    EngineContext.game_draw_region.Height);
+        gl.viewport(EngineContext.game_draw_region.x, 
+                    EngineContext.game_draw_region.y, 
+                    EngineContext.game_draw_region.width,
+                    EngineContext.game_draw_region.height);
         clear_game_screen(EngineContext);
-        gl.Clear(gl.ClearFlags.DEPTH_BUFFER);
+        gl.clear(gl.ClearFlags.DEPTH_BUFFER);
         jimgui.begin_new_frame(EngineContext.time.unscaled_delta_time, EngineContext);
 
         game.input_logic(EngineContext, GameContext);
@@ -162,10 +162,10 @@ main :: proc() {
         {
             SendSquare :: proc(pos : math.Vec3, col : math.Vec4, queue : ^render_queue.Queue) {
                 cmd := renderer.Command.Rect{};
-                cmd.RenderPos = pos;
-                cmd.Scale = math.Vec3{1, 1, 1};
-                cmd.Rotation = 0;        
-                cmd.Color = col;
+                cmd.render_pos = pos;
+                cmd.scale = math.Vec3{1, 1, 1};
+                cmd.rotation = 0;        
+                cmd.color = col;
                 render_queue.Enqueue(queue, cmd);
             }
             s := GameContext.map_.StartTile;
@@ -176,10 +176,10 @@ main :: proc() {
             p := path.Find(GameContext.map_, s, e);
         }
 
-        renderer.RenderQueue(EngineContext, GameContext.game_camera, GameContext.map_render_queue);
-        renderer.RenderQueue(EngineContext, GameContext.game_camera, GameContext.tower_render_queue);
-        renderer.RenderQueue(EngineContext, GameContext.game_camera, GameContext.enemy_render_queue);
-        renderer.RenderQueue(EngineContext, GameContext.game_camera, GameContext.debug_render_queue);
+        renderer.render_queue(EngineContext, GameContext.game_camera, GameContext.map_render_queue);
+        renderer.render_queue(EngineContext, GameContext.game_camera, GameContext.tower_render_queue);
+        renderer.render_queue(EngineContext, GameContext.game_camera, GameContext.enemy_render_queue);
+        renderer.render_queue(EngineContext, GameContext.game_camera, GameContext.debug_render_queue);
         
         if EngineContext.settings.show_debug_menu {
             debug.render_debug_ui(EngineContext, GameContext);

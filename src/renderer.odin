@@ -6,14 +6,14 @@
  *  @Creation: 13-05-2017 23:48:58
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 17:01:11
+ *  @Last Time: 28-05-2017 22:38:29
  *  
  *  @Description:
  *      Functions and data related to the renderer. 
  */
 #import "math.odin";
 
-#import "render_queue.odin";
+#import rq"render_queue.odin";
 #import "gl.odin";
 #import "engine.odin";
 #import "catalog.odin";
@@ -24,59 +24,59 @@
 PixelsToUnits :: 64;
 
 Command :: union {
-    RenderPos : math.Vec3,
-    Rotation  : f32, 
-    Scale     : math.Vec3,
+    render_pos : math.Vec3,
+    rotation  : f32, 
+    scale     : math.Vec3,
     
     Bitmap{
-        Texture : ^ja.Asset.Texture,
+        texture : ^ja.Asset.Texture,
     },
     Rect{
-        Color : math.Vec4,
+        color : math.Vec4,
     },
     Circle{
-        Diameter : f32,
+        diameter : f32,
     },
 }
 
 State_t :: struct {
-    BitmapProgram : gl.Program,
-    SolidProgram : gl.Program,
-    VAO : gl.VAO,
-    VBO : gl.VBO,
-    EBO : gl.EBO,
+    bitmap_program : gl.Program,
+    solid_program : gl.Program,
+    vao : gl.VAO,
+    vbo : gl.VBO,
+    ebo : gl.EBO,
 }
 
 Camera_t :: struct {
-    Pos  : math.Vec3,
-    Rot  : f32,
-    Zoom : f32,
-    Near : f32,
-    Far  : f32,
+    pos  : math.Vec3,
+    rot  : f32,
+    zoom : f32,
+    near : f32,
+    far  : f32,
 }
 
 DrawRegion :: struct {
-    X : i32,
-    Y : i32,
-    Width : i32,
-    Height : i32,
+    x : i32,
+    y : i32,
+    width : i32,
+    height : i32,
 }
 
-VirtualScreen_t :: struct {
-    Dimension : math.Vec2,
-    AspectRatio : f32,
+VirtualScreen :: struct {
+    dimension : math.Vec2,
+    aspect_ratio : f32,
 }
 
-CreateVirtualScreen :: proc(w, h : int) -> ^VirtualScreen_t {
-    screen := new(VirtualScreen_t);
-    screen.Dimension.x = 1280;
-    screen.Dimension.y = 720;
-    screen.AspectRatio = screen.Dimension.x / screen.Dimension.y;
+create_virtual_screen :: proc(w, h : int) -> ^VirtualScreen {
+    screen := new(VirtualScreen);
+    screen.dimension.x = 1280;
+    screen.dimension.y = 720;
+    screen.aspect_ratio = screen.dimension.x / screen.dimension.y;
 
     return screen;
 }
 
-Init :: proc(shaderCat : ^catalog.Catalog) -> ^State_t {
+init :: proc(shaderCat : ^catalog.Catalog) -> ^State_t {
     state := new(State_t); 
 
     vertexAsset, ok1 := catalog.find(shaderCat, "test_vert");
@@ -88,7 +88,7 @@ Init :: proc(shaderCat : ^catalog.Catalog) -> ^State_t {
 
     vertex := vertexAsset.(^ja.Asset.Shader);
     frag :=   fragAsset.(^ja.Asset.Shader);
-    state.BitmapProgram = glUtil.create_program(vertex^, frag^);
+    state.bitmap_program = glUtil.create_program(vertex^, frag^);
 
     vertexAsset, ok1 = catalog.find(shaderCat, "basic_vert");
     fragAsset, ok2 = catalog.find(shaderCat, "basic_frag");
@@ -99,15 +99,15 @@ Init :: proc(shaderCat : ^catalog.Catalog) -> ^State_t {
 
     vertex = vertexAsset.(^ja.Asset.Shader);
     frag   = fragAsset.(^ja.Asset.Shader);
-    state.SolidProgram = glUtil.create_program(vertex^, frag^);
+    state.solid_program = glUtil.create_program(vertex^, frag^);
 
 
-    state.VAO = gl.GenVertexArray();
-    gl.BindVertexArray(state.VAO);
-    state.VBO = gl.GenVBO();
-    gl.BindBuffer(state.VBO);
-    state.EBO = gl.GenEBO();
-    gl.BindBuffer(state.EBO);
+    state.vao = gl.gen_vertex_array();
+    gl.bind_vertex_array(state.vao);
+    state.vbo = gl.gen_vbo();
+    gl.bind_buffer(state.vbo);
+    state.ebo = gl.gen_ebo();
+    gl.bind_buffer(state.ebo);
 
     vertices := [..]f32 {
          1, 1, 0,  1.0, 0.0, // Top Right
@@ -121,37 +121,37 @@ Init :: proc(shaderCat : ^catalog.Catalog) -> ^State_t {
         1, 2, 3,
     };
 
-    gl.BufferData(gl.BufferTargets.Array, size_of_val(vertices), &vertices[0], gl.BufferDataUsage.StaticDraw);
-    gl.BufferData(gl.BufferTargets.ElementArray, size_of_val(elements), &elements[0], gl.BufferDataUsage.StaticDraw);
+    gl.buffer_data(gl.BufferTargets.Array, size_of_val(vertices), &vertices[0], gl.BufferDataUsage.StaticDraw);
+    gl.buffer_data(gl.BufferTargets.ElementArray, size_of_val(elements), &elements[0], gl.BufferDataUsage.StaticDraw);
 
 
-    state.BitmapProgram.Uniforms["Model"] = gl.GetUniformLocation(state.BitmapProgram, "Model");
-    state.BitmapProgram.Uniforms["View"]  = gl.GetUniformLocation(state.BitmapProgram, "View");
-    state.BitmapProgram.Uniforms["Proj"]  = gl.GetUniformLocation(state.BitmapProgram, "Proj");
+    state.bitmap_program.Uniforms["Model"] = gl.get_uniform_location(state.bitmap_program, "Model");
+    state.bitmap_program.Uniforms["View"]  = gl.get_uniform_location(state.bitmap_program, "View");
+    state.bitmap_program.Uniforms["Proj"]  = gl.get_uniform_location(state.bitmap_program, "Proj");
 
-    state.BitmapProgram.Attributes["Position"] = gl.GetAttribLocation(state.BitmapProgram, "Position");
-    state.BitmapProgram.Attributes["UV"] = gl.GetAttribLocation(state.BitmapProgram, "UV");
-    gl.VertexAttribPointer(u32(state.BitmapProgram.Attributes["Position"]), 3, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), nil);
-    gl.VertexAttribPointer(u32(state.BitmapProgram.Attributes["UV"]),       2, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), rawptr(int(3 * size_of(f32))));
-    gl.EnableVertexAttribArray(u32(state.BitmapProgram.Attributes["Position"]));
-    gl.EnableVertexAttribArray(u32(state.BitmapProgram.Attributes["UV"]));
+    state.bitmap_program.Attributes["Position"] = gl.get_attrib_location(state.bitmap_program, "Position");
+    state.bitmap_program.Attributes["UV"] = gl.get_attrib_location(state.bitmap_program, "UV");
+    gl.vertex_attrib_pointer(u32(state.bitmap_program.Attributes["Position"]), 3, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), nil);
+    gl.vertex_attrib_pointer(u32(state.bitmap_program.Attributes["UV"]),       2, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), rawptr(int(3 * size_of(f32))));
+    gl.enable_vertex_attrib_array(u32(state.bitmap_program.Attributes["Position"]));
+    gl.enable_vertex_attrib_array(u32(state.bitmap_program.Attributes["UV"]));
 
-    state.SolidProgram.Uniforms["Model"] = gl.GetUniformLocation(state.SolidProgram, "Model");
-    state.SolidProgram.Uniforms["View"]  = gl.GetUniformLocation(state.SolidProgram, "View");
-    state.SolidProgram.Uniforms["Proj"]  = gl.GetUniformLocation(state.SolidProgram, "Proj");
+    state.solid_program.Uniforms["Model"] = gl.get_uniform_location(state.solid_program, "Model");
+    state.solid_program.Uniforms["View"]  = gl.get_uniform_location(state.solid_program, "View");
+    state.solid_program.Uniforms["Proj"]  = gl.get_uniform_location(state.solid_program, "Proj");
 
-    state.SolidProgram.Uniforms["Color"]  = gl.GetUniformLocation(state.SolidProgram, "Color");
+    state.solid_program.Uniforms["Color"]  = gl.get_uniform_location(state.solid_program, "Color");
 
-    state.SolidProgram.Attributes["VertPos"] = gl.GetAttribLocation(state.SolidProgram, "VertPos");
-    gl.VertexAttribPointer(u32(state.BitmapProgram.Attributes["VertPos"]),  3, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), nil);
-    gl.VertexAttribPointer(u32(state.BitmapProgram.Attributes["UV"]),       2, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), rawptr(int(3 * size_of(f32))));
-    gl.EnableVertexAttribArray(u32(state.SolidProgram.Attributes["VertPos"]));
+    state.solid_program.Attributes["VertPos"] = gl.get_attrib_location(state.solid_program, "VertPos");
+    gl.vertex_attrib_pointer(u32(state.bitmap_program.Attributes["VertPos"]),  3, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), nil);
+    gl.vertex_attrib_pointer(u32(state.bitmap_program.Attributes["UV"]),       2, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), rawptr(int(3 * size_of(f32))));
+    gl.enable_vertex_attrib_array(u32(state.solid_program.Attributes["VertPos"]));
 
 
     return state;
 }
 
-CalculateOrtho :: proc(window : math.Vec2, scaleFactor : math.Vec2, far, near : f32) -> math.Mat4 {
+calculate_ortho :: proc(window : math.Vec2, scaleFactor : math.Vec2, far, near : f32) -> math.Mat4 {
     w := (window.x);
     h := (window.y);
     l := -(w/ 2);
@@ -162,20 +162,20 @@ CalculateOrtho :: proc(window : math.Vec2, scaleFactor : math.Vec2, far, near : 
     return math.scale(proj, math.Vec3{scaleFactor.x, scaleFactor.y, 1.0});
 }
 
-CreateViewMatrixFromCamera :: proc(immutable camera : ^Camera_t) -> math.Mat4 {
-    view := math.scale(math.mat4_identity(), math.Vec3{camera.Zoom, camera.Zoom, 1});
+create_view_matrix_from_camera :: proc(immutable camera : ^Camera_t) -> math.Mat4 {
+    view := math.scale(math.mat4_identity(), math.Vec3{camera.zoom, camera.zoom, 1});
     //rot := math.mat4_rotate(math.Vec3{0, 0, 1}, math.to_radians(camera.Rot));
     //view = math.mul(view, rot);
-    tr := math.mat4_translate(-camera.Pos);
+    tr := math.mat4_translate(-camera.pos);
     return math.mul(view, tr);
 }
 
-ScreenToWorld :: proc(screenPos : math.Vec2, proj, view : math.Mat4, area : DrawRegion, cam : ^Camera_t) -> math.Vec3 {
-    MapToRange :: proc(t : f32, min : f32, max : f32) -> f32 {
+screen_to_world :: proc(screen_pos : math.Vec2, proj, view : math.Mat4, area : DrawRegion, cam : ^Camera_t) -> math.Vec3 {
+    map_to_range :: proc(t : f32, min : f32, max : f32) -> f32 {
         return (t - min) / (max - min);
     }
-    u := MapToRange(screenPos.x, f32(area.X), f32(area.X + area.Width));
-    v := MapToRange(screenPos.y, f32(area.Y), f32(area.Y + area.Height));
+    u := map_to_range(screen_pos.x, f32(area.x), f32(area.x + area.width));
+    v := map_to_range(screen_pos.y, f32(area.y), f32(area.y + area.height));
     p := math.Vec4{u * 2 - 1,
                    v * 2 - 1,
                    -1, 1};
@@ -183,23 +183,18 @@ ScreenToWorld :: proc(screenPos : math.Vec2, proj, view : math.Mat4, area : Draw
     p = math.mul(math.inverse(proj), p);
     p = math.Vec4{p.x, p.y, -1, 0};
     world := math.mul(math.inverse(view), p);
-    return math.Vec3{world.x + cam.Pos.x, -world.y + cam.Pos.y, 0}; 
+    return math.Vec3{world.x + cam.pos.x, -world.y + cam.pos.y, 0}; 
 }
 
-/*    TestRender(mainProgram, 
-               ScreenToWorld(ctx.Input.MousePos, proj, view, ctx.GameDrawRegion, Camera), 
-               f32(ctx.Time.TimeSinceStart * 200.0),
-               math.Vec3{0.4, 0.4, 0.4});*/
+render_queue :: proc(ctx : ^engine.Context, camera : ^Camera_t, queue : ^rq.Queue) {
+    gl.enable(gl.Capabilities.DepthTest);
+    gl.enable(gl.Capabilities.Blend);
+    gl.depth_func(gl.DepthFuncs.Lequal);
+    gl.blend_func(gl.BlendFactors.SrcAlpha, gl.BlendFactors.OneMinusSrcAlpha);  
+    view := create_view_matrix_from_camera(camera);
+    proj := calculate_ortho(ctx.window_size, ctx.scale_factor, camera.far, camera.near);
 
-RenderQueue :: proc(ctx : ^engine.Context, camera : ^Camera_t, queue : ^render_queue.Queue) {
-    gl.Enable(gl.Capabilities.DepthTest);
-    gl.Enable(gl.Capabilities.Blend);
-    gl.DepthFunc(gl.DepthFuncs.Lequal);
-    gl.BlendFunc(gl.BlendFactors.SrcAlpha, gl.BlendFactors.OneMinusSrcAlpha);  
-    view := CreateViewMatrixFromCamera(camera);
-    proj := CalculateOrtho(ctx.window_size, ctx.scale_factor, camera.Far, camera.Near);
-
-    CreateModelMat :: proc(pos, texSize, scale : math.Vec3, rotation_ : f32) -> math.Mat4 {
+    create_model_mat :: proc(pos, texSize, scale : math.Vec3, rotation_ : f32) -> math.Mat4 {
         textureScale := math.scale(math.mat4_identity(), texSize);
         cmdScale := math.scale(math.mat4_identity(), scale);
         matScale := math.mul(textureScale, cmdScale);
@@ -218,52 +213,52 @@ RenderQueue :: proc(ctx : ^engine.Context, camera : ^Camera_t, queue : ^render_q
     lastProgram := 0;
     vpu := false;
 
-    gl.BindVertexArray(ctx.render_state.VAO);    
+    gl.bind_vertex_array(ctx.render_state.vao);    
 
-    for !render_queue.IsEmpty(queue) {
-        rcmd, _ := render_queue.Dequeue(queue);
+    for !rq.IsEmpty(queue) {
+        rcmd, _ := rq.Dequeue(queue);
 
         match cmd in rcmd {
             case Command.Bitmap : {
-                height := f32(cmd.Texture.height) / PixelsToUnits;
-                width := f32(cmd.Texture.width) / PixelsToUnits;
+                height := f32(cmd.texture.height) / PixelsToUnits;
+                width := f32(cmd.texture.width) / PixelsToUnits;
                 texSize := math.Vec3{width, height, 1};
 
-                if lastProgram != int(ctx.render_state.BitmapProgram.ID) {
-                    gl.UseProgram(ctx.render_state.BitmapProgram);
-                    lastProgram = int(ctx.render_state.BitmapProgram.ID);
+                if lastProgram != int(ctx.render_state.bitmap_program.ID) {
+                    gl.use_program(ctx.render_state.bitmap_program);
+                    lastProgram = int(ctx.render_state.bitmap_program.ID);
                 }
                 if !vpu {
-                    gl.UniformMatrix4fv(ctx.render_state.BitmapProgram.Uniforms["View"],  view,  false);
-                    gl.UniformMatrix4fv(ctx.render_state.BitmapProgram.Uniforms["Proj"],  proj,  false);
+                    gl.uniform_matrix4fv(ctx.render_state.bitmap_program.Uniforms["View"],  view,  false);
+                    gl.uniform_matrix4fv(ctx.render_state.bitmap_program.Uniforms["Proj"],  proj,  false);
                     vpu = true;
                 }
 
-                gl.UniformMatrix4fv(ctx.render_state.BitmapProgram.Uniforms["Model"], CreateModelMat(cmd.RenderPos, texSize, cmd.Scale, cmd.Rotation), false);
+                gl.uniform_matrix4fv(ctx.render_state.bitmap_program.Uniforms["Model"], create_model_mat(cmd.render_pos, texSize, cmd.scale, cmd.rotation), false);
 
-                if lastTex != int(cmd.Texture.gl_id) {
-                    gl.BindTexture(gl.TextureTargets.Texture2D, cmd.Texture.gl_id);
-                    lastTex = int(cmd.Texture.gl_id);
+                if lastTex != int(cmd.texture.gl_id) {
+                    gl.bind_texture(gl.TextureTargets.Texture2D, cmd.texture.gl_id);
+                    lastTex = int(cmd.texture.gl_id);
                 }
-                gl.DrawElements(gl.DrawModes.Triangles, 6, gl.DrawElementsType.UInt, nil);
+                gl.draw_elements(gl.DrawModes.Triangles, 6, gl.DrawElementsType.UInt, nil);
             }
 
             case Command.Rect : {
 
-                if lastProgram != int(ctx.render_state.SolidProgram.ID) {
-                    gl.UseProgram(ctx.render_state.SolidProgram);
-                    lastProgram = int(ctx.render_state.SolidProgram.ID);
+                if lastProgram != int(ctx.render_state.solid_program.ID) {
+                    gl.use_program(ctx.render_state.solid_program);
+                    lastProgram = int(ctx.render_state.solid_program.ID);
                 }
                 if !vpu {
-                    gl.UniformMatrix4fv(ctx.render_state.SolidProgram.Uniforms["View"],  view,  false);
-                    gl.UniformMatrix4fv(ctx.render_state.SolidProgram.Uniforms["Proj"],  proj,  false);
+                    gl.uniform_matrix4fv(ctx.render_state.solid_program.Uniforms["View"],  view,  false);
+                    gl.uniform_matrix4fv(ctx.render_state.solid_program.Uniforms["Proj"],  proj,  false);
                     vpu = true;
                 }
-                gl.UniformMatrix4fv(ctx.render_state.SolidProgram.Uniforms["Model"], CreateModelMat(cmd.RenderPos, math.Vec3{1,1,1}, cmd.Scale, cmd.Rotation), false);
+                gl.uniform_matrix4fv(ctx.render_state.solid_program.Uniforms["Model"], create_model_mat(cmd.render_pos, math.Vec3{1,1,1}, cmd.scale, cmd.rotation), false);
 
-                gl.Uniform(ctx.render_state.SolidProgram.Uniforms["Color"], cmd.Color);
+                gl.uniform(ctx.render_state.solid_program.Uniforms["Color"], cmd.color);
 
-                gl.DrawElements(gl.DrawModes.Triangles, 6, gl.DrawElementsType.UInt, nil);
+                gl.draw_elements(gl.DrawModes.Triangles, 6, gl.DrawElementsType.UInt, nil);
             }
         }
     }

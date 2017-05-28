@@ -6,7 +6,7 @@
  *  @Creation: 21-04-2017 23:32:08
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 17:32:50
+ *  @Last Time: 28-05-2017 22:31:06
  *  
  *  @Description:
  *      Contains the entity construct.
@@ -65,15 +65,15 @@ DrawTowers :: proc(ctx : ^engine.Context, gCtx : ^game.Context, queue : ^render_
                 match t in e.T {
                     case Tower.Basic : {
                         cmd := renderer.Command.Bitmap{};
-                        cmd.RenderPos = t.Position;
-                        cmd.Scale = math.Vec3{1, 1, 1};
-                        cmd.Rotation = 0;        
-                        cmd.Texture = gCtx.tower_basic_bottom_texture;
+                        cmd.render_pos = t.Position;
+                        cmd.scale = math.Vec3{1, 1, 1};
+                        cmd.rotation = 0;        
+                        cmd.texture = gCtx.tower_basic_bottom_texture;
                         render_queue.Enqueue(queue, cmd);
 
-                        cmd.RenderPos = t.Position;
-                        cmd.Rotation = f32(ctx.time.time_since_start) * 20;        
-                        cmd.Texture = gCtx.tower_basic_top_texture;
+                        cmd.render_pos = t.Position;
+                        cmd.rotation = f32(ctx.time.time_since_start) * 20;        
+                        cmd.texture = gCtx.tower_basic_top_texture;
                         render_queue.Enqueue(queue, cmd);
                     }
                 }

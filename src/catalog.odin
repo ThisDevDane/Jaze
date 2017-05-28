@@ -6,7 +6,7 @@
  *  @Creation: 01-05-2017 18:28:11
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 20:09:16
+ *  @Last Time: 28-05-2017 22:44:07
  *  
  *  @Description:
  *      Contains the catalog construct.
@@ -154,6 +154,10 @@ create_new :: proc(kind : Kind, identifier : string, path : string, acceptedExte
                     if _get_file_extension(str) == ext {                        
                         file := _create_file_info(res.path, str, data);
                         res.max_size += uint(file.size);
+                        //Check for meta file and make if not existing
+                        if !_meta_file_check(res.path) {
+
+                        }
                         match kind {
                             case Kind.Texture : {
                                 add_texture(res, file);
@@ -204,8 +208,8 @@ find :: proc(catalog : ^Catalog, assetName : string/*, upload : bool*/) -> (^ja.
             e.width  = int(w);
             e.height = int(h);
             e.comp   = int(c);
-            e.gl_id = gl.GenTexture();
-            gl.BindTexture(gl.TextureTargets.Texture2D, e.gl_id);
+            e.gl_id = gl.gen_texture();
+            gl.bind_texture(gl.TextureTargets.Texture2D, e.gl_id);
             format : gl.PixelDataFormat;
             match e.comp {
                 case 1 : {
@@ -224,16 +228,16 @@ find :: proc(catalog : ^Catalog, assetName : string/*, upload : bool*/) -> (^ja.
                     format = gl.PixelDataFormat.RGBA;
                 }
             }
-            gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
+            gl.tex_image2d(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
                           i32(e.width), i32(e.height), format, 
                           gl.Texture2DDataType.UByte, e.data);
-            gl.GenerateMipmap(gl.MipmapTargets.Texture2D);
+            gl.generate_mipmap(gl.MipmapTargets.Texture2D);
 
-            gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MinFilter, gl.TextureParametersValues.LinearMipmapLinear);
-            gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MagFilter, gl.TextureParametersValues.Linear);
+            gl.tex_parameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MinFilter, gl.TextureParametersValues.LinearMipmapLinear);
+            gl.tex_parameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MagFilter, gl.TextureParametersValues.Linear);
 
-            gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.WrapS, gl.TextureParametersValues.ClampToEdge);
-            gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.WrapT, gl.TextureParametersValues.ClampToEdge);
+            gl.tex_parameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.WrapS, gl.TextureParametersValues.ClampToEdge);
+            gl.tex_parameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.WrapT, gl.TextureParametersValues.ClampToEdge);
         }
     }
 
@@ -319,3 +323,6 @@ _create_file_info :: proc(path : string filename : string, data : win32.FindData
     return file;
 }
 
+_meta_file_check :: proc(asset_path : string) {
+    console.log(asset_path);
+}
