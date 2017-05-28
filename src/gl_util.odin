@@ -6,7 +6,7 @@
  *  @Creation: 21-04-2017 03:04:34
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 00:46:30
+ *  @Last Time: 28-05-2017 17:00:51
  *  
  *  @Description:
  *      Contains random GL utility functions.
@@ -17,7 +17,7 @@
 #import "console.odin";
 #import ja "asset.odin";
 
-CreateAndCompileShader :: proc(type : gl.ShaderTypes, source : string) -> (gl.Shader, bool) {
+create_and_compile_shader :: proc(type : gl.ShaderTypes, source : string) -> (gl.Shader, bool) {
     shader : gl.Shader;
     shader = gl.CreateShader(type);
     gl.ShaderSource(shader, source);
@@ -29,9 +29,9 @@ CreateAndCompileShader :: proc(type : gl.ShaderTypes, source : string) -> (gl.Sh
         logBytes := make([]byte, logSize);
         gl._GetShaderInfoLog(u32(shader), logSize, &logSize, &logBytes[0]);
 
-        console.Log("------ Shader Error(%s) ---", type);
-        console.Log(strings.to_odin_string(&logBytes[0])); 
-        console.Log("--------------------------");
+        console.log("------ Shader Error(%s) ---", type);
+        console.log(strings.to_odin_string(&logBytes[0])); 
+        console.log("--------------------------");
         //DeleteShader(shader.ID);
         return shader, false;
     }
@@ -40,13 +40,13 @@ CreateAndCompileShader :: proc(type : gl.ShaderTypes, source : string) -> (gl.Sh
 }
 
 
-CreateProgram :: proc(vertex, frag : ja.Asset.Shader) -> gl.Program {
+create_program :: proc(vertex, frag : ja.Asset.Shader) -> gl.Program {
     result := gl.CreateProgram();
-    gl.AttachShader(result, vertex.GLID);
-    gl.AttachShader(result, frag.GLID);
+    gl.AttachShader(result, vertex.gl_id);
+    gl.AttachShader(result, frag.gl_id);
 
-    result.Vertex = vertex.GLID;
-    result.Fragment = frag.GLID;
+    result.Vertex = vertex.gl_id;
+    result.Fragment = frag.gl_id;
 
     gl.LinkProgram(result);
     return result;

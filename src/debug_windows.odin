@@ -6,7 +6,7 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 00:54:17
+ *  @Last Time: 28-05-2017 17:35:25
  *  
  *  @Description:
  *      Contains all the drawing code for debug windows.
@@ -34,27 +34,27 @@ _PreviewSize := imgui.Vec2{20, 20};
 _ShowID : gl.Texture = 1;
 _ChosenEntity : ^je.Entity;
 
-GetWindowState :: proc(str : string) -> bool {
+get_window_state :: proc(str : string) -> bool {
     return _GlobalDebugWndBools[str];
 }
 
-SetWindowState :: proc(str : string, state : bool) {
+set_window_state :: proc(str : string, state : bool) {
     _GlobalDebugWndBools[str] = state;
 }
 
-ToggleWindow :: proc(str : string) {
+toggle_window_state :: proc(str : string) {
     _GlobalDebugWndBools[str] = !_GlobalDebugWndBools[str];
 }
 
-TryShowWindow :: proc(id : string, p : proc(b : ^bool)) {
-    if GetWindowState(id) {
-        b := GetWindowState(id);
+try_show_window :: proc(id : string, p : proc(b : ^bool)) {
+    if get_window_state(id) {
+        b := get_window_state(id);
         p(&b);
-        SetWindowState(id, b);
+        set_window_state(id, b);
     }
 }
 
-ShowStructInfo :: proc(name : string, show : ^bool, data : any) {
+show_struct_info :: proc(name : string, show : ^bool, data : any) {
     imgui.Begin(name, show, STD_WINDOW);
     {
         imgui.Columns(2, nil, true);
@@ -73,7 +73,7 @@ ShowStructInfo :: proc(name : string, show : ^bool, data : any) {
                             ptr := ^byte(data.data) + info.offsets[i];
                             value := ^rawptr(ptr)^;
                             v := any{rawptr(value), t.elem};
-                            ShowStructInfo(n, nil, v);
+                            show_struct_info(n, nil, v);
                         }
                     }
                 }
@@ -85,7 +85,7 @@ ShowStructInfo :: proc(name : string, show : ^bool, data : any) {
                     imgui.TextColored(col, "%t", v);
                 }                
 
-                default : {
+                case : {
                     value := ^byte(data.data) + info.offsets[i];
                     v := any{rawptr(value), info.types[i]};
                     imgui.TextWrapped("%v", v);
@@ -98,7 +98,7 @@ ShowStructInfo :: proc(name : string, show : ^bool, data : any) {
     imgui.End();
 }
 
-ShowEntityList :: proc(gameCtx : ^game.Context_t, show : ^bool) {
+show_entity_list :: proc(gameCtx : ^game.Context, show : ^bool) {
     PrintNormalTower :: proc(t : je.Tower) {
         imgui.Indent(10);
         {
@@ -133,7 +133,7 @@ ShowEntityList :: proc(gameCtx : ^game.Context_t, show : ^bool) {
         imgui.Columns(2, nil, false);
         imgui.BeginChild("Entities", imgui.Vec2{0, -20}, true, 0);
         {
-            for i := gameCtx.EntityList.Front;
+            for i := gameCtx.entity_list.Front;
                 i != nil;
                 i = i.Next {
                 if i.Entity == nil {
@@ -167,7 +167,7 @@ ShowEntityList :: proc(gameCtx : ^game.Context_t, show : ^bool) {
                                 PrintNormalTower(e.T);
                             }
 
-                            default : {
+                            case : {
                                 imgui.Text("Match: %d", e.T.__tag);
                             }
                         }
@@ -178,14 +178,14 @@ ShowEntityList :: proc(gameCtx : ^game.Context_t, show : ^bool) {
         imgui.EndChild();
         imgui.Columns(1, nil, false);
         imgui.Separator();
-        imgui.TextColored(imgui.Vec4{1, 1, 1, 0.2}, "Entities: %d", gameCtx.EntityList.Count);
+        imgui.TextColored(imgui.Vec4{1, 1, 1, 0.2}, "Entities: %d", gameCtx.entity_list.Count);
     }
     imgui.End();
 
 
 }
 
-ShowDebugWindowStates :: proc(show : ^bool) {
+show_debug_windows_states :: proc(show : ^bool) {
     imgui.Begin("Debug Window States", show, STD_WINDOW);
     {
         imgui.Text("Chosen Catalog Index: %d", _ChosenCatalog);
@@ -211,7 +211,7 @@ _ShowID : gl.Texture = 1;
     imgui.End();
 }
 
-StatOverlay :: proc(show : ^bool) {
+stat_overlay :: proc(show : ^bool) {
     imgui.SetNextWindowPos(imgui.Vec2{5, 25}, 0);
     imgui.PushStyleColor(imgui.GuiCol.WindowBg, imgui.Vec4{0.23, 0.23, 0.23, 0.4});
     imgui.Begin("Stat Overlay", show, imgui.GuiWindowFlags.NoMove | imgui.GuiWindowFlags.NoTitleBar | imgui.GuiWindowFlags.NoResize | imgui.GuiWindowFlags.NoSavedSettings); 
@@ -225,7 +225,7 @@ StatOverlay :: proc(show : ^bool) {
     imgui.PopStyleColor(1);
 }
 
-OpenGLExtensions :: proc(name : string, extensions : [dynamic]string, show : ^bool) {
+opengl_extensions :: proc(name : string, extensions : [dynamic]string, show : ^bool) {
     imgui.Begin(name, show, STD_WINDOW); 
     {
         for ext in extensions {
@@ -235,7 +235,7 @@ OpenGLExtensions :: proc(name : string, extensions : [dynamic]string, show : ^bo
     imgui.End();
 }
 
-OpenGLTextureOverview :: proc(show : ^bool) {
+opengl_texture_overview :: proc(show : ^bool) {
     _CalculateMaxColumns :: proc(w : f32, csize : f32, max : i32) -> i32 {
         Columns := i32(w / csize);
         if Columns > max {
@@ -288,7 +288,7 @@ OpenGLTextureOverview :: proc(show : ^bool) {
     imgui.End();
 }
 
-OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
+opengl_info :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
     imgui.Begin("OpenGL Info", show, STD_WINDOW);
     {
         imgui.Text("Versions:");
@@ -305,15 +305,15 @@ OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
         imgui.Separator();
             imgui.Text("Number of extensions:       %d", vars.NumExtensions); imgui.SameLine(0, -1);
             if imgui.SmallButton("View##Ext") {
-                SetWindowState("OpenGLShowExtensions", true);
+                set_window_state("OpenGLShowExtensions", true);
             }
             imgui.Text("Number of WGL extensions:   %d", vars.NumWglExtensions);imgui.SameLine(0, -1);
             if imgui.SmallButton("View##WGL") {
-                SetWindowState("OpenGLShowWGLExtensions", true);
+                set_window_state("OpenGLShowWGLExtensions", true);
             }
             imgui.Text("Number of loaded textures: %d", len(gl.DebugInfo.LoadedTextures)); imgui.SameLine(0, -1);
             if imgui.SmallButton("View##Texture") {
-                SetWindowState("ShowGLTextureOverview", true);
+                set_window_state("ShowGLTextureOverview", true);
             }
             imgui.Text("Number of functions loaded: %d/%d", gl.DebugInfo.NumberOfFunctionsLoadedSuccessed, gl.DebugInfo.NumberOfFunctionsLoaded); 
         imgui.Separator();
@@ -363,22 +363,22 @@ OpenGLInfo :: proc(vars : ^gl.OpenGLVars_t, show : ^bool) {
     }
     imgui.End();
 
-    if GetWindowState("OpenGLShowExtensions") {
-        b := GetWindowState("OpenGLShowExtensions");
-        OpenGLExtensions("Extensions##Ext", vars.Extensions, &b);
-        SetWindowState("OpenGLShowExtensions", b);
+    if get_window_state("OpenGLShowExtensions") {
+        b := get_window_state("OpenGLShowExtensions");
+        opengl_extensions("Extensions##Ext", vars.Extensions, &b);
+        set_window_state("OpenGLShowExtensions", b);
     }
 
-    if GetWindowState("OpenGLShowWGLExtensions") {
-        b := GetWindowState("OpenGLShowWGLExtensions");
-        OpenGLExtensions("WGL Extensions", vars.WglExtensions, &b);
-        SetWindowState("OpenGLShowWGLExtensions", b);
+    if get_window_state("OpenGLShowWGLExtensions") {
+        b := get_window_state("OpenGLShowWGLExtensions");
+        opengl_extensions("WGL Extensions", vars.WglExtensions, &b);
+        set_window_state("OpenGLShowWGLExtensions", b);
     }
 
-    TryShowWindow("ShowGLTextureOverview", OpenGLTextureOverview);
+    try_show_window("ShowGLTextureOverview", opengl_texture_overview);
 }
 
-_PrintGamepadName :: proc(id : int, err : xinput.Error) {
+_print_gamepad_name :: proc(id : int, err : xinput.Error) {
     imgui.Text("Gamepad %d(", id+1);
     b := err == xinput.Success;
     c : imgui.Vec4;
@@ -393,7 +393,7 @@ _PrintGamepadName :: proc(id : int, err : xinput.Error) {
     imgui.Text("):");
 }
 
-ShowXinputInfoWindow :: proc(show : ^bool) {
+show_xinput_info_window :: proc(show : ^bool) {
     imgui.Begin("XInput Info", show, STD_WINDOW);
     {
         imgui.Text("Version: %s", xinput.Version);
@@ -416,15 +416,15 @@ ShowXinputInfoWindow :: proc(show : ^bool) {
         imgui.Columns(2, nil, true);
         for user, i in xinput.User {
             cap, err := xinput.GetCapabilities(user);
-            _PrintGamepadName(i, err);
+            _print_gamepad_name(i, err);
             if err == xinput.Success {
                 imgui.Text("Capabilites:");
                 imgui.Indent(20.0);
-                    imgui.Text("Subtype %s", cap.SubType);
+                    imgui.Text("Subtype %s", cap.sub_type);
                     imgui.Text("Flags:");
                     imgui.Indent(10.0);
                         CheckCapability :: proc(cap : xinput.Capabilities, c : xinput.CapabilitiesFlags) -> bool {
-                            return cap.Flags & c == c;
+                            return cap.flags & c == c;
                         }
 
                         imgui.Text("Voice:         %t", CheckCapability(cap, xinput.CapabilitiesFlags.Voice)        );
@@ -451,13 +451,13 @@ ShowXinputInfoWindow :: proc(show : ^bool) {
     imgui.End();
 }
 
-ShowXinputStateWindow :: proc(show : ^bool) {
+show_xinput_state_window :: proc(show : ^bool) {
     imgui.Begin("XInput State", show, STD_WINDOW);
     {
         imgui.Columns(2, nil, true);
         for user, i in xinput.User {
             state, err := xinput.GetState(user);
-            _PrintGamepadName(i, err);
+            _print_gamepad_name(i, err);
             if err == xinput.Success {
                 imgui.Indent(10.0);
                 {
@@ -466,7 +466,7 @@ ShowXinputStateWindow :: proc(show : ^bool) {
                     imgui.Indent(10.0);
                     {
                         IsButtonPressed :: proc(state : xinput.State, b : xinput.Buttons) -> bool {
-                            return state.Gamepad.Buttons & u16(b) == u16(b);
+                            return state.gamepad.buttons & u16(b) == u16(b);
                         }
 
                         imgui.Text("DpadUp:        %t", IsButtonPressed(state, xinput.Buttons.DpadUp)       );
@@ -489,16 +489,16 @@ ShowXinputStateWindow :: proc(show : ^bool) {
                     imgui.Text("Trigger States:");
                     imgui.Indent(10.0);
                     {
-                        imgui.Text("Left Trigger:  %d(%.1f%%)", state.Gamepad.LeftTrigger,  (f32(state.Gamepad.LeftTrigger)/255.0)*100.0);
-                        imgui.Text("Right Trigger: %d(%.1f%%)", state.Gamepad.RightTrigger, (f32(state.Gamepad.RightTrigger)/255.0)*100.0);
+                        imgui.Text("Left Trigger:  %d(%.1f%%)", state.gamepad.left_trigger,  (f32(state.gamepad.left_trigger)/255.0)*100.0);
+                        imgui.Text("Right Trigger: %d(%.1f%%)", state.gamepad.right_trigger, (f32(state.gamepad.right_trigger)/255.0)*100.0);
                     }
                     imgui.Unindent(10.0);
                     imgui.Separator();
                     imgui.Text("Stick States:");
                     imgui.Indent(10.0);
                     {
-                        imgui.Text("Left Stick:  <%d, %d>", state.Gamepad.LX, state.Gamepad.LY);
-                        imgui.Text("Right Stick: <%d, %d>", state.Gamepad.RX, state.Gamepad.RY);
+                        imgui.Text("Left Stick:  <%d, %d>", state.gamepad.lx, state.gamepad.ly);
+                        imgui.Text("Right Stick: <%d, %d>", state.gamepad.rx, state.gamepad.ry);
                     }
                     imgui.Unindent(10.0);
                     imgui.Separator();
@@ -516,7 +516,7 @@ ShowXinputStateWindow :: proc(show : ^bool) {
     imgui.End();
 }
 
-ShowCatalogWindow :: proc(show : ^bool) {
+show_catalog_window :: proc(show : ^bool) {
 
     PrintName :: proc(asset : ^ja.Asset) {
         PrintLoadedUploaded :: proc(name : string, load : bool, up : bool, asset : ^ja.Asset) {
@@ -530,15 +530,15 @@ ShowCatalogWindow :: proc(show : ^bool) {
 
         match a in asset {
             case ja.Asset.Texture : {
-                PrintLoadedUploaded(a.FileInfo.Name, a.LoadedFromDisk, a.GLID != 0, asset);
+                PrintLoadedUploaded(a.file_info.name, a.loaded_from_disk, a.gl_id != 0, asset);
             }
 
             case ja.Asset.Shader : {
-                PrintLoadedUploaded(a.FileInfo.Name, a.LoadedFromDisk, a.GLID != 0, asset);
+                PrintLoadedUploaded(a.file_info.name, a.loaded_from_disk, a.gl_id != 0, asset);
             }
 
-            default : {
-                imgui.Text("%s %s", a.FileInfo.Name, a.LoadedFromDisk ? "[Loaded]" : "");
+            case : {
+                imgui.Text("%s %s", a.file_info.name, a.loaded_from_disk ? "[Loaded]" : "");
                 ToolTip(asset);
             }
         }
@@ -547,18 +547,18 @@ ShowCatalogWindow :: proc(show : ^bool) {
     ToolTip :: proc(val : ^ja.Asset) {
       if(imgui.IsItemHovered()) {
             imgui.BeginTooltip();
-            imgui.Text("Path:        %s", val.FileInfo.Path);
-            imgui.Text("Disk Size:   %.2fKB", f32(val.FileInfo.Size)/1024.0);
+            imgui.Text("Path:        %s", val.file_info.path);
+            imgui.Text("Disk Size:   %.2fKB", f32(val.file_info.size)/1024.0);
             match e in val {
                 case ja.Asset.Texture : {
-                    imgui.Text("ID:          %d", e.GLID);
-                    imgui.Text("Size:        %dx%d", e.Width, e.Height);
-                    imgui.Text("Comp:        %d", e.Comp);
+                    imgui.Text("ID:          %d", e.gl_id);
+                    imgui.Text("Size:        %dx%d", e.width, e.height);
+                    imgui.Text("Comp:        %d", e.comp);
                 }
 
                 case ja.Asset.Shader : {
-                    imgui.Text("ID:          %d", e.GLID);
-                    imgui.Text("Type:        %v", e.Type);
+                    imgui.Text("ID:          %d", e.gl_id);
+                    imgui.Text("Type:        %v", e.type);
                 }
             }
             imgui.EndTooltip();
@@ -567,32 +567,32 @@ ShowCatalogWindow :: proc(show : ^bool) {
 
     imgui.Begin("Catalogs", show, STD_WINDOW);
     {
-        imgui.Combo("Catalog", &_ChosenCatalog, catalog.DebugInfo.CatalogNames[..], -1);
+        imgui.Combo("Catalog", &_ChosenCatalog, catalog.debug_info.catalog_names[..], -1);
         imgui.Separator();
-        cat := catalog.DebugInfo.Catalogs[_ChosenCatalog];
-        imgui.Text("Folder Path:     %s", cat.Path);
-        imgui.Text("Kind:            %v", cat.Kind);
+        cat := catalog.debug_info.catalogs[_ChosenCatalog];
+        imgui.Text("Folder Path:     %s", cat.path);
+        imgui.Text("Kind:            %v", cat.kind);
         imgui.Text("Accepted Extensions: ");
         imgui.Indent(10.0);
-        for ext in cat.AcceptedExtensions {
+        for ext in cat.accepted_extensions {
             imgui.Text(ext);
         }
         imgui.Unindent(10.0);
         imgui.Separator();
         imgui.BeginChild("Files", imgui.Vec2{0, -18}, true, 0);
-        for val in cat.Items {
+        for val in cat.items {
             PrintName(val);
         }
         imgui.EndChild();
         imgui.Separator();
-        imgui.Text("No. of files: %d/%d", len(cat.Items), cat.FilesInFolder);
+        imgui.Text("No. of files: %d/%d", len(cat.items), cat.files_in_folder);
         imgui.SameLine(0, -1);
-        imgui.Text("In Memory: %.2fKB/%.2fKB", f32(cat.CurrentSize)/1024.0, f32(cat.MaxSize)/1024.0);
+        imgui.Text("In Memory: %.2fKB/%.2fKB", f32(cat.current_size)/1024.0, f32(cat.max_size)/1024.0);
     }
     imgui.End();
 }
 
-ShowInputWindow :: proc(input : ^jinput.Input_t, show : ^bool) {
+show_input_window :: proc(input : ^jinput.Input, show : ^bool) {
     imgui.Begin("Input##TESTIUYHSEIFUSEYGF", show, STD_WINDOW);
     {
     imgui.Columns(4, nil, true);
@@ -606,15 +606,15 @@ ShowInputWindow :: proc(input : ^jinput.Input_t, show : ^bool) {
         imgui.Separator();
         imgui.NextColumn();
 
-        if len(input.Bindings) > 0 {
-            for v in input.Bindings {
-                imgui.Text("%v", v.ID);
+        if len(input.bindings) > 0 {
+            for v in input.bindings {
+                imgui.Text("%v", v.id);
                 imgui.NextColumn();
-                imgui.Text("%v", v.Key);
+                imgui.Text("%v", v.key);
                 imgui.NextColumn();
-                imgui.Text("%v", v.XKey);
+                imgui.Text("%v", v.x_button);
                 imgui.NextColumn();
-                imgui.Text("%v", jinput.GetButtonState(input, v.ID));
+                imgui.Text("%v", jinput.get_button_state(input, v.id));
                 imgui.NextColumn();
             }
         } else {
@@ -670,11 +670,11 @@ ShowInputWindow :: proc(input : ^jinput.Input_t, show : ^bool) {
         if imgui.CollapsingHeader("Key states", 0) {
             imgui.Columns(2, nil, true);
             imgui.BeginChild("Down Held", imgui.Vec2{0, 0}, true, 0);
-            PrintDownHeld(input.KeyStates[..]);
+            PrintDownHeld(input.key_states[..]);
             imgui.EndChild();
             imgui.NextColumn();
             imgui.BeginChild("Up Neutral", imgui.Vec2{0, 0}, true, 0);
-            PrintUpNeutral(input.KeyStates[..]);
+            PrintUpNeutral(input.key_states[..]);
             imgui.EndChild();
             imgui.NextColumn();
         }

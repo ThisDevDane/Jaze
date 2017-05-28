@@ -6,7 +6,7 @@
  *  @Creation: 03-05-2017 17:54:46
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 00:50:50
+ *  @Last Time: 28-05-2017 17:35:16
  *  
  *  @Description:
  *      Contains constructs related to Input.
@@ -27,121 +27,121 @@ ButtonStates :: enum {
 }
 
 Binding :: struct {
-    ID   : string,
-    Key  : win32.Key_Code,
-    XKey : xinput.Buttons, 
+    id       : string,
+    key      : win32.Key_Code,
+    x_button : xinput.Buttons, 
 }
 
-Input_t :: struct {
-    AnyKeyPressed : bool,
-    MousePos      : math.Vec2,
+Input :: struct {
+    any_key_pressed : bool,
+    mouse_pos       : math.Vec2,
 
-    Bindings      : map[string]Binding,
-    KeyStates     : [256]ButtonStates,
-    _OldKeyStates : [256]ButtonStates,
-    XState        : [4]xinput.GamepadState,
-    _OldXState    : [4]xinput.GamepadState,
+    bindings        : map[string]Binding,
+    key_states      : [256]ButtonStates,
+    _old_key_states : [256]ButtonStates,
+    x_state         : [4]xinput.GamepadState,
+    _old_x_state    : [4]xinput.GamepadState,
 }
 
-Update :: proc(input : ^Input_t) {
-    input.AnyKeyPressed = false;
-    ClearCharQueue(input);
-    UpdateKeyboard(input);
-    UpdateXinput(input);
+update :: proc(input : ^Input) {
+    input.any_key_pressed = false;
+    clear_char_queue(input);
+    update_keyboard(input);
+    update_xinput(input);
 }
 
-UpdateMousePosition :: proc(input : ^Input_t, handle : p32.WndHandle) {
-    input.MousePos = p32.GetCursorPos(handle);
+update_mouse_position :: proc(input : ^Input, handle : p32.WndHandle) {
+    input.mouse_pos = p32.GetCursorPos(handle);
 }
 
-UpdateKeyboard :: proc(input : ^Input_t) {
+update_keyboard :: proc(input : ^Input) {
     for k in win32.Key_Code {
         if win32.GetKeyState(i32(k)) < 0 {
-            if input._OldKeyStates[k] == ButtonStates.Down || 
-               input._OldKeyStates[k] == ButtonStates.Held {
-                input.KeyStates[k] = ButtonStates.Held;
+            if input._old_key_states[k] == ButtonStates.Down || 
+               input._old_key_states[k] == ButtonStates.Held {
+                input.key_states[k] = ButtonStates.Held;
             } else {
-                input.KeyStates[k] = ButtonStates.Down;
+                input.key_states[k] = ButtonStates.Down;
             }
 
-            input.AnyKeyPressed = true;
+            input.any_key_pressed = true;
         } else {
-            if input._OldKeyStates[k] == ButtonStates.Down || 
-               input._OldKeyStates[k] == ButtonStates.Held {
+            if input._old_key_states[k] == ButtonStates.Down || 
+               input._old_key_states[k] == ButtonStates.Held {
 
-                input.KeyStates[k] = ButtonStates.Up;
+                input.key_states[k] = ButtonStates.Up;
             } else {
-                input.KeyStates[k] = ButtonStates.Neutral;
+                input.key_states[k] = ButtonStates.Neutral;
             }
         }
     }
 
-    input._OldKeyStates = input.KeyStates;
+    input._old_key_states = input.key_states;
 }
 
-UpdateXinput :: proc(input : ^Input_t) {
+update_xinput :: proc(input : ^Input) {
     IsButtonPressed :: proc(state : xinput.State, b : xinput.Buttons) -> bool {
-        return state.Gamepad.Buttons & u16(b) == u16(b);
+        return state.gamepad.buttons & u16(b) == u16(b);
     }
 }
 
-SetAllInputNeutral :: proc(input : ^Input_t) {
-    for k in win32.Key_Code {
-       input.KeyStates[k] = ButtonStates.Neutral;
-       input._OldKeyStates[k] = ButtonStates.Neutral;
+set_input_neutral :: proc(input : ^Input) {
+    for k in win32.Key_Code { //@TODO(Hoej): should probably do a memset here instead;
+       input.key_states[k] = ButtonStates.Neutral;
+       input._old_key_states[k] = ButtonStates.Neutral;
     }
 }
 
-AddBinding :: proc(input : ^Input_t, name : string, key : win32.Key_Code) {
-    _, ok := input.Bindings[name];
+add_binding :: proc(input : ^Input, name : string, key : win32.Key_Code) {
+    _, ok := input.bindings[name];
     if ok {
-        input.Bindings[name].Key = key;
+        input.bindings[name].key = key;
     } else {
         new : Binding;
-        new.ID = name;
-        new.Key = key;
-        new.XKey = xinput.Buttons.Invalid;
-        input.Bindings[name] = new;
+        new.id = name;
+        new.key = key;
+        new.x_button = xinput.Buttons.Invalid;
+        input.bindings[name] = new;
     }
 }
 
-AddBinding :: proc(input : ^Input_t, name : string, xKey : xinput.Buttons) {
-        _, ok := input.Bindings[name];
+add_binding :: proc(input : ^Input, name : string, xKey : xinput.Buttons) {
+        _, ok := input.bindings[name];
     if ok {
-        input.Bindings[name].XKey = xKey;
+        input.bindings[name].x_button = xKey;
     } else {
         new : Binding;
-        new.ID = name;
-        new.Key = win32.Key_Code.NONAME;
-        new.XKey = xKey;
-        input.Bindings[name] = new;
+        new.id = name;
+        new.key = win32.Key_Code.NONAME;
+        new.x_button = xKey;
+        input.bindings[name] = new;
     }
 }
 
-IsButtonDown :: proc(input : ^Input_t, name : string) -> bool {
-    return GetButtonState(input, name) == ButtonStates.Down;
+is_button_down :: proc(input : ^Input, name : string) -> bool {
+    return get_button_state(input, name) == ButtonStates.Down;
 }
 
-IsButtonUp :: proc(input : ^Input_t, name : string) -> bool {
-    return GetButtonState(input, name) == ButtonStates.Up;
+is_button_up :: proc(input : ^Input, name : string) -> bool {
+    return get_button_state(input, name) == ButtonStates.Up;
 }
 
-IsButtonHeld :: proc(input : ^Input_t, name : string) -> bool {
-    return GetButtonState(input, name) == ButtonStates.Held;
+is_button_held :: proc(input : ^Input, name : string) -> bool {
+    return get_button_state(input, name) == ButtonStates.Held;
 }
 
-GetButtonState :: proc(input : ^Input_t, name : string) -> ButtonStates {
-    if key, ok := input.Bindings[name]; ok {
-        return input.KeyStates[i32(key.Key)];
+get_button_state :: proc(input : ^Input, name : string) -> ButtonStates {
+    if key, ok := input.bindings[name]; ok {
+        return input.key_states[i32(key.key)];
     }
 
     return ButtonStates.Neutral;
 }
 
-AddCharToQueue :: proc(input : ^Input_t, char : rune) {
+add_char_to_queue :: proc(input : ^Input, char : rune) {
     //TODO(Hoej)
 }
 
-ClearCharQueue :: proc(input : ^Input_t) {
+clear_char_queue :: proc(input : ^Input) {
     //TODO(Hoej)
 }

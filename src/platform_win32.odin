@@ -6,7 +6,7 @@
  *  @Creation: 05-05-2017 22:12:56
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 01:03:56
+ *  @Last Time: 28-05-2017 17:25:58
  *  
  *  @Description:
  *      Contains data and functions related to interacting with windows.
@@ -45,7 +45,7 @@ WindowProc :: proc(hwnd: win32.Hwnd,
             return 0;
         }
 
-        default : {
+        case : {
             return win32.DefWindowProcA(hwnd, msg, wparam, lparam);
         }
     }
@@ -78,25 +78,25 @@ Event :: union {
     Char{},
 }
 
-MessageLoop :: proc(ctx : ^engine.Context_t){
+MessageLoop :: proc(ctx : ^engine.Context){
     msg : win32.Msg;
     for win32.PeekMessageA(&msg, nil, 0, 0, win32.PM_REMOVE) == win32.TRUE {
         match msg.message {
             case win32.WM_QUIT : {
-                ctx.Settings.ProgramRunning = false;
+                ctx.settings.program_running = false;
             }
 
             case win32.WM_SYSKEYDOWN : {
                 if win32.Key_Code(msg.wparam) == win32.Key_Code.RETURN {
-                    ToggleBorderlessFullscreen(ctx.Win32.WindowHandle, &ctx.Win32.WindowPlacement);
+                    ToggleBorderlessFullscreen(ctx.win32.WindowHandle, &ctx.win32.WindowPlacement);
                 }
 
                 if win32.Key_Code(msg.wparam) == win32.Key_Code.C {
-                    debugWnd.ToggleWindow("ShowConsoleWindow");
+                    debugWnd.toggle_window_state("ShowConsoleWindow");
                 }
 
                 if msg.wparam == 0xC0 {
-                    ctx.Settings.ShowDebugMenu = !ctx.Settings.ShowDebugMenu;
+                    ctx.settings.show_debug_menu = !ctx.settings.show_debug_menu;
                 }
                 continue;
             }
@@ -109,17 +109,17 @@ MessageLoop :: proc(ctx : ^engine.Context_t){
 
             case win32.WM_CHAR : {
                 imgui.GuiIO_AddInputCharacter(u16(msg.wparam)); 
-                input.AddCharToQueue(ctx.Input, rune(msg.wparam));
+            input.add_char_to_queue(ctx.input, rune(msg.wparam));
             }
             break;
 
             case win32.WM_MOUSEWHEEL : {
                 delta := i16(win32.HIWORD(msg.wparam));
                 if(delta > 1) {
-                    ctx.ImguiState.MouseWheelDelta += 1;
+                    ctx.imgui_state.mouse_wheel_delta += 1;
                 }
                 if(delta < 1) {
-                    ctx.ImguiState.MouseWheelDelta -= 1;
+                    ctx.imgui_state.mouse_wheel_delta -= 1;
                 }
             } 
 
@@ -231,7 +231,7 @@ GetMaxGLVersion :: proc() -> (i32, i32) {
 }
 
 
-CreateOpenGLContext :: proc (DeviceCtx : win32.Hdc, modern : bool) -> win32wgl.Hglrc
+CreateOpenGLContext :: proc (DeviceCtx : win32.Hdc, modern : bool, major, minor : int) -> win32wgl.Hglrc
 {
     if !modern {
         pfd := win32.PIXELFORMATDESCRIPTOR {};
@@ -270,7 +270,7 @@ CreateOpenGLContext :: proc (DeviceCtx : win32.Hdc, modern : bool) -> win32wgl.H
             temp := DeviceCtx;
             DeviceCtx = wndDc;
     
-            oldCtx := CreateOpenGLContext(DeviceCtx, false);
+            oldCtx := CreateOpenGLContext(DeviceCtx, false, 0, 0);
     
             DeviceCtx = temp;
             assert(oldCtx != nil);
@@ -312,8 +312,8 @@ CreateOpenGLContext :: proc (DeviceCtx : win32.Hdc, modern : bool) -> win32wgl.H
         win32.DescribePixelFormat(DeviceCtx, format, size_of(win32.PIXELFORMATDESCRIPTOR), &pfd);
         win32.SetPixelFormat(DeviceCtx, format, &pfd);
         createAttr : [dynamic]wgl.Attrib;
-        append(createAttr, wgl.CONTEXT_MAJOR_VERSION_ARB(3),
-                           wgl.CONTEXT_MINOR_VERSION_ARB(3),
+        append(createAttr, wgl.CONTEXT_MAJOR_VERSION_ARB(i32(major)),
+                           wgl.CONTEXT_MINOR_VERSION_ARB(i32(minor)),
                            wgl.CONTEXT_FLAGS_ARB(wgl.CONTEXT_FLAGS_ARB_VALUES.DEBUG_BIT_ARB),
                            wgl.CONTEXT_PROFILE_MASK_ARB(wgl.CONTEXT_PROFILE_MASK_ARB_VALUES.CORE_PROFILE_BIT_ARB));
         attribArray = wgl.PrepareAttribArray(createAttr);

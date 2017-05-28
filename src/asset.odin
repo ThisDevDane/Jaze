@@ -6,59 +6,46 @@
  *  @Creation: 21-04-2017 03:04:34
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 00:37:41
+ *  @Last Time: 28-05-2017 16:07:34
  *  
  *  @Description:
  *      Contains the asset construct and associated data.
  */
 #import "gl.odin";
 
-FileInfo_t :: struct {
-    Name : string,
-    Ext  : string,
-    Path : string,
-    Size : u64,
+FileInfo :: struct {
+    name : string,
+    ext  : string,
+    path : string,
+    size : u64,
 }
 
 Asset :: union {
-    FileInfo : FileInfo_t,
-    LoadedFromDisk : bool,
+    file_info : FileInfo,
+    loaded_from_disk : bool,
 
     Texture {
-        GLID : gl.Texture,
-        Width : int,
-        Height : int,
-        Comp : int,
-        Data : ^byte,
+        gl_id : gl.Texture,
+        width : int,
+        height : int,
+        comp : int,
+        data : ^byte,
     },
     Shader {
-        GLID : gl.Shader,
-        Type : gl.ShaderTypes,
-        Source : string,
-        Data : []byte,
+        gl_id : gl.Shader,
+        type : gl.ShaderTypes,
+        source : string,
+        data : []byte,
         //Program : ^ShaderProgram, //Gets Undeclared name... Tell bill xD maybe it makes sense
     },
     Sound {
         //????
     },
     ShaderProgram {
-        GLID : gl.Program,
-        Vertex : ^Shader,
-        Fragment : ^Shader,
-        Uniforms : map[string]i32,
-        Attributes : map[string]i32,
+        gl_id : gl.Program,
+        vertex : ^Shader,
+        fragment : ^Shader,
+        uniforms : map[string]i32,
+        attributes : map[string]i32,
     }
-}
-
-MetaTag :: enum {
-    Unknown,
-    ShaderProgram,
-}
-
-ParseMetaTag :: proc(metastr : string) -> MetaTag {
-    return MetaTag.Unknown;
-}
-
-ParseShaderProgram :: proc() -> Asset.ShaderProgram {
-    return Asset.ShaderProgram{};
 }

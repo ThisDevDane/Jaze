@@ -6,7 +6,7 @@
  *  @Creation: 21-04-2017 23:32:08
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 00:55:02
+ *  @Last Time: 28-05-2017 17:32:50
  *  
  *  @Description:
  *      Contains the entity construct.
@@ -53,8 +53,8 @@ Tower :: union {
     },
 }
 
-DrawTowers :: proc(ctx : ^engine.Context_t, gCtx : ^game.Context_t, queue : ^render_queue.Queue) {
-    for i := gCtx.EntityList.Front;
+DrawTowers :: proc(ctx : ^engine.Context, gCtx : ^game.Context, queue : ^render_queue.Queue) {
+    for i := gCtx.entity_list.Front;
         i != nil;
         i = i.Next {
         if i.Entity == nil {
@@ -68,12 +68,12 @@ DrawTowers :: proc(ctx : ^engine.Context_t, gCtx : ^game.Context_t, queue : ^ren
                         cmd.RenderPos = t.Position;
                         cmd.Scale = math.Vec3{1, 1, 1};
                         cmd.Rotation = 0;        
-                        cmd.Texture = gCtx.TowerBasicBottomTexture;
+                        cmd.Texture = gCtx.tower_basic_bottom_texture;
                         render_queue.Enqueue(queue, cmd);
 
                         cmd.RenderPos = t.Position;
-                        cmd.Rotation = f32(ctx.Time.TimeSinceStart) * 20;        
-                        cmd.Texture = gCtx.TowerBasicTopTexture;
+                        cmd.Rotation = f32(ctx.time.time_since_start) * 20;        
+                        cmd.Texture = gCtx.tower_basic_top_texture;
                         render_queue.Enqueue(queue, cmd);
                     }
                 }

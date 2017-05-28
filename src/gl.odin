@@ -6,7 +6,7 @@
  *  @Creation: 26-04-2017 16:23:18
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 00:46:00
+ *  @Last Time: 28-05-2017 16:20:20
  *  
  *  @Description:
  *      This is an OpenGL wrapper. Currently assumes GL 3.3 Core.
@@ -90,7 +90,7 @@ DepthFunc :: proc(func : DepthFuncs) {
     if _DepthFunc != nil {
         _DepthFunc(i32(func));
     } else {
-        console.LogError("%s ins't loaded!", #procedure);
+        console.log_error("%s ins't loaded!", #procedure);
     }
 }
 
@@ -98,7 +98,7 @@ GenerateMipmap :: proc(target : MipmapTargets) {
     if _GenerateMipmap != nil {
         _GenerateMipmap(i32(target));
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -106,7 +106,7 @@ PolygonMode :: proc(face : PolygonFace, mode : PolygonModes) {
     if _PolygonMode != nil {
         _PolygonMode(i32(face), i32(mode));
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -114,7 +114,7 @@ DebugMessageControl :: proc(source : DebugSource, type : DebugType, severity : D
     if _DebugMessageControl != nil {
         _DebugMessageControl(i32(source), i32(type), i32(severity), count, ids, enabled);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -122,7 +122,7 @@ DebugMessageCallback :: proc(callback : DebugMessageCallbackProc, userParam : ra
     if _DebugMessageCallback != nil {
         _DebugMessageCallback(callback, userParam);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -135,7 +135,7 @@ BufferData :: proc(target : BufferTargets, data : []f32, usage : BufferDataUsage
     if _BufferData != nil {
         _BufferData(i32(target), size_of_val(data), &data[0], i32(usage));
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }     
 }
 
@@ -143,7 +143,7 @@ BufferData :: proc(target : BufferTargets, data : []u32, usage : BufferDataUsage
     if _BufferData != nil {
         _BufferData(i32(target), size_of_val(data), &data[0], i32(usage));
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }     
 }
 
@@ -152,7 +152,7 @@ BufferData :: proc(target : BufferTargets, size : i32, data : rawptr, usage : Bu
     if _BufferData != nil {
         _BufferData(i32(target), size, data, i32(usage));
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }     
 }
 
@@ -172,7 +172,7 @@ GenBuffer :: proc() -> BufferObject {
         _GenBuffers(1, ^u32(&res));
         return res;
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
         return 0;
     }      
 }
@@ -183,7 +183,7 @@ GenBuffers :: proc(n : i32) -> []BufferObject {
         _GenBuffers(n, ^u32(&res[0]));
         return res;
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
         return nil;
     }       
 }
@@ -192,7 +192,7 @@ BindBuffer :: proc(target : BufferTargets, buffer : BufferObject) {
     if _BindBuffer != nil {
         _BindBuffer(i32(target), u32(buffer));
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }       
 }
 
@@ -210,7 +210,7 @@ BindFragDataLocation :: proc(program : Program, colorNumber : u32, name : string
         c := strings.new_c_string(name);
         _BindFragDataLocation(program.ID, colorNumber, c);
     } else {
-        console.Log("%s isn't loaded!", #procedure);      
+        console.log("%s isn't loaded!", #procedure);      
     }
 }
 
@@ -220,7 +220,7 @@ GenVertexArray :: proc() -> VAO {
         _GenVertexArrays(1, ^u32(&res));
         return res;
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }  
 
     return 0;
@@ -232,7 +232,7 @@ GenVertexArrays :: proc(count : i32) -> []VAO {
         _GenVertexArrays(count, ^u32(&res[0]));
         return res;
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }  
 
     return nil;
@@ -242,7 +242,7 @@ EnableVertexAttribArray :: proc(index : u32) {
     if _EnableVertexAttribArray != nil {
         _EnableVertexAttribArray(index);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }       
 }
 
@@ -250,7 +250,7 @@ VertexAttribPointer :: proc(index : u32, size : i32, type : VertexAttribDataType
     if _VertexAttribPointer != nil {
         _VertexAttribPointer(index, size, i32(type), normalized, stride, pointer);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }       
 }
 
@@ -259,7 +259,7 @@ BindVertexArray :: proc(buffer : VAO) {
     if _BindVertexArray != nil {
         _BindVertexArray(u32(buffer));
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }    
 }
 
@@ -267,7 +267,7 @@ Uniform :: proc(loc : i32, v0 : i32) {
     if _Uniform1i != nil {
         _Uniform1i(loc, v0);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -275,7 +275,7 @@ Uniform :: proc(loc: i32, v0, v1: i32) {
     if _Uniform2i != nil {
         _Uniform2i(loc, v0, v1);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -283,7 +283,7 @@ Uniform :: proc(loc: i32, v0, v1, v2: i32) {
     if _Uniform3i != nil {
         _Uniform3i(loc, v0, v1, v2);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -291,7 +291,7 @@ Uniform :: proc(loc: i32, v0, v1, v2, v3: i32) {
     if _Uniform4i != nil {
         _Uniform4i(loc, v0, v1, v2, v3);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -299,7 +299,7 @@ Uniform :: proc(loc: i32, v0: f32) {
     if _Uniform1f != nil {
         _Uniform1f(loc, v0);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -307,7 +307,7 @@ Uniform :: proc(loc: i32, v0, v1: f32) {
     if _Uniform2f != nil {
         _Uniform2f(loc, v0, v1);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -315,7 +315,7 @@ Uniform :: proc(loc: i32, v0, v1, v2: f32) {
     if _Uniform3f != nil {
         _Uniform3f(loc, v0, v1, v2);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -323,7 +323,7 @@ Uniform :: proc(loc: i32, v0, v1, v2, v3: f32) {
     if _Uniform4f != nil {
         _Uniform4f(loc, v0, v1, v2, v3);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -335,7 +335,7 @@ UniformMatrix4fv :: proc(loc : i32, matrix : math.Mat4, transpose : bool) {
     if _UniformMatrix4fv != nil {
         _UniformMatrix4fv(loc, 1, i32(transpose), ^f32(&matrix));
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -345,7 +345,7 @@ GetUniformLocation :: proc(program : Program, name : string) -> i32{
         res := _GetUniformLocation(u32(program.ID), str);
         return res;
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
         return 0;
     }
 }
@@ -356,7 +356,7 @@ GetAttribLocation :: proc(program : Program, name : string) -> i32 {
         res := _GetAttribLocation(u32(program.ID), str);
         return res;
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
         return 0;
     }
 }
@@ -366,7 +366,7 @@ DrawElements :: proc(mode : DrawModes, count : i32, type : DrawElementsType, ind
         _DrawElements(i32(mode), count, i32(type), indices);
         DebugInfo.DrawCalls++;
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }    
 }
 
@@ -375,7 +375,7 @@ DrawArrays :: proc(mode : DrawModes, first : i32, count : i32) {
         _DrawArrays(i32(mode), first, count);
         DebugInfo.DrawCalls++;
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }    
 }
 
@@ -383,7 +383,7 @@ UseProgram :: proc(program : Program) {
     if _UseProgram != nil {
         _UseProgram(program.ID);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -391,7 +391,7 @@ LinkProgram :: proc(program : Program) {
     if _LinkProgram != nil {
         _LinkProgram(program.ID);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -414,7 +414,7 @@ ActiveTexture :: proc(texture : TextureUnits) {
     if _ActiveTexture != nil {
         _ActiveTexture(i32(texture));
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -436,7 +436,7 @@ BlendEquationSeparate :: proc(modeRGB : BlendEquations, modeAlpha : BlendEquatio
     if _BlendEquationSeparate != nil {
         _BlendEquationSeparate(i32(modeRGB), i32(modeAlpha));
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }    
 }
 
@@ -444,7 +444,7 @@ BlendEquation :: proc(mode : BlendEquations) {
     if _BlendEquation != nil {
         _BlendEquation(i32(mode));
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -452,7 +452,7 @@ BlendFunc :: proc(sfactor : BlendFactors, dfactor : BlendFactors) {
     if _BlendFunc != nil {
         _BlendFunc(i32(sfactor), i32(dfactor));
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -473,7 +473,7 @@ GetString :: proc(name : GetStringNames, index : u32) -> string {
         res := _GetStringi(i32(name), index);
         return strings.to_odin_string(res);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
         return "nil";
     }
 }
@@ -483,7 +483,7 @@ GetString :: proc(name : GetStringNames) -> string {
         res := _GetString(i32(name));
         return strings.to_odin_string(res);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
     return "nil";
 }
@@ -494,7 +494,7 @@ GetInteger :: proc(name : GetIntegerNames) -> i32 {
         _GetIntegerv(i32(name), &res);
         return res;
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
         return 0;
     }
 }
@@ -503,7 +503,7 @@ GetInteger :: proc(name : GetIntegerNames, res : ^i32) {
     if _GetIntegerv != nil { 
         _GetIntegerv(i32(name), res);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -511,7 +511,7 @@ Enable  :: proc(cap : Capabilities) {
     if _Enable != nil {
         _Enable(i32(cap));
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -519,7 +519,7 @@ Disable  :: proc(cap : Capabilities) {
     if _Disable != nil {
         _Disable(i32(cap));
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -527,7 +527,7 @@ AttachShader :: proc(program : Program, shader : Shader) {
     if _AttachShader != nil {
         _AttachShader(program.ID, u32(shader));
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -539,7 +539,7 @@ CreateProgram :: proc() -> Program {
 
         return res;
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 
     return Program{};
@@ -561,7 +561,7 @@ ShaderSource :: proc(obj : Shader, strs : []string) {
         }
         _ShaderSource(u32(obj), u32(len(strs)), &newStrs[0], &lengths[0]);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -570,7 +570,7 @@ CreateShader :: proc(type : ShaderTypes) -> Shader {
         res := _CreateShader(i32(type));
         return Shader(res);
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
         return Shader{};
     }
 }
@@ -579,7 +579,7 @@ CompileShader :: proc(obj : Shader) {
     if _CompileShader != nil {
         _CompileShader(u32(obj));
     } else {
-        console.Log("%s isn't loaded!", #procedure);
+        console.log("%s isn't loaded!", #procedure);
     }
 }
 
@@ -634,7 +634,7 @@ GetInfo :: proc(vars : ^OpenGLVars_t) {
     _DebugMessageControl     : proc(source : i32, type : i32, severity : i32, count : i32, ids : ^u32, enabled : bool)       #cc_c;
     _DebugMessageCallback    : proc(callback : DebugMessageCallbackProc, userParam : rawptr)                                 #cc_c;
     _GetShaderiv             : proc(shader : u32, pname : i32, params : ^i32)                                                #cc_c;
-    _GetShaderInfoLog        : proc(shader : u32, maxLength : i32, length : ^i32, infoLog : ^byte)                           #cc_c;
+    _GetShaderInfoLog        : proc(shader : u32, maxLength : i32, length : ^i32, infolog : ^byte)                           #cc_c;
     _GetStringi              : proc(name : i32, index : u32) -> ^byte                                                        #cc_c;
     _BindFragDataLocation    : proc(program : u32, colorNumber : u32, name : ^byte)                                          #cc_c;
     _PolygonMode             : proc(face : i32, mode : i32)                                                                  #cc_c;

@@ -6,7 +6,7 @@
  *  @Creation: 04-05-2017 16:09:02
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 01:19:31
+ *  @Last Time: 28-05-2017 17:29:13
  *  
  *  @Description:
  *      
@@ -45,16 +45,16 @@ _id := 0;
 
 CreateMap :: proc(mapData : ^ja.Asset.Texture, textureCat : ^catalog.Catalog) -> ^Data_t {
     res := new(Data_t);
-    res.Width = mapData.Width;
-    res.Height = mapData.Height;
+    res.Width = mapData.width;
+    res.Height = mapData.height;
 
-    walk, _ := catalog.Find(textureCat, "towerDefense_tile162");
-    walk1, _ := catalog.Find(textureCat, "towerDefense_tile044");
+    walk, _ := catalog.find(textureCat, "towerDefense_tile162");
+    walk1, _ := catalog.find(textureCat, "towerDefense_tile044");
     res.WalkTexture[0] = walk.(^ja.Asset.Texture);
     res.WalkTexture[1] = walk1.(^ja.Asset.Texture);
 
-    build, _ := catalog.Find(textureCat, "towerDefense_tile158");
-    build1, _ := catalog.Find(textureCat, "towerDefense_tile065");
+    build, _ := catalog.find(textureCat, "towerDefense_tile158");
+    build1, _ := catalog.find(textureCat, "towerDefense_tile065");
     res.BuildTexture[0] = build.(^ja.Asset.Texture);
     res.BuildTexture[1] = build1.(^ja.Asset.Texture);
 
@@ -67,7 +67,7 @@ CreateMap :: proc(mapData : ^ja.Asset.Texture, textureCat : ^catalog.Catalog) ->
     }
 
     i := 0;
-    datap := mapData.Data;
+    datap := mapData.data;
     for y := 0; y < res.Height; y++ {
         i++;
         for x := 0; x < res.Width; x++ {

@@ -6,7 +6,7 @@
  *  @Creation: 02-05-2017 21:38:35
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 01:06:26
+ *  @Last Time: 28-05-2017 17:35:38
  *  
  *  @Description:
  *      This is a XInput wrapper which uses late-binding.
@@ -26,44 +26,44 @@ Success : Error : 0;
 NotConnected : Error : 1167;
 
 BatteryInformation :: struct #ordered {
-    Type  : BatteryType,
-    Level : BatteryLevel,
+    type  : BatteryType,
+    level : BatteryLevel,
 }
 
 Capabilities :: struct #ordered {
-    Type      : byte,
-    SubType   : ControllerType,
-    Flags     : CapabilitiesFlags,
-    Gamepad   : GamepadState,
-    Vibration : VibrationState,
+    type      : byte,
+    sub_type  : ControllerType,
+    flags     : CapabilitiesFlags,
+    gamepad   : GamepadState,
+    vibration : VibrationState,
 }
 
 State :: struct #ordered {
-    PacketNumber : u32,
-    Gamepad : GamepadState,
+    packet_number : u32,
+    gamepad : GamepadState,
 }
 
 GamepadState :: struct #ordered {
-    Buttons      : u16,
-    LeftTrigger  : byte,
-    RightTrigger : byte,
-    LX           : i16,
-    LY           : i16,
-    RX           : i16,
-    RY           : i16,
+    buttons      : u16,
+    left_trigger  : byte,
+    right_trigger : byte,
+    lx           : i16,
+    ly           : i16,
+    rx           : i16,
+    ry           : i16,
 }
 
 VibrationState :: struct #ordered {
-    LeftMotorSpeed  : u16,
-    RightMotorSpeed : u16,
+    left_motor_speed  : u16,
+    right_motor_speed : u16,
 }
 
 KeyStroke :: struct #ordered {
-    VirtualKey : VirtualKeys,
-    Unicode    : u16,
-    Flags      : KeyStrokeFlags,
-    userIndex  : byte,
-    HidCode    : byte
+    virtual_key : VirtualKeys,
+    unicode    : u16,
+    flags      : KeyStrokeFlags,
+    user_index  : byte,
+    hid_code    : byte
 }
 
 VirtualKeys :: enum u16 {

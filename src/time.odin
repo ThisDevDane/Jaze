@@ -6,42 +6,42 @@
  *  @Creation: 21-04-2017 03:04:34
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 01:06:12
+ *  @Last Time: 28-05-2017 17:32:40
  *  
  *  @Description:
  *      Contains the time construct.
  */
 #import win32 "sys/windows.odin";
 
-Data_t :: struct {
-    TimeScale : f64,
-    DeltaTime : f64,
-    UnscaledDeltaTime : f64,
-    TimeSinceStart : f64,
-    FrameCountSinceStart : i64,
+Data :: struct {
+    time_scale : f64,
+    delta_time : f64,
+    unscaled_delta_time : f64,
+    time_since_start : f64,
+    frame_count_since_start : i64,
 
-    pfFreq : i64,
-    pfOld : i64,
+    _pf_freq : i64,
+    _pf_old : i64,
 } 
 
-CreateData :: proc() -> ^Data_t {
-    res := new(Data_t);
+create_data :: proc() -> ^Data {
+    res := new(Data);
 
-    win32.QueryPerformanceFrequency(&res.pfFreq);
-    win32.QueryPerformanceCounter(&res.pfOld);
-    res.TimeScale = 1;
+    win32.QueryPerformanceFrequency(&res._pf_freq);
+    win32.QueryPerformanceCounter(&res._pf_old);
+    res.time_scale = 1;
 
     return res;
 }
 
-Update :: proc(data : ^Data_t) {
+update :: proc(data : ^Data) {
     newTime : i64;
     win32.QueryPerformanceCounter(&newTime);
-    data.UnscaledDeltaTime = f64((newTime - data.pfOld));
-    data.pfOld = newTime;
-    data.UnscaledDeltaTime /= f64(data.pfFreq);
-    data.DeltaTime = data.UnscaledDeltaTime * data.TimeScale;
+    data.unscaled_delta_time = f64((newTime - data._pf_old));
+    data._pf_old = newTime;
+    data.unscaled_delta_time /= f64(data._pf_freq);
+    data.delta_time = data.unscaled_delta_time * data.time_scale;
 
-    data.TimeSinceStart += data.UnscaledDeltaTime;
-    data.FrameCountSinceStart++;
+    data.time_since_start += data.unscaled_delta_time;
+    data.frame_count_since_start++;
 }

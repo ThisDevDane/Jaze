@@ -6,7 +6,7 @@
  *  @Creation: 01-05-2017 18:28:11
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 00:41:12
+ *  @Last Time: 28-05-2017 17:01:45
  *  
  *  @Description:
  *      Contains the catalog construct.
@@ -23,7 +23,7 @@
 #import j32 "jwin32.odin";
 #import ja "asset.odin";
 #import "gl.odin";
-#import glUtil "gl_util.odin";
+#import gl_util "gl_util.odin";
 #import "console.odin";
 #import stbi "stb_image.odin";
 
@@ -41,87 +41,87 @@ Kind :: enum {
 }
 
 Catalog :: struct {
-    Name : string,
-    Path : string,
-    Kind : Kind,
-    FilesInFolder : int,
-    Items : map[string]^ja.Asset,
-    MaxSize : uint, // This is if all assets are loaded
-    CurrentSize: uint, // This is the currently loaded asset size
-    AcceptedExtensions : [dynamic]string,
+    name : string,
+    path : string,
+    kind : Kind,
+    files_in_folder : int,
+    items: map[string]^ja.Asset,
+    max_size : uint, // This is if all assets are loaded
+    current_size: uint, // This is the currently loaded asset size
+    accepted_extensions : [dynamic]string,
 }
 
-DebugInfo_t :: struct {
-    NumberOfCatalogs : int,
-    CatalogNames : [dynamic]string,
-    Catalogs : [dynamic]^Catalog,
+DebugInfo :: struct {
+    number_of_catalogs : int,
+    catalog_names : [dynamic]string,
+    catalogs : [dynamic]^Catalog,
 }
 
-DebugInfo : DebugInfo_t;
+debug_info : DebugInfo;
 
-CreateNew :: proc(kind : Kind, path : string, acceptedExtensions : string) -> (^Catalog, Err) {
-    return CreateNew(kind, path, path, acceptedExtensions);
+create_new :: proc(kind : Kind, path : string, acceptedExtensions : string) -> (^Catalog, Err) {
+    return create_new(kind, path, path, acceptedExtensions);
 }
 
-CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExtensions : string) -> (^Catalog, Err) {
+create_new :: proc(kind : Kind, identifier : string, path : string, acceptedExtensions : string) -> (^Catalog, Err) {
     
-    AddTexture :: proc(res : ^Catalog file : ja.FileInfo_t) {
+    add_texture :: proc(res : ^Catalog file : ja.FileInfo) {
         asset := new(ja.Asset);
         texture := ja.Asset.Texture{};
-        texture.FileInfo = file;
-        texture.LoadedFromDisk = false;
-        c_str := strings.new_c_string(file.Path); defer free(c_str);
+        texture.file_info = file;
+        texture.loaded_from_disk = false;
+        c_str := strings.new_c_string(file.path); defer free(c_str);
         w, h, c : i32;
         stbi.info(c_str, &w, &h, &c);
-        texture.Width  = int(w);
-        texture.Height = int(h);
-        texture.Comp   = int(c);
+        texture.width  = int(w);
+        texture.height = int(h);
+        texture.comp   = int(c);
         asset^ = texture;
-        res.Items[asset.FileInfo.Name] = asset;
+        res.items[asset.file_info.name] = asset;
     }
 
-    AddShader :: proc(res : ^Catalog file : ja.FileInfo_t) {
+    add_shader :: proc(res : ^Catalog file : ja.FileInfo) {
         asset := new(ja.Asset);
         shader := ja.Asset.Shader{};
-        shader.FileInfo = file;
-        shader.LoadedFromDisk = false;
+        shader.file_info = file;
+        shader.loaded_from_disk = false;
 
         //TODO(@Hoej): Fix this, this is bad
-        match shader.FileInfo.Ext {
-            case ".vs" : { shader.Type = gl.ShaderTypes.Vertex; }
-            case ".glslv" : { shader.Type = gl.ShaderTypes.Vertex; }
-            case ".vert" : { shader.Type = gl.ShaderTypes.Vertex; }
+        match shader.file_info.ext {
+            case ".vs" : { shader.type = gl.ShaderTypes.Vertex; }
+            case ".glslv" : { shader.type = gl.ShaderTypes.Vertex; }
+            case ".vert" : { shader.type = gl.ShaderTypes.Vertex; }
 
-            case ".fs" : { shader.Type = gl.ShaderTypes.Fragment; }
-            case ".frag" : { shader.Type = gl.ShaderTypes.Fragment; }
-            case ".glslf" : { shader.Type = gl.ShaderTypes.Fragment; }
+            case ".fs" : { shader.type = gl.ShaderTypes.Fragment; }
+            case ".frag" : { shader.type = gl.ShaderTypes.Fragment; }
+            case ".glslf" : { shader.type = gl.ShaderTypes.Fragment; }
         }
 
         asset^ = shader;
-        res.Items[asset.FileInfo.Name] = asset;
+        res.items[asset.file_info.name] = asset;
     }
 
-    AddSound :: proc(res : ^Catalog file : ja.FileInfo_t) {
+    add_sound :: proc(res : ^Catalog file : ja.FileInfo) {
         asset := new(ja.Asset);
         sound := ja.Asset.Sound{};
-        sound.FileInfo = file;
-        sound.LoadedFromDisk = false;
+        sound.file_info = file;
+        sound.loaded_from_disk = false;
         asset^ = sound;
-        res.Items[asset.FileInfo.Name] = asset;        
+        res.items[asset.file_info.name] = asset;        
     }    
 
-    ExtractAcceptedExtensions :: proc(res : ^Catalog, acceptedExtensions : string) {
+    extract_accepted_extensions :: proc(res : ^Catalog, acceptedExtensions : string) {
         if acceptedExtensions != "" {
             strlen := len(acceptedExtensions);
             last := 0;
             for i := 0; i < strlen; i++ {
                 if acceptedExtensions[i] == ',' {
-                    append(res.AcceptedExtensions, acceptedExtensions[last..<i]);
+                    append(res.accepted_extensions, acceptedExtensions[last..<i]);
                     last = i+1;
                 }
 
                 if i == strlen-1 {
-                    append(res.AcceptedExtensions, acceptedExtensions[last..<i+1]);
+                    append(res.accepted_extensions, acceptedExtensions[last..<i+1]);
                 }
             } 
         }
@@ -129,45 +129,45 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
 
     //Check if path exists
     pstr := strings.new_c_string(path); defer free(pstr);
-    attr := j32.GetFileAttributes(pstr);
-    if _IsDirectory(attr) {
+    attr := win32.GetFileAttributesA(pstr);
+    if _is_directory(attr) {
 
         res := new(Catalog);
-        res.Name = identifier;
-        buf := make([]byte, j32.MAX_PATH);
-        res.Path = fmt.bprintf(buf[..], "%s%s", path, path[len(path)-1] == '/' ? "" : "/");
-        res.Kind = kind;
-        ExtractAcceptedExtensions(res, acceptedExtensions);
-        data := j32.FindData{};
+        res.name = identifier;
+        buf := make([]byte, win32.MAX_PATH);
+        res.path = fmt.bprintf(buf[..], "%s%s", path, path[len(path)-1] == '/' ? "" : "/");
+        res.kind = kind;
+        extract_accepted_extensions(res, acceptedExtensions);
+        data := win32.Find_Data{};
         fmt.bprintf(buf[..], "%s%s", path, path[len(path)-1] == '\\' ? "*" : "\\*");
-        fileH := j32.FindFirstFile(&buf[0], &data);
+        fileH := win32.FindFirstFileA(&buf[0], &data);
 
         if fileH != win32.INVALID_HANDLE {
-            for j32.FindNextFile(fileH, &data) == win32.TRUE {
-                if _IsDirectory(data.FileAttributes) {
+            for win32.FindNextFileA(fileH, &data) == win32.TRUE {
+                if _is_directory(data.file_attributes) {
                     continue;
                 }
-                nameBuf := make([]byte, len(data.FileName));
-                copy(nameBuf, data.FileName[..]);
+                nameBuf := make([]byte, len(data.file_name));
+                copy(nameBuf, data.file_name[..]);
                 str := strings.to_odin_string(&nameBuf[0]);
-                for ext in res.AcceptedExtensions {
-                    if _GetFileExtension(str) == ext {                        
-                        file := _CreateFileInfo(res.Path, str, data);
-                        res.MaxSize += uint(file.Size);
+                for ext in res.accepted_extensions {
+                    if _get_file_extension(str) == ext {                        
+                        file := _create_file_info(res.path, str, data);
+                        res.max_size += uint(file.size);
                         match kind {
                             case Kind.Texture : {
-                                AddTexture(res, file);
+                                add_texture(res, file);
                             }
 
                             case Kind.Shader : {
-                                AddShader(res, file);
+                                add_shader(res, file);
                             }
 
                             case Kind.Sound : {
-                                AddSound(res, file);
+                                add_sound(res, file);
                             }
 
-                            default : {
+                            case : {
                                 fmt.println(kind);
                                 panic("FUCK");
                             }
@@ -176,12 +176,12 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
                         break;
                     }
                 }
-                res.FilesInFolder++;
+                res.files_in_folder++;
             }
 
-            DebugInfo.NumberOfCatalogs++;
-            append(DebugInfo.CatalogNames, res.Name);
-            append(DebugInfo.Catalogs, res);
+            debug_info.number_of_catalogs++;
+            append(debug_info.catalog_names, res.name);
+            append(debug_info.catalogs, res);
             return res, ERR_SUCCESS;
         } else {
             free(res);
@@ -193,21 +193,21 @@ CreateNew :: proc(kind : Kind, identifier : string, path : string, acceptedExten
     }
 }
 
-Find :: proc(catalog : ^Catalog, assetName : string/*, upload : bool*/) -> (^ja.Asset, Err) {
-    LoadTexture :: proc(e : ^ja.Asset.Texture, cat : ^Catalog) {
-        if e.GLID == 0/* && upload*/ {
-            c_str := strings.new_c_string(e.FileInfo.Path); defer free(c_str);
+find :: proc(catalog : ^Catalog, assetName : string/*, upload : bool*/) -> (^ja.Asset, Err) {
+    load_texture :: proc(e : ^ja.Asset.Texture, cat : ^Catalog) {
+        if e.gl_id == 0/* && upload*/ {
+            c_str := strings.new_c_string(e.file_info.path); defer free(c_str);
             w, h, c : i32;
-            e.Data = stbi.load(c_str, &w, &h, &c, 0); //defer stbi.image_free(data);
-            e.LoadedFromDisk = true;
-            cat.CurrentSize += uint(e.FileInfo.Size);
-            e.Width  = int(w);
-            e.Height = int(h);
-            e.Comp   = int(c);
-            e.GLID = gl.GenTexture();
-            gl.BindTexture(gl.TextureTargets.Texture2D, e.GLID);
+            e.data = stbi.load(c_str, &w, &h, &c, 0); //defer stbi.image_free(data);
+            e.loaded_from_disk = true;
+            cat.current_size += uint(e.file_info.size);
+            e.width  = int(w);
+            e.height = int(h);
+            e.comp   = int(c);
+            e.gl_id = gl.GenTexture();
+            gl.BindTexture(gl.TextureTargets.Texture2D, e.gl_id);
             format : gl.PixelDataFormat;
-            match e.Comp {
+            match e.comp {
                 case 1 : {
                     format = gl.PixelDataFormat.Red;
                 }
@@ -225,8 +225,8 @@ Find :: proc(catalog : ^Catalog, assetName : string/*, upload : bool*/) -> (^ja.
                 }
             }
             gl.TexImage2D(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
-                          i32(e.Width), i32(e.Height), format, 
-                          gl.Texture2DDataType.UByte, e.Data);
+                          i32(e.width), i32(e.height), format, 
+                          gl.Texture2DDataType.UByte, e.data);
             gl.GenerateMipmap(gl.MipmapTargets.Texture2D);
 
             gl.TexParameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MinFilter, gl.TextureParametersValues.LinearMipmapLinear);
@@ -237,39 +237,39 @@ Find :: proc(catalog : ^Catalog, assetName : string/*, upload : bool*/) -> (^ja.
         }
     }
 
-    LoadShader :: proc(e : ^ja.Asset.Shader, cat : ^Catalog) {
-        if !e.LoadedFromDisk {
-            e.LoadedFromDisk = true;
-            data, _ := os.read_entire_file(e.FileInfo.Path);
-            e.Data = data;
-            e.Source = strings.to_odin_string(&data[0]);
-            cat.CurrentSize += uint(len(data));
+    load_shader :: proc(e : ^ja.Asset.Shader, cat : ^Catalog) {
+        if !e.loaded_from_disk {
+            e.loaded_from_disk = true;
+            data, _ := os.read_entire_file(e.file_info.path);
+            e.data = data;
+            e.source = strings.to_odin_string(&data[0]);
+            cat.current_size += uint(len(data));
         }
 
-        if e.GLID == 0/* && upload*/ {
-            e.GLID, _ = glUtil.CreateAndCompileShader(e.Type, e.Source);
+        if e.gl_id == 0/* && upload*/ {
+            e.gl_id, _ = gl_util.create_and_compile_shader(e.type, e.source);
         }
     }
 
-    _, ok := catalog.Items[assetName];
+    _, ok := catalog.items[assetName];
 
     if ok {
-        asset := catalog.Items[assetName];
-        if !asset.LoadedFromDisk {
+        asset := catalog.items[assetName];
+        if !asset.loaded_from_disk {
 
             match e in asset {
                 case ja.Asset.Texture : {
-                    LoadTexture(e, catalog);
+                    load_texture(e, catalog);
                 }
 
                 case ja.Asset.Shader : {
-                    LoadShader(e, catalog);
+                    load_shader(e, catalog);
                 }
 
                 case ja.Asset.Sound : 
                 case ja.Asset.ShaderProgram :
-                default : {
-                    console.LogError("Can't load asset of type: %T, yet...", e);
+                case : {
+                    console.log_error("Can't load asset of type: %T, yet...", e);
                 }
             }
         }
@@ -281,7 +281,7 @@ Find :: proc(catalog : ^Catalog, assetName : string/*, upload : bool*/) -> (^ja.
 
 /////////////////////////////
 //////// Util
-_GetFileExtension :: proc(filename : string) -> string {
+_get_file_extension :: proc(filename : string) -> string {
     strLen := len(filename);
 
     for i := strLen-1; i > 0; i-- {
@@ -297,26 +297,25 @@ _GetFileExtension :: proc(filename : string) -> string {
 
     return "";
 }
-
-_GetFileNameWithoutExtension :: proc(filename : string) -> string {
-    extlen := len(_GetFileExtension(filename));
+_get_file_name_without_extension :: proc(filename : string) -> string {
+    extlen := len(_get_file_extension(filename));
     namelen := len(filename);
     return filename[0..<(namelen-extlen)];
 }
 
-_IsDirectory :: proc(attr : u32) -> bool {
-   return (i32(attr) != j32.INVALID_FILE_ATTRIBUTES) && 
-          ((attr & j32.FILE_ATTRIBUTE_DIRECTORY) == j32.FILE_ATTRIBUTE_DIRECTORY);
+_is_directory :: proc(attr : u32) -> bool {
+   return (i32(attr) != win32.INVALID_FILE_ATTRIBUTES) && 
+          ((attr & win32.FILE_ATTRIBUTE_DIRECTORY) == win32.FILE_ATTRIBUTE_DIRECTORY);
 }
 
-_CreateFileInfo :: proc(path : string filename : string, data : j32.FindData) -> ja.FileInfo_t {
-    file := ja.FileInfo_t{};
-    file.Name = _GetFileNameWithoutExtension(filename);
-    file.Ext  = _GetFileExtension(filename);
-    pathBuf := make([]byte, j32.MAX_PATH);
-    file.Path = fmt.bprintf(pathBuf[..], "%s%s", path, filename);
+_create_file_info :: proc(path : string filename : string, data : win32.Find_Data) -> ja.FileInfo {
+    file := ja.FileInfo{};
+    file.name = _get_file_name_without_extension(filename);
+    file.ext  = _get_file_extension(filename);
+    pathBuf := make([]byte, win32.MAX_PATH);
+    file.path = fmt.bprintf(pathBuf[..], "%s%s", path, filename);
     MAXDWORD :: 0xffffffff;
-    file.Size =  u64(data.FileSizeHigh) * u64(MAXDWORD+1) + u64(data.FileSizeLow);
+    file.size =  u64(data.file_size_high) * u64(MAXDWORD+1) + u64(data.file_size_low);
     return file;
 }
 

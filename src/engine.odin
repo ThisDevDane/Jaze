@@ -6,7 +6,7 @@
  *  @Creation: 04-05-2017 15:13:05
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 00:54:30
+ *  @Last Time: 28-05-2017 17:32:55
  *  
  *  @Description:
  *      Contains the engine context.
@@ -20,42 +20,42 @@
 #import "renderer.odin";
 #import p32 "platform_win32.odin";
 
-Context_t :: struct {
-    Settings           : ^Setting_t,
-    Input              : ^input.Input_t,
-    VirtualScreen      : ^renderer.VirtualScreen_t,
-    Win32              : ^p32.Data_t,
-    ImguiState         : ^jimgui.State_t,
-    Time               : ^time.Data_t,
-    RenderState        : ^renderer.State_t,
+Context :: struct {
+    settings             : ^Setting,
+    input                : ^input.Input,
+    virtual_screen       : ^renderer.VirtualScreen_t,
+    win32                : ^p32.Data_t,
+    imgui_state          : ^jimgui.State,
+    time                 : ^time.Data,
+    render_state         : ^renderer.State_t,
 
-    AdaptiveVSync      : bool,
-    ScaleFactor        : math.Vec2,
-    GameDrawRegion     : renderer.DrawRegion,
-    WindowSize         : math.Vec2,
+    adaptive_vsync       : bool,
+    scale_factor         : math.Vec2,
+    game_draw_region     : renderer.DrawRegion,
+    window_size          : math.Vec2,
 }
 
-Setting_t :: struct {
-    ShowCursor         : bool,
-    ShowDebugMenu      : bool,
-    ProgramRunning     : bool,
+Setting :: struct {
+    show_cursor         : bool,
+    show_debug_menu      : bool,
+    program_running     : bool,
 }
 
-CreateContext :: proc() -> ^Context_t {
-    ctx              := new(Context_t);
-    ctx.Input         = new(input.Input_t);
-    ctx.Settings      = new(Setting_t);
-    ctx.VirtualScreen = renderer.CreateVirtualScreen(1920, 1080);
-    ctx.Win32         = new(p32.Data_t);
-    ctx.ImguiState    = new(jimgui.State_t);
-    ctx.Time          = time.CreateData();
+create_context :: proc() -> ^Context {
+    ctx               := new(Context);
+    ctx.input          = new(input.Input);
+    ctx.settings       = new(Setting);
+    ctx.virtual_screen = renderer.CreateVirtualScreen(1920, 1080);
+    ctx.win32          = new(p32.Data_t);
+    ctx.imgui_state    = new(jimgui.State);
+    ctx.time           = time.create_data();
 
     return ctx;
 }
 
-SetContextDefaults :: proc(ctx : ^Context_t) {
-    ctx.AdaptiveVSync = true;
-    ctx.Settings.ProgramRunning = true;
-    ctx.Settings.ShowDebugMenu = true;
-    ctx.Settings.ShowCursor = true;
+set_context_defaults :: proc(ctx : ^Context) {
+    ctx.adaptive_vsync = true;
+    ctx.settings.program_running = true;
+    ctx.settings.show_debug_menu = true;
+    ctx.settings.show_cursor = true;
 }

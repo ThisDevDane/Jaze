@@ -6,7 +6,7 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 00:42:40
+ *  @Last Time: 28-05-2017 16:34:42
  *  
  *  @Description:
  *      The console is an in engine window that can be pulled up for viewing.
@@ -17,10 +17,10 @@
 #import "os.odin";
 #import win32 "sys/windows.odin";
 #import "imgui.odin";
-#import debugWnd "debug_windows.odin";
+#import debug_wnd "debug_windows.odin";
 
 OUTPUT_TO_CLI  :: true;
-OUTPUT_TO_FILE :: false;
+OUTPUT_TO_FILE :: true;
 
 _BUF_SIZE :: 1024;
 
@@ -28,23 +28,23 @@ CommandProc :: #type proc(args : []string);
 
 
 LogData :: struct {
-    InputBuf : [256]byte,
-    Items    : [dynamic]string,
-    History  : [dynamic]string,
-    Log      : [dynamic]LogItem,
-    Commands : map[string]CommandProc,
+    input_buf     : [256]byte,
+    items         : [dynamic]string,
+    history       : [dynamic]string,
+    log           : [dynamic]LogItem,
+    commands      : map[string]CommandProc,
+    log_file_name : string,
 
-    ScrollToBottom : bool,
-    HistoryPos : int, 
-    LogFileName : string,
+    _scroll_to_bottom : bool,
+    _history_pos      : int, 
 }
 
 LogItem :: struct {
-    Text : string,
-    Time : win32.Systemtime,
+    text : string,
+    time : win32.Systemtime,
 }
 
-_InternalData := LogData{};
+_internal_data := LogData{};
 
 LogLevel :: enum {
     Normal,
@@ -55,15 +55,15 @@ LogLevel :: enum {
 _ERROR_STR  :: "[Error]: ";
 _CINPUT_STR :: "\\\\: ";
 
-LogError :: proc(fmt_ : string, args : ..any) {
-    _InternalLog(fmt_, LogLevel.Error, ..args);
+log_error :: proc(fmt_ : string, args : ..any) {
+    _internal_log(fmt_, LogLevel.Error, ..args);
 }
 
-Log :: proc(fmt_ : string, args : ..any) {
-    _InternalLog(fmt_, LogLevel.Normal, ..args);
+log :: proc(fmt_ : string, args : ..any) {
+    _internal_log(fmt_, LogLevel.Normal, ..args);
 }
 
-_InternalLog :: proc(fmt_ : string, level : LogLevel, args : ..any) {
+_internal_log :: proc(fmt_ : string, level : LogLevel, args : ..any) {
     buf  : [_BUF_SIZE]byte;
     buf2 : [_BUF_SIZE]byte;
     buf3 : [_BUF_SIZE]byte;
@@ -83,81 +83,86 @@ _InternalLog :: proc(fmt_ : string, level : LogLevel, args : ..any) {
     }
     newFmt := fmt.bprintf(buf[..], "%s%s", levelStr, fmt_);
     tempStr := fmt.bprintf(buf2[..], newFmt, ..args);
-    append(_InternalData.Items, _StringDup(tempStr));
+    append(_internal_data.items, _string_dup(tempStr));
 
     when OUTPUT_TO_CLI {
         fmt.printf("%s\n", tempStr);
     }
 
     item := LogItem{};
-    item.Text = _StringDup(tempStr);
+    item.text = _string_dup(tempStr);
 
     ft : win32.Filetime;
     st : win32.Systemtime;
     win32.GetSystemTimeAsFileTime(&ft);
     win32.FileTimeToSystemTime(&ft, &st);
 
-    item.Time = st;
+    item.time = st;
 
-    append(_InternalData.Log,   item);
-    _InternalData.ScrollToBottom = true;
+    append(_internal_data.log,   item);
+    _internal_data._scroll_to_bottom = true;
     when OUTPUT_TO_FILE {
-        _UpdateLogFile();
+        _update_log_file();
     }
 }
 
-_UpdateLogFile :: proc() {
-    if len(_InternalData.LogFileName) <= 0 {
+_update_log_file :: proc() {
+    if len(_internal_data.log_file_name) <= 0 {
         ft : win32.Filetime;
         st : win32.Systemtime;
         win32.GetSystemTimeAsFileTime(&ft);
         win32.FileTimeToSystemTime(&ft, &st);
 
         buf := make([]byte, 255);
-        _InternalData.LogFileName = fmt.bprintf(buf[..], "%d-%d-%d_%d%d%d.jlog", 
+        _internal_data.log_file_name = fmt.bprintf(buf[..], "%d-%d-%d_%d%d%d.jlog", 
                                                 st.day, st.month, st.year, 
                                                 st.hour, st.minute, st.second);
     }
 
-    h, _ := os.open(_InternalData.LogFileName, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0);
+    h, _ := os.open(_internal_data.log_file_name, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0);
     os.seek(h, 0, 2);
-    for log in _InternalData.Log {
+    for log in _internal_data.log {
         buf : [_BUF_SIZE]byte;
-        str := fmt.bprintf(buf[..], "[%2d:%2d:%2d-%3d]%s\n", log.Time.hour,   log.Time.minute, 
-                                                              log.Time.second, log.Time.millisecond, 
-                                                              log.Text);
+        str := fmt.bprintf(buf[..], "[%2d:%2d:%2d-%3d]%s\n", log.time.hour,   log.time.minute, 
+                                                              log.time.second, log.time.millisecond, 
+                                                              log.text);
         os.write(h, []byte(str));
         os.seek(h, 0, 2);
     }
     os.close(h);   
 } 
 
-AddCommand :: proc(name : string p : CommandProc) {
-    _InternalData.Commands[name] = p;
+add_command :: proc(name : string p : CommandProc) {
+    _internal_data.commands[name] = p;
 }
 
-DefaultHelpCommand :: proc(args : []string) {
-    Log("Available Commands: ");
-    for val, key in _InternalData.Commands {
-        Log("\t%s", key);
+default_help_command :: proc(args : []string) {
+    log("Available Commands: ");
+    for val, key in _internal_data.commands {
+        log("\t%s", key);
     }
 }
 
-DefaultClearCommand :: proc(args : []string) {
-    ClearConsole();
+default_clear_command :: proc(args : []string) {
+    clear_console();
 }
 
-DrawLog :: proc(show : ^bool) {
-    imgui.Begin("Log", show, debugWnd.STD_WINDOW);
+add_default_commands :: proc() {
+    add_command("Clear", default_clear_command);
+    add_command("Help",  default_help_command);
+}
+
+draw_log :: proc(show : ^bool) {
+    imgui.Begin("Log", show, debug_wnd.STD_WINDOW);
     imgui.BeginChild("Items", imgui.Vec2{0, 0}, true, 0);
     {
-        for t in _InternalData.Log {
-            if t.Text[0..<len(_ERROR_STR)] == _ERROR_STR {
-                imgui.TextColored(imgui.Vec4{1, 0, 0, 1}, "[%2d:%2d:%2d-%3d]%s", t.Time.hour, t.Time.minute, t.Time.second, t.Time.millisecond, t.Text);
-            } else if t.Text[0..<len(_CINPUT_STR)] == _CINPUT_STR {
-                imgui.TextColored(imgui.Vec4{0.7, 0.7, 0.7, 1}, "[%2d:%2d:%2d-%3d]%s", t.Time.hour, t.Time.minute, t.Time.second, t.Time.millisecond, t.Text);
+        for t in _internal_data.log {
+            if t.text[0..<len(_ERROR_STR)] == _ERROR_STR {
+                imgui.TextColored(imgui.Vec4{1, 0, 0, 1}, "[%2d:%2d:%2d-%3d]%s", t.time.hour, t.time.minute, t.time.second, t.time.millisecond, t.text);
+            } else if t.text[0..<len(_CINPUT_STR)] == _CINPUT_STR {
+                imgui.TextColored(imgui.Vec4{0.7, 0.7, 0.7, 1}, "[%2d:%2d:%2d-%3d]%s", t.time.hour, t.time.minute, t.time.second, t.time.millisecond, t.text);
             } else {
-                imgui.Text("[%2d:%2d:%2d-%3d]%s", t.Time.hour, t.Time.minute, t.Time.second, t.Time.millisecond, t.Text);
+                imgui.Text("[%2d:%2d:%2d-%3d]%s", t.time.hour, t.time.minute, t.time.second, t.time.millisecond, t.text);
             }
         }
     }
@@ -165,16 +170,16 @@ DrawLog :: proc(show : ^bool) {
     imgui.End();
 }
 
-DrawConsole :: proc(show : ^bool) {
-    imgui.Begin("Console", show, debugWnd.STD_WINDOW | imgui.GuiWindowFlags.MenuBar);
+draw_console :: proc(show : ^bool) {
+    imgui.Begin("Console", show, debug_wnd.STD_WINDOW | imgui.GuiWindowFlags.MenuBar);
     {
         if imgui.BeginMenuBar() {
             if imgui.BeginMenu("Misc", true) {
-                if imgui.MenuItem("Show Log", "", false, len(_InternalData.Log) > 0) {
-                    debugWnd.ToggleWindow("ShowLogWindow");
+                if imgui.MenuItem("Show Log", "", false, len(_internal_data.log) > 0) {
+                    debug_wnd.toggle_window_state("ShowLogWindow");
                 }              
-                if imgui.MenuItem("Clear", "", false, len(_InternalData.Items) > 0) {
-                    ClearConsole();
+                if imgui.MenuItem("Clear", "", false, len(_internal_data.items) > 0) {
+                    clear_console();
                 }
 
                 imgui.EndMenu();
@@ -184,7 +189,7 @@ DrawConsole :: proc(show : ^bool) {
 
         imgui.BeginChild("Buffer", imgui.Vec2{-1, -40}, true, 0);
         {
-            for t in _InternalData.Items {
+            for t in _internal_data.items {
                 if t[0..<len(_ERROR_STR)] == _ERROR_STR {
                     imgui.TextColored(imgui.Vec4{1, 0, 0, 1}, t);
                 } else if t[0..<len(_CINPUT_STR)] == _CINPUT_STR {
@@ -194,57 +199,57 @@ DrawConsole :: proc(show : ^bool) {
                 }
             }
 
-            if _InternalData.ScrollToBottom {
+            if _internal_data._scroll_to_bottom {
                 imgui.SetScrollHere(0.5);
             }
-            _InternalData.ScrollToBottom = false;
+            _internal_data._scroll_to_bottom = false;
         }
         imgui.EndChild();
 
         TEXT_FLAGS :: imgui.GuiInputTextFlags.EnterReturnsTrue | imgui.GuiInputTextFlags.CallbackCompletion | imgui.GuiInputTextFlags.CallbackHistory;
         
-        if imgui.InputText("Input", _InternalData.InputBuf[..], TEXT_FLAGS, _TextEditCallback, nil) {
+        if imgui.InputText("Input", _internal_data.input_buf[..], TEXT_FLAGS, _text_edit_callback, nil) {
             imgui.SetKeyboardFocusHere(-1);
-            InputEnter(_InternalData.InputBuf[..]);
+            enter_input(_internal_data.input_buf[..]);
         }
         imgui.SameLine(0, -1);
         if imgui.Button("Enter", imgui.Vec2{-1, 0}) {
-            InputEnter(_InternalData.InputBuf[..]);
+            enter_input(_internal_data.input_buf[..]);
         }
         imgui.Separator();
-        imgui.TextColored(imgui.Vec4{1, 1, 1, 0.2}, "Items: %d | History: %d | Log : %d", len(_InternalData.Items), 
-                                                                                          len(_InternalData.History), 
-                                                                                          len(_InternalData.Log));
+        imgui.TextColored(imgui.Vec4{1, 1, 1, 0.2}, "Items: %d | History: %d | Log : %d", len(_internal_data.items), 
+                                                                                          len(_internal_data.history), 
+                                                                                          len(_internal_data.log));
     }
     imgui.End();
 }
 
-InputEnter :: proc(input : []byte) {
+enter_input :: proc(input : []byte) {
     if input[0] != 0 &&
        input[0] != ' ' {
-        i := _FindStringNull(input[..]);
+        i := _find_string_null(input[..]);
         str := string(input[0..<i]);
-        _InternalLog(str, LogLevel.ConsoleInput);
-        append(_InternalData.History, _StringDup(str));
-        if !ExecuteCommand(str) {
-            LogError("%s is not a command", _PullCommandName(str));
+        _internal_log(str, LogLevel.ConsoleInput);
+        append(_internal_data.history, _string_dup(str));
+        if !execute_command(str) {
+            log_error("%s is not a command", _pull_command_name(str));
         }
         input[0] = 0;
-        _InternalData.ScrollToBottom = true;
-        _InternalData.HistoryPos = 0;
+        _internal_data._scroll_to_bottom = true;
+        _internal_data._history_pos = 0;
     }
 }
 
-ClearConsole :: proc() {
-    for str in _InternalData.Items {
+clear_console :: proc() {
+    for str in _internal_data.items {
         free(str);
     }
-    clear(_InternalData.Items);
+    clear(_internal_data.items);
 }
 
-ExecuteCommand :: proc(cmdString : string) -> bool {
-    name := _PullCommandName(cmdString);
-    if cmd, ok := _InternalData.Commands[name]; ok {
+execute_command :: proc(cmdString : string) -> bool {
+    name := _pull_command_name(cmdString);
+    if cmd, ok := _internal_data.commands[name]; ok {
         args : [dynamic]string;
         if len(cmdString) != len(name) {
             p := 0;
@@ -266,29 +271,29 @@ ExecuteCommand :: proc(cmdString : string) -> bool {
     return false;
 }
 
-_TextEditCallback :: proc(data : ^imgui.GuiTextEditCallbackData) -> i32 #cc_c {
+_text_edit_callback :: proc(data : ^imgui.GuiTextEditCallbackData) -> i32 #cc_c {
     match data.EventFlag {
         case imgui.GuiInputTextFlags.CallbackHistory : {
-            prev := _InternalData.HistoryPos;
+            prev := _internal_data._history_pos;
 
             if data.EventKey == imgui.GuiKey.UpArrow {
-                if _InternalData.HistoryPos == 0 {
-                    _InternalData.HistoryPos = len(_InternalData.History);
+                if _internal_data._history_pos == 0 {
+                    _internal_data._history_pos = len(_internal_data.history);
                 } else {
-                    _InternalData.HistoryPos--;
+                    _internal_data._history_pos--;
                 }
             } else if data.EventKey == imgui.GuiKey.DownArrow {
-                if _InternalData.HistoryPos != 0 {
-                    _InternalData.HistoryPos++;
-                    if _InternalData.HistoryPos > len(_InternalData.History) {
-                        _InternalData.HistoryPos = 0;
+                if _internal_data._history_pos != 0 {
+                    _internal_data._history_pos++;
+                    if _internal_data._history_pos > len(_internal_data.history) {
+                        _internal_data._history_pos = 0;
                     }
                 }
             }
 
-            if prev != _InternalData.HistoryPos {
-                pos := _InternalData.HistoryPos > 0 ? _InternalData.HistoryPos-1 : -1;  
-                str := fmt.bprintf(slice_ptr(data.Buf, data.BufSize)[..], "%s", pos < 0 ? "" : _InternalData.History[pos]);
+            if prev != _internal_data._history_pos {
+                pos := _internal_data._history_pos > 0 ? _internal_data._history_pos-1 : -1;  
+                str := fmt.bprintf(slice_ptr(data.Buf, data.BufSize)[..], "%s", pos < 0 ? "" : _internal_data.history[pos]);
                 strlen := i32(len(str)-1);
                 data.BufTextLen = strlen;
                 data.CursorPos = strlen;
@@ -306,7 +311,7 @@ _TextEditCallback :: proc(data : ^imgui.GuiTextEditCallbackData) -> i32 #cc_c {
     return 0;
 }
 
-_PullCommandName :: proc(s : string) -> string {
+_pull_command_name :: proc(s : string) -> string {
     for r, i in s {
         if r == ' ' {
             return s[0..<i];
@@ -316,13 +321,13 @@ _PullCommandName :: proc(s : string) -> string {
     return s;
 }
 
-_StringDup :: proc(s : string) -> string {
+_string_dup :: proc(s : string) -> string {
     data := make([]byte, len(s)+1);
     copy(data, []byte(s[..]));
     return string(data);    
 }
 
-_FindStringNull :: proc(s : []byte) -> int {
+_find_string_null :: proc(s : []byte) -> int {
     for r, i in s {
         if r == 0 {
             return i;

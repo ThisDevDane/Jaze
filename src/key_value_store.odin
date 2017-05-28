@@ -6,7 +6,7 @@
  *  @Creation: 16-05-2017 21:52:47
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 01:02:56
+ *  @Last Time: 28-05-2017 15:31:26
  *  
  *  @Description:
  *      Contains a "generic" key value storage.
@@ -24,7 +24,7 @@ GetF64    :: proc(store : ^KeyValueStore, id : string) -> f64 {
     if !ok { return 0; }
     match v in val {
         case f64 : { return v; }
-        default  : { return 0; }
+        case  : { return 0; }
     }
 }
 
@@ -33,7 +33,7 @@ GetF32    :: proc(store : ^KeyValueStore, id : string) -> f32 {
     if !ok { return 0; }
     match v in val {
         case f32 : { return v; }
-        default  : { return 0; }
+        case  : { return 0; }
     }
 }
 
@@ -42,7 +42,7 @@ GetInt    :: proc(store : ^KeyValueStore, id : string) -> int {
     if !ok { return 0; }
     match v in val {
         case int : { return v; }
-        default  : { return 0; }
+        case  : { return 0; }
     }
 }
 
@@ -51,7 +51,7 @@ GetString :: proc(store : ^KeyValueStore, id : string) -> string {
     if !ok { return "<nil>"; }
     match v in val {
         case string : { return v; }
-        default     : { return "<nil>"; }
+        case     : { return "<nil>"; }
     }
 }
 

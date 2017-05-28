@@ -6,7 +6,7 @@
  *  @Creation: 13-05-2017 23:48:58
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 22-05-2017 01:44:19
+ *  @Last Time: 28-05-2017 17:01:11
  *  
  *  @Description:
  *      Functions and data related to the renderer. 
@@ -79,8 +79,8 @@ CreateVirtualScreen :: proc(w, h : int) -> ^VirtualScreen_t {
 Init :: proc(shaderCat : ^catalog.Catalog) -> ^State_t {
     state := new(State_t); 
 
-    vertexAsset, ok1 := catalog.Find(shaderCat, "test_vert");
-    fragAsset, ok2 := catalog.Find(shaderCat, "test_frag");
+    vertexAsset, ok1 := catalog.find(shaderCat, "test_vert");
+    fragAsset, ok2 := catalog.find(shaderCat, "test_frag");
 
     if ok1 != catalog.ERR_SUCCESS || ok2 != catalog.ERR_SUCCESS {
         panic("Couldn't find the Bitmap shaders");
@@ -88,10 +88,10 @@ Init :: proc(shaderCat : ^catalog.Catalog) -> ^State_t {
 
     vertex := vertexAsset.(^ja.Asset.Shader);
     frag :=   fragAsset.(^ja.Asset.Shader);
-    state.BitmapProgram = glUtil.CreateProgram(vertex^, frag^);
+    state.BitmapProgram = glUtil.create_program(vertex^, frag^);
 
-    vertexAsset, ok1 = catalog.Find(shaderCat, "basic_vert");
-    fragAsset, ok2 = catalog.Find(shaderCat, "basic_frag");
+    vertexAsset, ok1 = catalog.find(shaderCat, "basic_vert");
+    fragAsset, ok2 = catalog.find(shaderCat, "basic_frag");
 
     if ok1 != catalog.ERR_SUCCESS || ok2 != catalog.ERR_SUCCESS {
         panic("Couldn't find the Solid shaders");
@@ -99,7 +99,7 @@ Init :: proc(shaderCat : ^catalog.Catalog) -> ^State_t {
 
     vertex = vertexAsset.(^ja.Asset.Shader);
     frag   = fragAsset.(^ja.Asset.Shader);
-    state.SolidProgram = glUtil.CreateProgram(vertex^, frag^);
+    state.SolidProgram = glUtil.create_program(vertex^, frag^);
 
 
     state.VAO = gl.GenVertexArray();
@@ -191,13 +191,13 @@ ScreenToWorld :: proc(screenPos : math.Vec2, proj, view : math.Mat4, area : Draw
                f32(ctx.Time.TimeSinceStart * 200.0),
                math.Vec3{0.4, 0.4, 0.4});*/
 
-RenderQueue :: proc(ctx : ^engine.Context_t, camera : ^Camera_t, queue : ^render_queue.Queue) {
+RenderQueue :: proc(ctx : ^engine.Context, camera : ^Camera_t, queue : ^render_queue.Queue) {
     gl.Enable(gl.Capabilities.DepthTest);
     gl.Enable(gl.Capabilities.Blend);
     gl.DepthFunc(gl.DepthFuncs.Lequal);
     gl.BlendFunc(gl.BlendFactors.SrcAlpha, gl.BlendFactors.OneMinusSrcAlpha);  
     view := CreateViewMatrixFromCamera(camera);
-    proj := CalculateOrtho(ctx.WindowSize, ctx.ScaleFactor, camera.Far, camera.Near);
+    proj := CalculateOrtho(ctx.window_size, ctx.scale_factor, camera.Far, camera.Near);
 
     CreateModelMat :: proc(pos, texSize, scale : math.Vec3, rotation_ : f32) -> math.Mat4 {
         textureScale := math.scale(math.mat4_identity(), texSize);
@@ -218,50 +218,50 @@ RenderQueue :: proc(ctx : ^engine.Context_t, camera : ^Camera_t, queue : ^render
     lastProgram := 0;
     vpu := false;
 
-    gl.BindVertexArray(ctx.RenderState.VAO);    
+    gl.BindVertexArray(ctx.render_state.VAO);    
 
     for !render_queue.IsEmpty(queue) {
         rcmd, _ := render_queue.Dequeue(queue);
 
         match cmd in rcmd {
             case Command.Bitmap : {
-                height := f32(cmd.Texture.Height) / PixelsToUnits;
-                width := f32(cmd.Texture.Width) / PixelsToUnits;
+                height := f32(cmd.Texture.height) / PixelsToUnits;
+                width := f32(cmd.Texture.width) / PixelsToUnits;
                 texSize := math.Vec3{width, height, 1};
 
-                if lastProgram != int(ctx.RenderState.BitmapProgram.ID) {
-                    gl.UseProgram(ctx.RenderState.BitmapProgram);
-                    lastProgram = int(ctx.RenderState.BitmapProgram.ID);
+                if lastProgram != int(ctx.render_state.BitmapProgram.ID) {
+                    gl.UseProgram(ctx.render_state.BitmapProgram);
+                    lastProgram = int(ctx.render_state.BitmapProgram.ID);
                 }
                 if !vpu {
-                    gl.UniformMatrix4fv(ctx.RenderState.BitmapProgram.Uniforms["View"],  view,  false);
-                    gl.UniformMatrix4fv(ctx.RenderState.BitmapProgram.Uniforms["Proj"],  proj,  false);
+                    gl.UniformMatrix4fv(ctx.render_state.BitmapProgram.Uniforms["View"],  view,  false);
+                    gl.UniformMatrix4fv(ctx.render_state.BitmapProgram.Uniforms["Proj"],  proj,  false);
                     vpu = true;
                 }
 
-                gl.UniformMatrix4fv(ctx.RenderState.BitmapProgram.Uniforms["Model"], CreateModelMat(cmd.RenderPos, texSize, cmd.Scale, cmd.Rotation), false);
+                gl.UniformMatrix4fv(ctx.render_state.BitmapProgram.Uniforms["Model"], CreateModelMat(cmd.RenderPos, texSize, cmd.Scale, cmd.Rotation), false);
 
-                if lastTex != int(cmd.Texture.GLID) {
-                    gl.BindTexture(gl.TextureTargets.Texture2D, cmd.Texture.GLID);
-                    lastTex = int(cmd.Texture.GLID);
+                if lastTex != int(cmd.Texture.gl_id) {
+                    gl.BindTexture(gl.TextureTargets.Texture2D, cmd.Texture.gl_id);
+                    lastTex = int(cmd.Texture.gl_id);
                 }
                 gl.DrawElements(gl.DrawModes.Triangles, 6, gl.DrawElementsType.UInt, nil);
             }
 
             case Command.Rect : {
 
-                if lastProgram != int(ctx.RenderState.SolidProgram.ID) {
-                    gl.UseProgram(ctx.RenderState.SolidProgram);
-                    lastProgram = int(ctx.RenderState.SolidProgram.ID);
+                if lastProgram != int(ctx.render_state.SolidProgram.ID) {
+                    gl.UseProgram(ctx.render_state.SolidProgram);
+                    lastProgram = int(ctx.render_state.SolidProgram.ID);
                 }
                 if !vpu {
-                    gl.UniformMatrix4fv(ctx.RenderState.SolidProgram.Uniforms["View"],  view,  false);
-                    gl.UniformMatrix4fv(ctx.RenderState.SolidProgram.Uniforms["Proj"],  proj,  false);
+                    gl.UniformMatrix4fv(ctx.render_state.SolidProgram.Uniforms["View"],  view,  false);
+                    gl.UniformMatrix4fv(ctx.render_state.SolidProgram.Uniforms["Proj"],  proj,  false);
                     vpu = true;
                 }
-                gl.UniformMatrix4fv(ctx.RenderState.SolidProgram.Uniforms["Model"], CreateModelMat(cmd.RenderPos, math.Vec3{1,1,1}, cmd.Scale, cmd.Rotation), false);
+                gl.UniformMatrix4fv(ctx.render_state.SolidProgram.Uniforms["Model"], CreateModelMat(cmd.RenderPos, math.Vec3{1,1,1}, cmd.Scale, cmd.Rotation), false);
 
-                gl.Uniform(ctx.RenderState.SolidProgram.Uniforms["Color"], cmd.Color);
+                gl.Uniform(ctx.render_state.SolidProgram.Uniforms["Color"], cmd.Color);
 
                 gl.DrawElements(gl.DrawModes.Triangles, 6, gl.DrawElementsType.UInt, nil);
             }
