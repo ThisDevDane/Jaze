@@ -3,189 +3,220 @@
  *  
  *  @Author:   Mikkel Hjortshoej
  *  @Email:    hjortshoej@handmade.network
- *  @Creation: 10-05-2017 21:11:30
+ *  @Creation: 31-05-2017 21:57:56
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 22:30:54
+ *  @Last Time: 24-09-2017 22:26:50
  *  
  *  @Description:
- *      The main file for Jaze.
+ *      Entry point of Jaze
  */
+import "core:fmt.odin";
+import "core:os.odin";
+import "core:strings.odin";
 
-#import "fmt.odin";
-#import "strings.odin";
-#import "math.odin";
+import misc "libbrew/win/misc.odin";
+import "libbrew/win/window.odin";
+import "libbrew/gl.odin";
+import imgui "libbrew/brew_imgui.odin";
+import wgl "libbrew/win/opengl.odin";
+import "libbrew/win/msg.odin";
+import input "libbrew/win/keys.odin";
 
-#import "imgui.odin";
-#import "gl.odin";
-#import "debug.odin";
-#import "jimgui.odin";
-#import "xinput.odin";
-#import "time.odin";
-#import "catalog.odin";
-#import "console.odin";
-#import "path.odin";
-#import "entity.odin";
-#import "input.odin";
-#import "engine.odin";
-#import "game.odin";
-#import "jmap.odin";
-#import "render_queue.odin";
-#import "renderer.odin";
-#import store "key_value_store.odin";
-#import ja "asset.odin";
-#import wgl "jwgl.odin";
-#import debugWnd "debug_windows.odin";
-#import p32 "platform_win32.odin";
-
-calculate_viewport :: proc(new_size : math.Vec2, target_aspect_ratio : f32) -> renderer.DrawRegion {
-    res : renderer.DrawRegion;
-    res.width = i32(new_size.x);
-    res.height = i32(f32(res.width) / target_aspect_ratio + 0.5);
-
-    if i32(new_size.y) < res.height {
-        res.height = i32(new_size.y);
-        res.width = i32(f32(res.height) * target_aspect_ratio + 0.5);
-    }
-
-    res.x = (i32(new_size.x) / 2) - (res.width / 2);
-    res.y = (i32(new_size.y) / 2) - (res.height / 2);
-    return res;
-}
-
-opengl_debug_callback :: proc(source : gl.DebugSource, type : gl.DebugType, id : i32, severity : gl.DebugSeverity, length : i32, message : ^byte, userParam : rawptr) #cc_c {
-    console.log("[%v | %v | %v] %s \n", source, type, severity, strings.to_odin_string(message));
-}
-
-clear_screen :: proc(ctx : ^engine.Context) {
-    gl.scissor(0, 0, i32(ctx.window_size.x), i32(ctx.window_size.y));
-    gl.clear_color(0, 0, 0, 1);
-    gl.clear(gl.ClearFlags.COLOR_BUFFER);
-}
-
-clear_game_screen :: proc(ctx : ^engine.Context) {
-        gl.scissor(ctx.game_draw_region.x, 
-                   ctx.game_draw_region.y, 
-                   ctx.game_draw_region.width, 
-                   ctx.game_draw_region.height);
-
-        gl.clear_color(1, 0, 1, 1);
-        gl.clear(gl.ClearFlags.COLOR_BUFFER);
-}
+import "engine.odin";
 
 main :: proc() {
+    fmt.println("Program Start...");
+    app_handle := misc.get_app_handle();
+    width, height := 1280, 720;
+    fmt.println("Creating Window...");
+    wnd_handle := window.create_window(app_handle, "LibBrew Example", true, 100, 100, width, height);
+    fmt.println("Creating GL Context...");
+    glCtx      := wgl.create_gl_context(wnd_handle, 3, 3);
+    fmt.println("Load GL Functions...");
+    gl.load_functions();
+
+    dear_state := new(imgui.State);
+    fmt.println("Initialize Dear ImGui...");
+    imgui.init(dear_state, wnd_handle);
+
+    wgl.swap_interval(-1);
+    gl.clear_color(41/255.0, 57/255.0, 84/255.0, 1);
+
+    message         : msg.Msg;
+    mpos_x          : int;
+    mpos_y          : int;
+    prev_lm_down    : bool;
+    lm_down         : bool;
+    rm_down         : bool;
+    scale_by_max    : bool = false;
+    time_data       := misc.create_time_data();
+    i               := 0;
+    dragging        := false;
+    sizing_x        := false;
+    sizing_y        := false;
+    maximized       := false;
+    shift_down      := false;
+    new_frame_state := imgui.FrameState{};
+    show_test       := false;
+
+    fmt.println("Creating engine context");
     EngineContext := engine.create_context();
     engine.set_context_defaults(EngineContext);
 
-    {
-        EngineContext.win32.AppHandle = p32.GetProgramHandle();
-        EngineContext.win32.WindowHandle = p32.CreateWindow(EngineContext.win32.AppHandle, 
-                                                            math.Vec2{1280, 720}); 
-        EngineContext.win32.DeviceCtx = p32.GetDC(EngineContext.win32.WindowHandle);
-        EngineContext.win32.Ogl.version_major_max, EngineContext.win32.Ogl.version_minor_max = p32.GetMaxGLVersion();
-        EngineContext.win32.Ogl.ctx = p32.CreateOpenGLContext(EngineContext.win32.DeviceCtx, true, 3, 3);
-    }
-    {
-        gl.init();
-        gl.debug_message_callback(opengl_debug_callback, nil);
-        gl.enable(gl.Capabilities.DebugOutputSynchronous);
-        gl.debug_message_control(gl.DebugSource.DontCare, gl.DebugType.DontCare, gl.DebugSeverity.Notification, 0, nil, false);
-        gl.get_info(&EngineContext.win32.Ogl);
-        wgl.GetInfo(&EngineContext.win32.Ogl, EngineContext.win32.DeviceCtx);
-    }
 
-    jimgui.init(EngineContext);
+    fmt.println("Entering Main Loop...");
+main_loop: 
+    for {
+        prev_lm_down = lm_down ? true : false;
+        for msg.poll_message(&message) {
+            match msg in message {
+                case msg.MsgQuitMessage : {
+                    break main_loop;
+                }
 
-    wgl.SwapIntervalEXT(-1);
-    xinput.Init(true);
+                case msg.MsgKey : {
+                    match msg.key {
+                        case input.VirtualKey.Escape : {
+                            if msg.down == true && shift_down {
+                                break main_loop;
+                            }
+                        }
 
-    shaderCat, _  := catalog.create_new(catalog.Kind.Shader,  "data/shaders/",  ".frag,.vert");
-    textureCat, _ := catalog.create_new(catalog.Kind.Texture, "data/textures/", ".png,.jpg,.jpeg");
-    mapCat, _ := catalog.create_new(catalog.Kind.Texture, "data/maps/", ".png");
+                        case input.VirtualKey.Lshift : {
+                            shift_down = msg.down;
+                        }
+                    }
+                }
 
-    EngineContext.render_state = renderer.init(shaderCat);
+                case msg.MsgMouseButton : {
+                    match msg.key {
+                        case input.VirtualKey.LMouse : {
+                            lm_down = msg.down;
+                        }
 
-    console.add_default_commands();
+                        case input.VirtualKey.RMouse : {
+                            rm_down = msg.down;
+                        }
+                    }
+                }
 
-    GameContext    := game.create_context();
-    mapTex, _      := catalog.find(mapCat, "map2");
-    GameContext.map_ = jmap.CreateMap(mapTex.(^ja.Asset.Texture), textureCat);
+                case msg.MsgWindowFocus : {
+                    new_frame_state.window_focus = msg.enter_focus;
+                }
 
-    hover, _ := catalog.find(textureCat, "towerDefense_tile016");
-    GameContext.build_hover_texture = hover.(^ja.Asset.Texture);
+                /*case msg.Msg.MouseMove : {
+                    mpos_x = msg.x;
+                    mpos_y = msg.y;
+                }*/
 
-    game.setup_bindings(EngineContext.input);
-    game.upload_tower_textures(GameContext, textureCat);
-
-    for EngineContext.settings.program_running {
-        p32.MessageLoop(EngineContext);
-        gl.debug_info.draw_calls = 0;
-        
-        time.update(EngineContext.time);
-        if p32.IsWindowActive(EngineContext.win32.WindowHandle) {
-            input.update(EngineContext.input);
-            input.update_mouse_position(EngineContext.input, EngineContext.win32.WindowHandle);
-        } else {
-            input.set_input_neutral(EngineContext.input);
-        }
-        EngineContext.window_size = p32.GetWindowSize(EngineContext.win32.WindowHandle);
-        
-        p32.ChangeWindowTitle(EngineContext.win32.WindowHandle, 
-                          "Jaze - DEV VERSION | <%.0f, %.0f> | <%d, %d, %d, %d>",
-                          EngineContext.window_size.x, EngineContext.window_size.y,
-                          EngineContext.game_draw_region.x, EngineContext.game_draw_region.y,
-                          EngineContext.game_draw_region.width, EngineContext.game_draw_region.height);
-
-
-
-        EngineContext.game_draw_region = calculate_viewport(EngineContext.window_size,
-                                                            EngineContext.virtual_screen.aspect_ratio);
-        EngineContext.scale_factor.x = EngineContext.window_size.x / f32(EngineContext.virtual_screen.dimension.x);
-        EngineContext.scale_factor.y = EngineContext.window_size.y / f32(EngineContext.virtual_screen.dimension.y);
-        clear_screen(EngineContext);
-        gl.viewport(EngineContext.game_draw_region.x, 
-                    EngineContext.game_draw_region.y, 
-                    EngineContext.game_draw_region.width,
-                    EngineContext.game_draw_region.height);
-        clear_game_screen(EngineContext);
-        gl.clear(gl.ClearFlags.DEPTH_BUFFER);
-        jimgui.begin_new_frame(EngineContext.time.unscaled_delta_time, EngineContext);
-
-        game.input_logic(EngineContext, GameContext);
-        jmap.DrawMap(GameContext.map_, GameContext.map_render_queue, GameContext.build_mode);
-        if GameContext.build_mode {
-            game.build_mode_logic(EngineContext, GameContext);
-        }
-        
-        entity.DrawTowers(EngineContext, GameContext, GameContext.tower_render_queue);
-
-        {
-            SendSquare :: proc(pos : math.Vec3, col : math.Vec4, queue : ^render_queue.Queue) {
-                cmd := renderer.Command.Rect{};
-                cmd.render_pos = pos;
-                cmd.scale = math.Vec3{1, 1, 1};
-                cmd.rotation = 0;        
-                cmd.color = col;
-                render_queue.Enqueue(queue, cmd);
+                case msg.MsgSizeChange : {
+                    width = msg.width;
+                    height = msg.height;
+                    gl.viewport(0, 0, i32(width), i32(height));
+                    gl.scissor( 0, 0, i32(width), i32(height));
+                }
             }
-            s := GameContext.map_.StartTile;
-            e := GameContext.map_.EndTile;
-            SendSquare(math.Vec3{s.Pos.x, s.Pos.y,-14}, math.Vec4{0, 0, 1, 0.5}, GameContext.debug_render_queue);
-            SendSquare(math.Vec3{e.Pos.x, e.Pos.y,-14}, math.Vec4{0, 0, 1, 0.5}, GameContext.debug_render_queue);
-    
-            p := path.Find(GameContext.map_, s, e);
+        }
+        dt := misc.time(&time_data);
+        mpos_x, mpos_y = window.get_mouse_pos(wnd_handle);
+        new_frame_state.deltatime = f32(dt);
+        new_frame_state.mouse_x = mpos_x;
+        new_frame_state.mouse_y = mpos_y;
+        new_frame_state.window_width = width;
+        new_frame_state.window_height = height;
+        new_frame_state.left_mouse = lm_down;
+        new_frame_state.right_mouse = rm_down;
+
+        gl.clear(gl.ClearFlags.COLOR_BUFFER);
+
+        imgui.begin_new_frame(&new_frame_state);
+
+        imgui.begin_main_menu_bar();
+        {
+            imgui.begin_menu("Jaze  |###WindowTitle", false);
+            if imgui.is_item_clicked(0) {
+                dragging = true;
+                if imgui.is_mouse_double_clicked(0) {
+                    dragging = false;
+                    if !maximized {
+                        window.maximize_window(wnd_handle);
+                        maximized = true;
+                    } else {
+                        window.restore_window(wnd_handle);
+                        maximized = false;
+                    }
+                }
+            }
+            if imgui.begin_menu("Misc###LibbrewMain") {
+                if imgui.menu_item(label = "Show Test Window") {
+                    show_test = !show_test;
+                }
+                imgui.menu_item(label = "LibBrew Info", enabled = false);
+                imgui.menu_item(label = "OpenGL Info", enabled = false);
+                imgui.separator();
+                imgui.menu_item("Toggle Fullscreen", "Alt+Enter", false);
+                if imgui.menu_item("Exit", "LShift + Esc") {
+                    break main_loop;
+                }
+                imgui.end_menu();
+            }
+        }
+        imgui.end_main_menu_bar();
+
+        if imgui.is_mouse_down(0) && dragging {
+            d := imgui.get_mouse_drag_delta();
+            x, y := window.get_window_pos(wnd_handle);
+            window.set_window_pos(wnd_handle, x + int(d.x), y + int(d.y));
+            if maximized && d.x != 0 && d.y != 0 {
+                maximized = false;
+                window.restore_window(wnd_handle);
+            }
+        } else {
+            dragging = false;
         }
 
-        renderer.render_queue(EngineContext, GameContext.game_camera, GameContext.map_render_queue);
-        renderer.render_queue(EngineContext, GameContext.game_camera, GameContext.tower_render_queue);
-        renderer.render_queue(EngineContext, GameContext.game_camera, GameContext.enemy_render_queue);
-        renderer.render_queue(EngineContext, GameContext.game_camera, GameContext.debug_render_queue);
-        
-        if EngineContext.settings.show_debug_menu {
-            debug.render_debug_ui(EngineContext, GameContext);
-            jimgui.render_proc(EngineContext);
+        if imgui.begin_panel("TEST##1", imgui.Vec2{0, 19}, imgui.Vec2{f32(width/2), f32(height-19)}) {
+            defer imgui.end();
         }
 
-        p32.SwapBuffers(EngineContext.win32.DeviceCtx);
+        if imgui.begin_panel("TEST##2", imgui.Vec2{f32(width/2), 19}, imgui.Vec2{f32(width/2), f32(height-19)}) {
+            defer imgui.end();
+        }
+
+        is_between :: proc(v, min, max : int) -> bool #inline {
+            return v >= min && v <= max;
+        }
+
+        if lm_down && !prev_lm_down { 
+            if is_between(mpos_x, width-4, width+4) {
+                sizing_x = true;
+            }
+
+            if is_between(mpos_y, height-4, height+4) {
+                sizing_y = true;
+            }
+        }
+
+        new_w : int;
+        new_h : int;
+       
+        if (sizing_x || sizing_y) && lm_down {
+            new_w = sizing_x ? mpos_x+2 : width;
+            new_h = sizing_y ? mpos_y+2 : height;
+            window.set_window_size(wnd_handle, new_w+2, new_h+2);
+        } else {
+            sizing_x = false;
+            sizing_y = false;
+        }
+
+        imgui.show_test_window(&show_test);
+
+        imgui.render_proc(dear_state, width, height);
+        window.swap_buffers(wnd_handle);
+        //brew.sleep(1);
     }
+
+    imgui.shutdown();
+    fmt.println("Ending Application...");
 }

@@ -6,21 +6,21 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 20:06:24
+ *  @Last Time: 24-09-2017 22:00:49
  *  
  *  @Description:
  *      Contains all the debug menu stuff related to the Menu bar.
  *      Also contains the function to try and render debug windows.
  */
-#import win32 "sys/windows.odin";
-#import "jwin32.odin";
-#import debug_wnd "debug_windows.odin";
-#import "imgui.odin";
-#import "main.odin";
-#import "console.odin";
-#import "engine.odin";
-#import "game.odin";
-#import wgl "jwgl.odin";
+import win32 "core:sys/windows.odin";
+import "jwin32.odin";
+import debug_wnd "debug_windows.odin";
+import "imgui.odin";
+import "main.odin";
+import "console.odin";
+import "engine.odin";
+import "game.odin";
+import wgl "jwgl.odin";
 
 render_debug_ui :: proc(ctx : ^engine.Context, gameCtx : ^game.Context) {
    make_menu_bar(ctx);

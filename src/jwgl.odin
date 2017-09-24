@@ -6,19 +6,19 @@
  *  @Creation: 05-05-2017 22:12:56
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 21:56:03
+ *  @Last Time: 24-09-2017 22:12:46
  *  
  *  @Description:
  *      Contains functions and constructs related to windows specific OpenGL.
  */
-#import win32 "sys/windows.odin";
-#import win32wgl "sys/wgl.odin";
-#import "gl.odin";
-#import "fmt.odin";
-#import "strings.odin";
+import win32 "sys/windows.odin";
+import win32wgl "sys/wgl.odin";
+import "gl.odin";
+import "fmt.odin";
+import "strings.odin";
 
 Attrib :: struct {
-    type  : i32,
+    type_  : i32,
     value : i32,
 }
 
@@ -45,91 +45,91 @@ CONTEXT_PROFILE_MASK_ARB_VALUES :: enum i32 {
 
 DRAW_TO_WINDOW_ARB :: proc(value : bool) -> Attrib {
     res : Attrib;
-    res.type = 0x2001;
+    res.type_ = 0x2001;
     res.value = i32(value);
     return res;
 }
 
 DOUBLE_BUFFER_ARB  :: proc(value : bool) -> Attrib {
     res : Attrib;
-    res.type = 0x2011;
+    res.type_ = 0x2011;
     res.value = i32(value);
     return res;
 }
 
 SUPPORT_OPENGL_ARB :: proc(value : bool) -> Attrib {
     res : Attrib;
-    res.type = 0x2010;
+    res.type_ = 0x2010;
     res.value = i32(value);
     return res;
 }
 
 ACCELERATION_ARB   :: proc(value : ACCELERATION_ARB_VALUES) -> Attrib {
     res : Attrib;
-    res.type = 0x2003;
+    res.type_ = 0x2003;
     res.value = i32(value);
     return res;
 }
 
 PIXEL_TYPE_ARB     :: proc(value : PIXEL_TYPE_ARB_VALUES) -> Attrib {
     res : Attrib;
-    res.type = 0x2013;
+    res.type_ = 0x2013;
     res.value = i32(value);
     return res;
 }
 
 COLOR_BITS_ARB :: proc(value : i32) -> Attrib {
     res : Attrib;
-    res.type = 0x2014;
+    res.type_ = 0x2014;
     res.value = value;
     return res;
 }
 
 ALPHA_BITS_ARB :: proc(value : i32) -> Attrib {
     res : Attrib;
-    res.type = 0x201B;
+    res.type_ = 0x201B;
     res.value = value;
     return res;
 }
 
 DEPTH_BITS_ARB :: proc(value : i32) -> Attrib {
     res : Attrib;
-    res.type = 0x2022;
+    res.type_ = 0x2022;
     res.value = value;
     return res;
 }
 
 FRAMEBUFFER_SRGB_CAPABLE_ARB :: proc(value : bool) -> Attrib {
     res : Attrib;
-    res.type = 0x20A9;
+    res.type_ = 0x20A9;
     res.value = i32(value);
     return res;
 }
 
 CONTEXT_MAJOR_VERSION_ARB :: proc(value : i32) -> Attrib {
     res : Attrib;
-    res.type = 0x2091;
+    res.type_ = 0x2091;
     res.value = value;
     return res;
 }
 
 CONTEXT_MINOR_VERSION_ARB :: proc(value : i32) -> Attrib {
     res : Attrib;
-    res.type = 0x2092;
+    res.type_ = 0x2092;
     res.value = value;
     return res;
 }
 
 CONTEXT_FLAGS_ARB :: proc(value : CONTEXT_FLAGS_ARB_VALUES) -> Attrib {
     res : Attrib;
-    res.type = 0x2094;
+    res.type_ = 0x2094;
     res.value =i32(value);
     return res;
 }
 
 CONTEXT_PROFILE_MASK_ARB :: proc(value : CONTEXT_PROFILE_MASK_ARB_VALUES) -> Attrib {
     res : Attrib;
-    res.type = 0x9126;
+    res.type_ = 0x9126;
     res.value =i32(value);
     return res;
 }
@@ -137,7 +137,7 @@ CONTEXT_PROFILE_MASK_ARB :: proc(value : CONTEXT_PROFILE_MASK_ARB_VALUES) -> Att
 PrepareAttribArray :: proc(attribList : [dynamic]Attrib) -> [dynamic]i32 {
     array : [dynamic]i32;
     for attr in attribList {
-        append(array, attr.type);
+        append(array, attr.type_);
         append(array, attr.value);
     }
 

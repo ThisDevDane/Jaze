@@ -6,14 +6,14 @@
  *  @Creation: 02-05-2017 21:38:35
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 20:19:42
+ *  @Last Time: 24-09-2017 23:09:29
  *  
  *  @Description:
  *      This is a XInput wrapper which uses late-binding.
  */
-#import win32 "sys/windows.odin";
-#import "fmt.odin";
-#import "strings.odin";
+import win32 "core:sys/windows.odin";
+import "core:fmt.odin";
+import "core:strings.odin";
 //#foreign_system_library xlib "xinput.lib";
 
 LEFT_THUMB_DEADZONE  :: 7849;
@@ -26,12 +26,12 @@ Success : Error : 0;
 NotConnected : Error : 1167;
 
 BatteryInformation :: struct #ordered {
-    type  : BatteryType,
+    type_  : BatteryType,
     level : BatteryLevel,
 }
 
 Capabilities :: struct #ordered {
-    type      : byte,
+    type_      : byte,
     sub_type  : ControllerType,
     flags     : CapabilitiesFlags,
     gamepad   : GamepadState,
@@ -180,7 +180,7 @@ User :: enum u32 {
 
 _Enable                : proc(enable : win32.Bool) #cc_c;
 _GetBatteryInformation : proc(userIndex : u32, devType : DeviceType, out : ^BatteryInformation) -> u32#cc_c;
-_GetCapabilities       : proc(userIndex : u32, type : u32, out : ^Capabilities) -> u32 #cc_c;
+_GetCapabilities       : proc(userIndex : u32, type_ : u32, out : ^Capabilities) -> u32 #cc_c;
 _GetKeystroke          : proc(userIndex : u32, reserved : u32, out : ^KeyStroke) -> u32 #cc_c;
 _GetState              : proc(userIndex : u32, state : ^State) -> u32 #cc_c;
 _SetState              : proc(userIndex : u32, state : VibrationState) -> u32 #cc_c;
@@ -289,11 +289,11 @@ Init :: proc(initalState : bool) -> bool {
         status.Address = int(rawptr(res));
         status.Success = false;
         //status.TypeInfo = info;
-        DebugInfo.NumberOfFunctionsLoaded++;
+        DebugInfo.NumberOfFunctionsLoaded += 1;
 
         if status.Address != 0 {
             status.Success = true;
-            DebugInfo.NumberOfFunctionsLoadedSuccessed++;
+            DebugInfo.NumberOfFunctionsLoadedSuccessed += 1;
         }
         append(DebugInfo.Statuses, status);
     }

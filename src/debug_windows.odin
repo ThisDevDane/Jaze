@@ -6,25 +6,25 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 22:01:15
+ *  @Last Time: 24-09-2017 23:13:07
  *  
  *  @Description:
  *      Contains all the drawing code for debug windows.
  */
-#import "fmt.odin";
-#import win32 "sys/windows.odin";
-#import "gl.odin";
-#import "xinput.odin";
-#import "imgui.odin";
-#import "main.odin";
-#import "time.odin";
-#import "catalog.odin";
-#import "console.odin";
-#import "game.odin";
-#import jinput "input.odin";
-#import ja "asset.odin";
-#import je "entity.odin";
-#import p32 "platform_win32.odin";
+import "core:fmt.odin";
+import win32 "core:sys/windows.odin";
+import gl "libbrew/win/opengl.odin";
+import "xinput.odin";
+import imgui "libbrew/brew_imgui.odin";
+import "main.odin";
+import "time.odin";
+import "catalog.odin";
+import "console.odin";
+//import "game.odin";
+import jinput "input.odin";
+import ja "asset.odin";
+//import je "entity.odin";
+//import p32 "platform_win32.odin";
 
 STD_WINDOW :: /*imgui.GuiWindowFlags.ShowBorders |*/  imgui.GuiWindowFlags.NoCollapse;
 
@@ -555,7 +555,7 @@ show_catalog_window :: proc(show : ^bool) {
 
                 case ja.Asset.Shader : {
                     imgui.text("ID:          %d", e.gl_id);
-                    imgui.text("Type:        %v", e.type);
+                    imgui.text("Type:        %v", e.type_);
                 }
             }
             imgui.end_tooltip();

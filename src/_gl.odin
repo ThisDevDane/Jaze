@@ -6,22 +6,22 @@
  *  @Creation: 26-04-2017 16:23:18
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 10-06-2017 17:39:05
+ *  @Last Time: 24-09-2017 22:00:40
  *  
  *  @Description:
  *      This is an OpenGL wrapper. Currently assumes GL 3.3 Core.
  *      It late binds requested functions. Currently a hardcoded list.
  *      It wraps each function to check if it has been loaded and will output to in engine console if not.
  */
-#foreign_system_library lib "opengl32.lib";
-#import win32 "sys/windows.odin";
-#import win32_wgl "sys/wgl.odin";
-#import "fmt.odin";
-#import "strings.odin";
-#import "math.odin";
-#load "gl_enums.odin";
+foreign_system_library lib "opengl32.lib";
+import win32 "sys/windows.odin";
+import win32_wgl "sys/wgl.odin";
+import "core:fmt.odin";
+import "core:strings.odin";
+import "core:math.odin";
+using import "gl_enums.odin";
 
-#import "console.odin";
+import "console.odin";
 
 TRUE  :: 1;
 FALSE :: 0;
@@ -82,7 +82,7 @@ DebugInfo :: struct {
 
 debug_info : DebugInfo;
 
-DebugMessageCallbackProc :: #type proc(source : DebugSource, type : DebugType, id : i32, severity : DebugSeverity, length : i32, message : ^byte, userParam : rawptr) #cc_c;
+DebugMessageCallbackProc :: #type proc(source : DebugSource, type_ : DebugType, id : i32, severity : DebugSeverity, length : i32, message : ^byte, userParam : rawptr) #cc_c;
 
 // API 
 
@@ -110,9 +110,9 @@ polygon_mode :: proc(face : PolygonFace, mode : PolygonModes) {
     }
 }
 
-debug_message_control :: proc(source : DebugSource, type : DebugType, severity : DebugSeverity, count : i32, ids : ^u32, enabled : bool) {
+debug_message_control :: proc(source : DebugSource, type_ : DebugType, severity : DebugSeverity, count : i32, ids : ^u32, enabled : bool) {
     if _debug_message_control != nil {
-        _debug_message_control(i32(source), i32(type), i32(severity), count, ids, enabled);
+        _debug_message_control(i32(source), i32(type_), i32(severity), count, ids, enabled);
     } else {
         console.log("%s isn't loaded!", #procedure);
     }
@@ -246,9 +246,9 @@ enable_vertex_attrib_array :: proc(index : u32) {
     }       
 }
 
-vertex_attrib_pointer :: proc(index : u32, size : i32, type : VertexAttribDataType, normalized : bool, stride : u32, pointer : rawptr) {
+vertex_attrib_pointer :: proc(index : u32, size : i32, type_ : VertexAttribDataType, normalized : bool, stride : u32, pointer : rawptr) {
     if _vertex_attrib_pointer != nil {
-        _vertex_attrib_pointer(index, size, i32(type), normalized, stride, pointer);
+        _vertex_attrib_pointer(index, size, i32(type_), normalized, stride, pointer);
     } else {
         console.log("%s isn't loaded!", #procedure);
     }       
@@ -361,10 +361,10 @@ get_attrib_location :: proc(program : Program, name : string) -> i32 {
     }
 }
 
-draw_elements :: proc(mode : DrawModes, count : i32, type : DrawElementsType, indices : rawptr) {
+draw_elements :: proc(mode : DrawModes, count : i32, type_ : DrawElementsType, indices : rawptr) {
     if _draw_elements != nil {
-        _draw_elements(i32(mode), count, i32(type), indices);
-        debug_info.draw_calls++;
+        _draw_elements(i32(mode), count, i32(type_), indices);
+        debug_info.draw_calls += 1;
     } else {
         console.log("%s isn't loaded!", #procedure);
     }    
@@ -373,7 +373,7 @@ draw_elements :: proc(mode : DrawModes, count : i32, type : DrawElementsType, in
 draw_arrays :: proc(mode : DrawModes, first : i32, count : i32) {
     if _draw_arrays != nil {
         _draw_arrays(i32(mode), first, count);
-        debug_info.draw_calls++;
+        debug_info.draw_calls += 1;
     } else {
         console.log("%s isn't loaded!", #procedure);
     }    
@@ -565,9 +565,9 @@ shader_source :: proc(obj : Shader, strs : []string) {
     }
 }
 
-create_shader :: proc(type : ShaderTypes) -> Shader {
+create_shader :: proc(type_ : ShaderTypes) -> Shader {
     if _create_shader != nil {
-        res := _create_shader(i32(type));
+        res := _create_shader(i32(type_));
         return Shader(res);
     } else {
         console.log("%s isn't loaded!", #procedure);
@@ -593,7 +593,7 @@ get_info :: proc(vars : ^OpenGLVars) {
     vars.renderer_string = get_string(GetStringNames.Renderer);
     vars.num_extensions = get_integer(GetIntegerNames.NumExtensions);
     reserve(vars.extensions, vars.num_extensions);
-    for i in 0..<vars.num_extensions {
+    for i in 0..vars.num_extensions {
         ext := get_string(GetStringNames.Extensions, u32(i));
         append(vars.extensions, ext);
     }
@@ -606,7 +606,7 @@ get_info :: proc(vars : ^OpenGLVars) {
     _gen_buffers                : proc(n : i32, buffer : ^u32)                                                                  #cc_c;
     _gen_vertex_arrays          : proc(count: i32, buffers: ^u32)                                                               #cc_c;
     _enable_vertex_attrib_array : proc(index: u32)                                                                              #cc_c;
-    _vertex_attrib_pointer      : proc(index: u32, size: i32, type: i32, normalized: bool, stride: u32, pointer: rawptr)        #cc_c;
+    _vertex_attrib_pointer      : proc(index: u32, size: i32, type_: i32, normalized: bool, stride: u32, pointer: rawptr)        #cc_c;
     _bind_vertex_array          : proc(buffer: u32)                                                                             #cc_c;
     _uniform1i                  : proc(loc: i32, v0: i32)                                                                       #cc_c;
     _uniform2i                  : proc(loc: i32, v0, v1: i32)                                                                   #cc_c;
@@ -631,7 +631,7 @@ get_info :: proc(vars : ^OpenGLVars) {
     _shader_source              : proc(shader: u32, count: u32, str: ^^byte, length: ^i32)                                      #cc_c;
     _create_shader              : proc(shader_type: i32) -> u32                                                                 #cc_c;
     _compile_shader             : proc(shader: u32)                                                                             #cc_c;
-    _debug_message_control      : proc(source : i32, type : i32, severity : i32, count : i32, ids : ^u32, enabled : bool)       #cc_c;
+    _debug_message_control      : proc(source : i32, type_ : i32, severity : i32, count : i32, ids : ^u32, enabled : bool)       #cc_c;
     _debug_message_callback     : proc(callback : DebugMessageCallbackProc, userParam : rawptr)                                 #cc_c;
     _get_shaderiv               : proc(shader : u32, pname : i32, params : ^i32)                                                #cc_c;
     _get_shader_info_log        : proc(shader : u32, maxLength : i32, length : ^i32, infolog : ^byte)                           #cc_c;
@@ -656,8 +656,9 @@ get_info :: proc(vars : ^OpenGLVars) {
     scissor                     : proc(x : i32, y : i32, width : i32, height : i32)                                             #cc_c;
 
     // Here because we're trying to get out the max version number before we have finished creating our context. Which we need to load out of the DLL apperently.
-    _GetIntegervStatic   :: proc(name: i32, v: ^i32)                                                                     #foreign lib "glGetIntegerv";
-
+foreign lib {    
+    _GetIntegervStatic   :: proc(name: i32, v: ^i32);
+}
 init :: proc() {
     libString := "opengl32.dll\x00";
     lib := win32.load_library_a(&libString[0]); defer win32.free_library(lib);

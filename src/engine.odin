@@ -6,19 +6,16 @@
  *  @Creation: 04-05-2017 15:13:05
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 22:31:11
+ *  @Last Time: 24-09-2017 22:27:01
  *  
  *  @Description:
  *      Contains the engine context.
  */
-#import "math.odin";
-
-#import "main.odin";
-#import "input.odin";
-#import "jimgui.odin";
-#import "time.odin";
-#import "renderer.odin";
-#import p32 "platform_win32.odin";
+import "core:math.odin";
+import "main.odin";
+import "input.odin";
+import "time.odin";
+import "renderer.odin";
 
 Context :: struct {
     settings             : ^Setting,

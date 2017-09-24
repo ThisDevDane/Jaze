@@ -6,18 +6,17 @@
  *  @Creation: 03-05-2017 17:54:46
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 20:10:01
+ *  @Last Time: 24-09-2017 22:27:05
  *  
  *  @Description:
  *      Contains constructs related to Input.
  *      A windows key can be bound to a binding which is identified by a string.
  *      Also contains mouse coordinate in window space.
  */
-#import win32 "sys/windows.odin";
-#import "math.odin";
+import win32 "core:sys/windows.odin";
+import "core:math.odin";
 
-#import "xinput.odin";
-#import p32 "platform_win32.odin";
+import "xinput.odin";
 
 ButtonStates :: enum {
     Up,

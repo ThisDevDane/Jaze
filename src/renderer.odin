@@ -6,37 +6,40 @@
  *  @Creation: 13-05-2017 23:48:58
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 22:38:29
+ *  @Last Time: 24-09-2017 23:08:32
  *  
  *  @Description:
  *      Functions and data related to the renderer. 
  */
-#import "math.odin";
+import "core:math.odin";
 
-#import rq"render_queue.odin";
-#import "gl.odin";
-#import "engine.odin";
-#import "catalog.odin";
-#import "console.odin";
-#import glUtil "gl_util.odin";
-#import ja "asset.odin";
+//import rq"render_queue.odin";
+import gl "libbrew/win/opengl.odin";
+import "engine.odin";
+import "catalog.odin";
+import "console.odin";
+//import glUtil "gl_util.odin";
+import ja "asset.odin";
 
 PixelsToUnits :: 64;
 
-Command :: union {
+Command :: struct {
     render_pos : math.Vec3,
     rotation  : f32, 
     scale     : math.Vec3,
     
-    Bitmap{
-        texture : ^ja.Asset.Texture,
-    },
-    Rect{
-        color : math.Vec4,
-    },
-    Circle{
-        diameter : f32,
-    },
+    derived : union { BitmapCmd, RectCmd, CircleCmd},
+}
+BitmapCmd :: struct {
+    texture : ^ja.Asset.Texture,
+}
+
+RectCmd :: struct {
+    color : math.Vec4,
+}
+
+CircleCmd :: struct {
+    diameter : f32,
 }
 
 State_t :: struct {
@@ -109,14 +112,14 @@ init :: proc(shaderCat : ^catalog.Catalog) -> ^State_t {
     state.ebo = gl.gen_ebo();
     gl.bind_buffer(state.ebo);
 
-    vertices := [..]f32 {
+    vertices := []f32 {
          1, 1, 0,  1.0, 0.0, // Top Right
          1, 0, 0,  1.0, 1.0, // Bottom Right
          0, 0, 0,  0.0, 1.0, // Bottom Left
          0, 1, 0,  0.0, 0.0, // Top Left
     };
 
-    elements := [..]u32 {
+    elements := []u32 {
         0, 1, 3,
         1, 2, 3,
     };
@@ -162,7 +165,7 @@ calculate_ortho :: proc(window : math.Vec2, scaleFactor : math.Vec2, far, near :
     return math.scale(proj, math.Vec3{scaleFactor.x, scaleFactor.y, 1.0});
 }
 
-create_view_matrix_from_camera :: proc(immutable camera : ^Camera_t) -> math.Mat4 {
+create_view_matrix_from_camera :: proc(camera : ^Camera_t) -> math.Mat4 {
     view := math.scale(math.mat4_identity(), math.Vec3{camera.zoom, camera.zoom, 1});
     //rot := math.mat4_rotate(math.Vec3{0, 0, 1}, math.to_radians(camera.Rot));
     //view = math.mul(view, rot);

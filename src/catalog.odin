@@ -6,7 +6,7 @@
  *  @Creation: 01-05-2017 18:28:11
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 23:39:31
+ *  @Last Time: 24-09-2017 23:09:48
  *  
  *  @Description:
  *      Contains the catalog construct.
@@ -16,16 +16,17 @@
  *          - Texture: it will be uploaded the the GPU.
  *          - Shader:  it will be compiled and if success it will upload it to the GPU.
  */
-#import "fmt.odin";
-#import "os.odin";
-#import "strings.odin";
-#import win32 "sys/windows.odin";
-#import j32 "jwin32.odin";
-#import ja "asset.odin";
-#import "gl.odin";
-#import gl_util "gl_util.odin";
-#import "console.odin";
-#import stbi "stb_image.odin";
+
+import "core:fmt.odin";
+import "core:os.odin";
+import "core:strings.odin";
+import win32 "core:sys/windows.odin";
+import j32 "jwin32.odin";
+import ja "asset.odin";
+import gl "libbrew/win/opengl.odin";
+//import gl_util "gl_util.odin";
+import "console.odin";
+import stbi "stb_image.odin";
 
 CREATE_META_FILES :: false;
 
@@ -90,13 +91,13 @@ create_new :: proc(kind : Kind, identifier : string, path : string, acceptedExte
 
         //TODO(@Hoej): Fix this, this is bad
         match shader.file_info.ext {
-            case ".vs" : { shader.type = gl.ShaderTypes.Vertex; }
-            case ".glslv" : { shader.type = gl.ShaderTypes.Vertex; }
-            case ".vert" : { shader.type = gl.ShaderTypes.Vertex; }
+            case ".vs" : { shader.type_ = gl.ShaderTypes.Vertex; }
+            case ".glslv" : { shader.type_ = gl.ShaderTypes.Vertex; }
+            case ".vert" : { shader.type_ = gl.ShaderTypes.Vertex; }
 
-            case ".fs" : { shader.type = gl.ShaderTypes.Fragment; }
-            case ".frag" : { shader.type = gl.ShaderTypes.Fragment; }
-            case ".glslf" : { shader.type = gl.ShaderTypes.Fragment; }
+            case ".fs" : { shader.type_ = gl.ShaderTypes.Fragment; }
+            case ".frag" : { shader.type_ = gl.ShaderTypes.Fragment; }
+            case ".glslf" : { shader.type_ = gl.ShaderTypes.Fragment; }
         }
 
         asset^ = shader;
@@ -116,14 +117,14 @@ create_new :: proc(kind : Kind, identifier : string, path : string, acceptedExte
         if acceptedExtensions != "" {
             strlen := len(acceptedExtensions);
             last := 0;
-            for i := 0; i < strlen; i++ {
+            for i := 0; i < strlen; i +=1  {
                 if acceptedExtensions[i] == ',' {
-                    append(res.accepted_extensions, acceptedExtensions[last..<i]);
+                    append(res.accepted_extensions, acceptedExtensions[last..i]);
                     last = i+1;
                 }
 
                 if i == strlen-1 {
-                    append(res.accepted_extensions, acceptedExtensions[last..<i+1]);
+                    append(res.accepted_extensions, acceptedExtensions[last..i+1]);
                 }
             } 
         }
@@ -185,10 +186,10 @@ create_new :: proc(kind : Kind, identifier : string, path : string, acceptedExte
                 if accepted {
                     _meta_file_check_and_create(file);
                 }
-                res.files_in_folder++;
+                res.files_in_folder += 1;
             }
 
-            debug_info.number_of_catalogs++;
+            debug_info.number_of_catalogs -= 1;
             append(debug_info.catalog_names, res.name);
             append(debug_info.catalogs, res);
             return res, ERR_SUCCESS;
@@ -256,7 +257,7 @@ find :: proc(catalog : ^Catalog, assetName : string/*, upload : bool*/) -> (^ja.
         }
 
         if e.gl_id == 0/* && upload*/ {
-            e.gl_id, _ = gl_util.create_and_compile_shader(e.type, e.source);
+            e.gl_id, _ = gl_util.create_and_compile_shader(e.type_, e.source);
         }
     }
 
@@ -293,9 +294,9 @@ find :: proc(catalog : ^Catalog, assetName : string/*, upload : bool*/) -> (^ja.
 _get_file_extension :: proc(filename : string) -> string {
     strLen := len(filename);
 
-    for i := strLen-1; i > 0; i-- {
+    for i := strLen-1; i > 0; i -= 1 {
         if filename[i] == '.' {
-            res := filename[i..<strLen];
+            res := filename[i..strLen];
             if res == "." {
                 return "";
             } else {
@@ -309,7 +310,7 @@ _get_file_extension :: proc(filename : string) -> string {
 _get_file_name_without_extension :: proc(filename : string) -> string {
     extlen := len(_get_file_extension(filename));
     namelen := len(filename);
-    return filename[0..<(namelen-extlen)];
+    return filename[0..(namelen-extlen)];
 }
 
 _is_directory :: proc(attr : u32) -> bool {

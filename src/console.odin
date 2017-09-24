@@ -6,18 +6,18 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 21:50:00
+ *  @Last Time: 24-09-2017 23:12:21
  *  
  *  @Description:
  *      The console is an in engine window that can be pulled up for viewing.
  *      It also takes care of outputting to a log file if enabled.
  *      The console can also execute commands if matched with input.
  */
-#import "fmt.odin";
-#import "os.odin";
-#import win32 "sys/windows.odin";
-#import "imgui.odin";
-#import debug_wnd "debug_windows.odin";
+import "core:fmt.odin";
+import "core:os.odin";
+import win32 "core:sys/windows.odin";
+import imgui "libbrew/brew_imgui.odin";
+import debug_wnd "debug_windows.odin";
 
 OUTPUT_TO_CLI  :: false;
 OUTPUT_TO_FILE :: false;
@@ -55,15 +55,15 @@ LogLevel :: enum {
 _ERROR_STR  :: "[Error]: ";
 _CINPUT_STR :: "\\\\: ";
 
-log_error :: proc(fmt_ : string, args : ..any) {
-    _internal_log(fmt_, LogLevel.Error, ..args);
+log_error :: proc(fmt_ : string, args : ...any) {
+    _internal_log(fmt_, LogLevel.Error, ...args);
 }
 
-log :: proc(fmt_ : string, args : ..any) {
-    _internal_log(fmt_, LogLevel.Normal, ..args);
+log :: proc(fmt_ : string, args : ...any) {
+    _internal_log(fmt_, LogLevel.Normal, ...args);
 }
 
-_internal_log :: proc(fmt_ : string, level : LogLevel, args : ..any) {
+_internal_log :: proc(fmt_ : string, level : LogLevel, args : ...any) {
     buf  : [_BUF_SIZE]byte;
     buf2 : [_BUF_SIZE]byte;
     buf3 : [_BUF_SIZE]byte;
@@ -82,7 +82,7 @@ _internal_log :: proc(fmt_ : string, level : LogLevel, args : ..any) {
         }
     }
     newFmt := fmt.bprintf(buf[..], "%s%s", levelStr, fmt_);
-    tempStr := fmt.bprintf(buf2[..], newFmt, ..args);
+    tempStr := fmt.bprintf(buf2[..], newFmt, ...args);
     append(_internal_data.items, _string_dup(tempStr));
 
     when OUTPUT_TO_CLI {
@@ -157,9 +157,9 @@ draw_log :: proc(show : ^bool) {
     imgui.begin_child("Items", imgui.Vec2{0, 0}, true, 0);
     {
         for t in _internal_data.log {
-            if t.text[0..<len(_ERROR_STR)] == _ERROR_STR {
+            if t.text[0..len(_ERROR_STR)] == _ERROR_STR {
                 imgui.text_colored(imgui.Vec4{1, 0, 0, 1}, "[%2d:%2d:%2d-%3d]%s", t.time.hour, t.time.minute, t.time.second, t.time.millisecond, t.text);
-            } else if t.text[0..<len(_CINPUT_STR)] == _CINPUT_STR {
+            } else if t.text[0..len(_CINPUT_STR)] == _CINPUT_STR {
                 imgui.text_colored(imgui.Vec4{0.7, 0.7, 0.7, 1}, "[%2d:%2d:%2d-%3d]%s", t.time.hour, t.time.minute, t.time.second, t.time.millisecond, t.text);
             } else {
                 imgui.text("[%2d:%2d:%2d-%3d]%s", t.time.hour, t.time.minute, t.time.second, t.time.millisecond, t.text);
@@ -190,9 +190,9 @@ draw_console :: proc(show : ^bool) {
         imgui.begin_child("Buffer", imgui.Vec2{-1, -40}, true, 0);
         {
             for t in _internal_data.items {
-                if t[0..<len(_ERROR_STR)] == _ERROR_STR {
+                if t[0..len(_ERROR_STR)] == _ERROR_STR {
                     imgui.text_colored(imgui.Vec4{1, 0, 0, 1}, t);
-                } else if t[0..<len(_CINPUT_STR)] == _CINPUT_STR {
+                } else if t[0..len(_CINPUT_STR)] == _CINPUT_STR {
                     imgui.text_colored(imgui.Vec4{0.7, 0.7, 0.7, 1}, t);
                 } else {
                     imgui.text(t);
@@ -228,7 +228,7 @@ enter_input :: proc(input : []byte) {
     if input[0] != 0 &&
        input[0] != ' ' {
         i := _find_string_null(input[..]);
-        str := string(input[0..<i]);
+        str := string(input[0..i]);
         _internal_log(str, LogLevel.ConsoleInput);
         append(_internal_data.history, _string_dup(str));
         if !execute_command(str) {
@@ -280,11 +280,11 @@ _text_edit_callback :: proc(data : ^imgui.GuiTextEditCallbackData) -> i32 #cc_c 
                 if _internal_data._history_pos == 0 {
                     _internal_data._history_pos = len(_internal_data.history);
                 } else {
-                    _internal_data._history_pos--;
+                    _internal_data._history_pos -= 1;
                 }
             } else if data.event_key == imgui.GuiKey.DownArrow {
                 if _internal_data._history_pos != 0 {
-                    _internal_data._history_pos++;
+                    _internal_data._history_pos += 1;
                     if _internal_data._history_pos > len(_internal_data.history) {
                         _internal_data._history_pos = 0;
                     }
@@ -314,7 +314,7 @@ _text_edit_callback :: proc(data : ^imgui.GuiTextEditCallbackData) -> i32 #cc_c 
 _pull_command_name :: proc(s : string) -> string {
     for r, i in s {
         if r == ' ' {
-            return s[0..<i];
+            return s[0..i];
         }
     }
 

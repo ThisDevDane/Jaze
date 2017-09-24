@@ -6,12 +6,12 @@
  *  @Creation: 21-04-2017 03:04:34
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 20:08:41
+ *  @Last Time: 24-09-2017 22:01:50
  *  
  *  @Description:
  *      Contains the time construct.
  */
-#import win32 "sys/windows.odin";
+import win32 "core:sys/windows.odin";
 
 Data :: struct {
     time_scale : f64,
@@ -43,5 +43,5 @@ update :: proc(data : ^Data) {
     data.delta_time = data.unscaled_delta_time * data.time_scale;
 
     data.time_since_start += data.unscaled_delta_time;
-    data.frame_count_since_start++;
+    data.frame_count_since_start += 1;
 }
