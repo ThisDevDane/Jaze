@@ -6,7 +6,7 @@
  *  @Creation: 26-04-2017 16:23:18
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 28-05-2017 22:20:33
+ *  @Last Time: 10-06-2017 17:39:05
  *  
  *  @Description:
  *      This is an OpenGL wrapper. Currently assumes GL 3.3 Core.
@@ -686,56 +686,56 @@ init :: proc() {
         append(debug_info.statuses, status);
     }
 
-    set_proc_address(lib, &_draw_elements,              "glDrawElements",            type_info_of_val(_draw_elements)             );
-    set_proc_address(lib, &_draw_arrays,                "glDrawArrays",              type_info_of_val(_draw_arrays)               );
-    set_proc_address(lib, &_bind_vertex_array,          "glBindVertexArray",         type_info_of_val(_bind_vertex_array)         );
-    set_proc_address(lib, &_vertex_attrib_pointer,      "glVertexAttribPointer",     type_info_of_val(_vertex_attrib_pointer)     );
-    set_proc_address(lib, &_enable_vertex_attrib_array, "glEnableVertexAttribArray", type_info_of_val(_enable_vertex_attrib_array));
-    set_proc_address(lib, &_gen_vertex_arrays,          "glGenVertexArrays",         type_info_of_val(_gen_vertex_arrays)         );
-    set_proc_address(lib, &_buffer_data,                "glBufferData",              type_info_of_val(_buffer_data)               );
-    set_proc_address(lib, &_bind_buffer,                "glBindBuffer",              type_info_of_val(_bind_buffer)               );
-    set_proc_address(lib, &_gen_buffers,                "glGenBuffers",              type_info_of_val(_gen_buffers)               );
-    set_proc_address(lib, &_debug_message_control,      "glDebugMessageControlARB",  type_info_of_val(_debug_message_control)     );
-    set_proc_address(lib, &_debug_message_callback,     "glDebugMessageCallbackARB", type_info_of_val(_debug_message_callback)    );
-    set_proc_address(lib, &_get_shaderiv,               "glGetShaderiv",             type_info_of_val(_get_shaderiv)              );
-    set_proc_address(lib, &_get_shader_info_log,        "glGetShaderInfoLog",        type_info_of_val(_get_shader_info_log)       );
-    set_proc_address(lib, &_get_stringi,                "glGetStringi",              type_info_of_val(_get_stringi)               );
-    set_proc_address(lib, &_blend_equation,             "glBlendEquation",           type_info_of_val(_blend_equation)            );
-    set_proc_address(lib, &_blend_equation_separate,    "glBlendEquationSeparate",   type_info_of_val(_blend_equation_separate)   );
-    set_proc_address(lib, &_compile_shader,             "glCompileShader",           type_info_of_val(_compile_shader)            );
-    set_proc_address(lib, &_create_shader,              "glCreateShader",            type_info_of_val(_create_shader)             );
-    set_proc_address(lib, &_shader_source,              "glShaderSource",            type_info_of_val(_shader_source)             );
-    set_proc_address(lib, &_attach_shader,              "glAttachShader",            type_info_of_val(_attach_shader)             ); 
-    set_proc_address(lib, &_create_program,             "glCreateProgram",           type_info_of_val(_create_program)            );
-    set_proc_address(lib, &_link_program,               "glLinkProgram",             type_info_of_val(_link_program)              );
-    set_proc_address(lib, &_use_program,                "glUseProgram",              type_info_of_val(_use_program)               );
-    set_proc_address(lib, &_active_texture,             "glActiveTexture",           type_info_of_val(_active_texture)            );
-    set_proc_address(lib, &_uniform1i,                  "glUniform1i",               type_info_of_val(_uniform1i)                 );
-    set_proc_address(lib, &_uniform2i,                  "glUniform2i",               type_info_of_val(_uniform2i)                 );
-    set_proc_address(lib, &_uniform3i,                  "glUniform3i",               type_info_of_val(_uniform3i)                 );
-    set_proc_address(lib, &_uniform4i,                  "glUniform4i",               type_info_of_val(_uniform4i)                 );
-    set_proc_address(lib, &_uniform1f,                  "glUniform1f",               type_info_of_val(_uniform1f)                 );
-    set_proc_address(lib, &_uniform2f,                  "glUniform2f",               type_info_of_val(_uniform2f)                 );
-    set_proc_address(lib, &_uniform3f,                  "glUniform3f",               type_info_of_val(_uniform3f)                 );
-    set_proc_address(lib, &_uniform4f,                  "glUniform4f",               type_info_of_val(_uniform4f)                 );
-    set_proc_address(lib, &_uniform_matrix4fv,          "glUniformMatrix4fv",        type_info_of_val(_uniform_matrix4fv)         );
-    set_proc_address(lib, &_get_uniform_location,       "glGetUniformLocation",      type_info_of_val(_get_uniform_location)      );
-    set_proc_address(lib, &_get_attrib_location,        "glGetAttribLocation",       type_info_of_val(_get_attrib_location)       );
-    set_proc_address(lib, &_polygon_mode,               "glPolygonMode",             type_info_of_val(_polygon_mode)              );
-    set_proc_address(lib, &_generate_mipmap,            "glGenerateMipmap",          type_info_of_val(_generate_mipmap)           );
-    set_proc_address(lib, &_enable,                     "glEnable",                  type_info_of_val(_enable)                    );
-    set_proc_address(lib, &_depth_func,                 "glDepthFunc",               type_info_of_val(_depth_func)                );
-    set_proc_address(lib, &_bind_frag_data_location,    "glBindFragDataLocation",    type_info_of_val(_bind_frag_data_location)   );
-    set_proc_address(lib, &_get_string,                 "glGetString",               type_info_of_val(_get_string)                );
-    set_proc_address(lib, &_tex_image2d,                "glTexImage2D",              type_info_of_val(_tex_image2d)               );
-    set_proc_address(lib, &_tex_parameteri,             "glTexParameteri",           type_info_of_val(_tex_parameteri)            );
-    set_proc_address(lib, &_bind_texture,               "glBindTexture",             type_info_of_val(_bind_texture)              );
-    set_proc_address(lib, &_gen_textures,               "glGenTextures",             type_info_of_val(_gen_textures)              );
-    set_proc_address(lib, &_blend_func,                 "glBlendFunc",               type_info_of_val(_blend_func)                );
-    set_proc_address(lib, &_get_integerv,               "glGetIntegerv",             type_info_of_val(_get_integerv)              );
-    set_proc_address(lib, &_disable,                    "glDisable",                 type_info_of_val(_disable)                   );
-    set_proc_address(lib, &_clear,                      "glClear",                   type_info_of_val(_clear)                     );
-    set_proc_address(lib, &viewport,                    "glViewport",                type_info_of_val(viewport)                   );
-    set_proc_address(lib, &clear_color,                 "glClearColor",              type_info_of_val(clear_color)                );
-    set_proc_address(lib, &scissor,                     "glScissor",                 type_info_of_val(scissor)                    );
+    set_proc_address(lib, &_draw_elements,              "glDrawElements"            );
+    set_proc_address(lib, &_draw_arrays,                "glDrawArrays"              );
+    set_proc_address(lib, &_bind_vertex_array,          "glBindVertexArray"         );
+    set_proc_address(lib, &_vertex_attrib_pointer,      "glVertexAttribPointer"     );
+    set_proc_address(lib, &_enable_vertex_attrib_array, "glEnableVertexAttribArray" );
+    set_proc_address(lib, &_gen_vertex_arrays,          "glGenVertexArrays"         );
+    set_proc_address(lib, &_buffer_data,                "glBufferData"              );
+    set_proc_address(lib, &_bind_buffer,                "glBindBuffer"              );
+    set_proc_address(lib, &_gen_buffers,                "glGenBuffers"              );
+    set_proc_address(lib, &_debug_message_control,      "glDebugMessageControlARB"  );
+    set_proc_address(lib, &_debug_message_callback,     "glDebugMessageCallbackARB" );
+    set_proc_address(lib, &_get_shaderiv,               "glGetShaderiv"             );
+    set_proc_address(lib, &_get_shader_info_log,        "glGetShaderInfoLog"        );
+    set_proc_address(lib, &_get_stringi,                "glGetStringi"              );
+    set_proc_address(lib, &_blend_equation,             "glBlendEquation"           );
+    set_proc_address(lib, &_blend_equation_separate,    "glBlendEquationSeparate"   );
+    set_proc_address(lib, &_compile_shader,             "glCompileShader"           );
+    set_proc_address(lib, &_create_shader,              "glCreateShader"            );
+    set_proc_address(lib, &_shader_source,              "glShaderSource"            );
+    set_proc_address(lib, &_attach_shader,              "glAttachShader"            ); 
+    set_proc_address(lib, &_create_program,             "glCreateProgram"           );
+    set_proc_address(lib, &_link_program,               "glLinkProgram"             );
+    set_proc_address(lib, &_use_program,                "glUseProgram"              );
+    set_proc_address(lib, &_active_texture,             "glActiveTexture"           );
+    set_proc_address(lib, &_uniform1i,                  "glUniform1i"               );
+    set_proc_address(lib, &_uniform2i,                  "glUniform2i"               );
+    set_proc_address(lib, &_uniform3i,                  "glUniform3i"               );
+    set_proc_address(lib, &_uniform4i,                  "glUniform4i"               );
+    set_proc_address(lib, &_uniform1f,                  "glUniform1f"               );
+    set_proc_address(lib, &_uniform2f,                  "glUniform2f"               );
+    set_proc_address(lib, &_uniform3f,                  "glUniform3f"               );
+    set_proc_address(lib, &_uniform4f,                  "glUniform4f"               );
+    set_proc_address(lib, &_uniform_matrix4fv,          "glUniformMatrix4fv"        );
+    set_proc_address(lib, &_get_uniform_location,       "glGetUniformLocation"      );
+    set_proc_address(lib, &_get_attrib_location,        "glGetAttribLocation"       );
+    set_proc_address(lib, &_polygon_mode,               "glPolygonMode"             );
+    set_proc_address(lib, &_generate_mipmap,            "glGenerateMipmap"          );
+    set_proc_address(lib, &_enable,                     "glEnable"                  );
+    set_proc_address(lib, &_depth_func,                 "glDepthFunc"               );
+    set_proc_address(lib, &_bind_frag_data_location,    "glBindFragDataLocation"    );
+    set_proc_address(lib, &_get_string,                 "glGetString"               );
+    set_proc_address(lib, &_tex_image2d,                "glTexImage2D"              );
+    set_proc_address(lib, &_tex_parameteri,             "glTexParameteri"           );
+    set_proc_address(lib, &_bind_texture,               "glBindTexture"             );
+    set_proc_address(lib, &_gen_textures,               "glGenTextures"             );
+    set_proc_address(lib, &_blend_func,                 "glBlendFunc"               );
+    set_proc_address(lib, &_get_integerv,               "glGetIntegerv"             );
+    set_proc_address(lib, &_disable,                    "glDisable"                 );
+    set_proc_address(lib, &_clear,                      "glClear"                   );
+    set_proc_address(lib, &viewport,                    "glViewport"                );
+    set_proc_address(lib, &clear_color,                 "glClearColor"              );
+    set_proc_address(lib, &scissor,                     "glScissor"                 );
 }
