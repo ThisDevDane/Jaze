@@ -6,7 +6,7 @@
  *  @Creation: 31-05-2017 21:57:56
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 24-11-2017 23:50:50
+ *  @Last Time: 27-11-2017 00:13:43
  *  
  *  @Description:
  *      Entry point of Jaze
@@ -14,6 +14,7 @@
 import "core:fmt.odin";
 import "core:os.odin";
 import "core:strings.odin";
+import "core:mem.odin";
 
 import       "mantle:libbrew/win/window.odin";
 import       "mantle:libbrew/win/msg.odin";
@@ -34,11 +35,13 @@ import         "gl_util.odin";
 import         "engine.odin";
 import         "console.odin";
 import         "catalog.odin";
+import leak    "leakcheck_allocator.odin";
 import obj     "obj_parser.odin";
 import shower  "window_shower.odin";
 import dbg_win "debug_windows.odin";
 import jinput  "input.odin";
 import ja      "asset.odin";
+import kvs     "key_value_store.odin";
 
 opengl_debug_callback :: proc "cdecl" (source : gl.DebugSource, type_ : gl.DebugType, id : i32, severity : gl.DebugSeverity, length : i32, message : ^u8, userParam : rawptr) {
     console.log_error("[%v | %v | %v] %s \n", source, type_, severity, strings.to_odin_string(message));
@@ -94,6 +97,7 @@ free_lib :: proc(lib : rawptr) {
 }
 
 main :: proc() {
+context <- mem.context_from_allocator(leak.leakcheck()) {
     console.set_error_callback(console_error_callback);
     console.add_default_commands();
     console.log("Program Start...");
@@ -140,15 +144,17 @@ main :: proc() {
     console.log("Setting up catalogs...");
     catalog.add_extensions(catalog.Asset_Kind.Texture, ".png", ".bmp", ".PNG", ".jpg", ".jpeg");
     catalog.add_extensions(catalog.Asset_Kind.Sound, ".ogg");
-    catalog.add_extensions(catalog.Asset_Kind.ShaderSource, ".vs", ".glslv", ".vert");
+    catalog.add_extensions(catalog.Asset_Kind.ShaderSource, ".vs", ".vert", ".glslv");
     catalog.add_extensions(catalog.Asset_Kind.ShaderSource, ".fs", ".frag", ".glslf");
     catalog.add_extensions(catalog.Asset_Kind.Font, ".ttf");
+    catalog.add_extensions(catalog.Asset_Kind.Model3D, ".obj");
     test_catalog    := catalog.create("test", "data\\test");
     texture_catalog := catalog.create("texture", "data\\textures");
     shader_catalog  := catalog.create("shader", "data\\shaders");
     sound_catalog   := catalog.create("sound", "data\\sounds");
     map_catalog     := catalog.create("map", "data\\maps");
     font_catalog    := catalog.create("font", "data\\fonts");
+    model_catalog   := catalog.create("model", "data\\models");
     
     shower.set_window_state("console", true);
     
@@ -163,6 +169,7 @@ main :: proc() {
 
     xinput.init(set_proc_xinput, load_lib, true);
 
+    console.log("Model test setup");
     vertexAsset  := catalog.find(shader_catalog, "basic_vert");
     fragAsset    := catalog.find(shader_catalog, "basic_frag");
     vertex       := vertexAsset.derived.(^ja.Shader);
@@ -179,14 +186,10 @@ main :: proc() {
     test_vbo := gl.gen_vbo();
     test_normals := gl.gen_vbo();
     test_ebo := gl.gen_ebo();
-    model := ja.Model_3d{};
-
+    model_asset := catalog.find(model_catalog, "monkey");
+    model := model_asset.derived.(^ja.Model_3d);
     {
-        obj_data, ok := os.read_entire_file("data\\models\\monkey.obj");
-
-        if ok {
-            obj_string := string(obj_data);
-            model = obj.parse(obj_string);     
+        if model != nil {
             gl.bind_buffer(test_vbo);
             gl.buffer_data(gl.BufferTargets.Array, model.vertices[..], gl.BufferDataUsage.StaticDraw);
             gl.enable_vertex_attrib_array(u32(test_program.Attributes["model_pos"]));
@@ -459,6 +462,7 @@ main_loop:
         //brew.sleep(1);
     }
 
-    imgui.shutdown();
     console.log("Ending Application...");
+    imgui.shutdown();
+}
 }

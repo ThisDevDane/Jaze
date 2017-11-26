@@ -6,7 +6,7 @@
  *  @Creation: 23-11-2017 00:26:57
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 24-11-2017 23:59:23
+ *  @Last Time: 26-11-2017 20:20:47
  *  
  *  @Description:
  *      A (bad) Wavefront OBJ parser.

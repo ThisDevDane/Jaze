@@ -6,7 +6,7 @@
  *  @Creation: 04-05-2017 15:13:05
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 25-10-2017 22:51:03
+ *  @Last Time: 26-11-2017 23:39:34
  *  
  *  @Description:
  *      Contains the engine context.
@@ -21,7 +21,6 @@ Context :: struct {
     settings             : ^Setting,
     input                : ^input.Input,
     virtual_screen       : ^renderer.VirtualScreen,
-    //win32                : ^p32.Data_t,
     imgui_state          : ^imgui.State,
     time                 : ^time.Data,
     render_state         : ^renderer.State_t,
@@ -43,7 +42,6 @@ create_context :: proc() -> ^Context {
     ctx.input          = new(input.Input);
     ctx.settings       = new(Setting);
     ctx.virtual_screen = renderer.create_virtual_screen(1920, 1080);
-    //ctx.win32          = new(p32.Data_t);
     ctx.imgui_state    = new(imgui.State);
     ctx.time           = time.create_data();
 

@@ -6,7 +6,7 @@
  *  @Creation: 29-10-2017 21:45:51
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 26-11-2017 20:01:52
+ *  @Last Time: 26-11-2017 23:41:47
  *  
  *  @Description:
  *  
@@ -24,6 +24,7 @@ import      "gl_util.odin";
 import      "debug_info.odin";
 import      "console.odin";
 import ja   "asset.odin";
+import obj  "obj_parser.odin";
 import stbi "stb_image.odin";
 
 Asset_Kind :: enum {
@@ -140,17 +141,24 @@ create :: proc(name : string, path : string) -> ^Catalog {
                     case Asset_Kind.TextAsset: {
                         add_text_asset(asset);
                     }
+
+                    case Asset_Kind.Model3D: {
+                        add_model_3d(asset);
+                    }
                 }
                 res.items_kind[val] += 1;
             } else {
                 res.items_kind[Asset_Kind.Unknown] += 1;
-                asset.derived = new(ja.Unknown);
+                free(asset);
+                continue;
             }
             
-            _, exists := res.items[asset.info.file_name];
+            val, exists := res.items[asset.info.file_name];
             if exists {
-                console.log_error("(%s catalog) Asset id: %s already exists, overwriting...", res.name, asset.info.file_name);
-                val := res.items[asset.info.file_name];
+                console.log_error("(%s catalog) Asset id: %s already exists, overwriting...\n%s vs %s", res.name, 
+                                                                                                        asset.info.file_name, 
+                                                                                                        val.info.path, 
+                                                                                                        asset.info.path);
                 free(val); 
             }
 
@@ -159,6 +167,7 @@ create :: proc(name : string, path : string) -> ^Catalog {
         append(&created_catalogs, res);
         return res;
     } else {
+        console.log_error("(%s catalog) %s is either not a folder or does not exists.", name, path);
         return nil;
     }
 }
@@ -180,7 +189,12 @@ find :: proc(catalog : ^Catalog, id_str : string) -> ^ja.Asset {
                 _load_shader(b, catalog);
             }
 
+            case ^ja.Model_3d : {
+                _load_model_3d(b, catalog);
+            }
+
             case : 
+                //TODO(Hoej): Make better error message
                 console.log_error("CATALOG FIND ERROR");
         }
 
@@ -191,7 +205,16 @@ find :: proc(catalog : ^Catalog, id_str : string) -> ^ja.Asset {
 }
 
 _load_model_3d :: proc(model : ^ja.Model_3d, cat : ^Catalog) {
-
+    if !model.info.loaded {
+        text, ok := os.read_entire_file(model.info.path); defer free(text);
+        if ok {
+            asset := model.asset;
+            model^ = obj.parse(string(text));
+            model.asset = asset;
+        } else {
+            console.log_error("Could not read %s", model.file_name);
+        }
+    } 
 }
 
 _load_texture :: proc(texture : ^ja.Texture, cat : ^Catalog) {

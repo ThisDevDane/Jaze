@@ -6,28 +6,28 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 15-11-2017 18:28:10
+ *  @Last Time: 27-11-2017 00:35:35
  *  
  *  @Description:
  *      The console is an in engine window that can be pulled up for viewing.
  *      It also takes care of outputting to a log file if enabled.
  *      The console can also execute commands if matched with input.
  */
-import "core:fmt.odin";
-import "core:os.odin";
-import "core:mem.odin";
-import "core:strings.odin";
+import       "core:fmt.odin";
+import       "core:os.odin";
+import       "core:mem.odin";
+import       "core:strings.odin";
+import win32 "core:sys/windows.odin";
 
 import shower "window_shower.odin";
 
-import           "mantle:libbrew/string_util.odin"
-import win32     "core:sys/windows.odin";
-import imgui     "mantle:libbrew/brew_imgui.odin";
+import       "mantle:libbrew/string_util.odin"
+import imgui "mantle:libbrew/brew_imgui.odin";
 
 OUTPUT_TO_CLI  :: true;
 OUTPUT_TO_FILE :: false;
 
-_BUF_SIZE :: 1024;
+_BUF_SIZE :: 2048;
 
 CommandProc :: #type proc(args : []string);
 
@@ -44,90 +44,105 @@ LogData :: struct {
 }
 
 LogItem :: struct {
-    text : string,
-    time : win32.Systemtime,
-    level : LogLevel,
+    text     : string,
+    time     : win32.Systemtime,
+    level    : LogLevel,
+    loc_file : string,
+    loc_line : int
 }
 
 _internal_data := LogData{};
 
 LogLevel :: enum {
-    Normal,
+    Info,
     ConsoleInput,
     Error,
 }
 
+_log_level_strings := []string{
+    "[Info]:",
+    "\\\\:",
+    "[Error]:"
+};
+
 _error_callback : proc();
 
-log_error :: proc(fmt_ : string, args : ...any) {
-    _internal_log(fmt_, LogLevel.Error,...args);
+log :: proc(fmt_ : string, args : ...any, loc := #caller_location) {
+    buf  : [_BUF_SIZE]u8;
+    str := fmt.bprintf(buf[..], fmt_, ...args);   
+    _internal_log(LogLevel.Info, str, loc);
+}
+
+log :: proc(args : ...any, loc := #caller_location) {
+    buf  : [_BUF_SIZE]u8;
+    str := fmt.bprint(buf[..], ...args);   
+    _internal_log(LogLevel.Info, str, loc);
+}
+
+log_error :: proc(fmt_ : string, args : ...any, loc := #caller_location) {
+    buf  : [_BUF_SIZE]u8;
+    str := fmt.bprintf(buf[..], fmt_, ...args);   
+    _internal_log(LogLevel.Error, str, loc);
     if _error_callback != nil {
         _error_callback();
     }
 }
 
-log :: proc(fmt_ : string, args : ...any) {
-    _internal_log(fmt_, LogLevel.Normal, ...args);
+log_error :: proc(args : ...any, loc := #caller_location) {
+    buf  : [_BUF_SIZE]u8;
+    str := fmt.bprint(buf[..], ...args);   
+    _internal_log(LogLevel.Error, str, loc);
+    if _error_callback != nil {
+        _error_callback();
+    }
 }
 
 set_error_callback :: proc(callback : proc()) {
     _error_callback = callback;
 }
 
-_get_system_time :: proc() -> win32.Systemtime 
-{
+_get_system_time :: proc() -> win32.Systemtime {
     ft : win32.Filetime;
-    st : win32.Systemtime;
-    win32.get_system_time_as_file_time(&ft);
+    st : win32.Systemtime
+;    win32.get_system_time_as_file_time(&ft);
     win32.file_time_to_system_time(&ft, &st);
 
     return st;
 }
 
-_internal_log :: proc(fmt_ : string, level : LogLevel, args : ...any) {
-    buf  : [_BUF_SIZE]u8;
-    buf2 : [_BUF_SIZE]u8;
-    //buf3 : [_BUF_SIZE]u8;
-    levelStr : string;
-    h := os.stdout;
-    switch level {
-        case LogLevel.Normal : {
-            levelStr = "";
-        }
-
-        case LogLevel.Error : {
-            levelStr = "[Error]: ";
-            h = os.stderr;
-        }
-
-        case LogLevel.ConsoleInput : {
-            levelStr = "\\\\: ";
-            h = os.stdout;
-        }
-    }
-    newFmt := fmt.bprintf(buf[..], "%s%s", levelStr, fmt_);
-    tempStr := fmt.bprintf(buf2[..], newFmt, ...args);
-    
-    when OUTPUT_TO_CLI {
-        fmt.fprintf(h, "%s\n", tempStr);
-    }
-   
-    st := _get_system_time();
-    
-    item := LogItem{};
-    item.text = strings.new_string(tempStr);
-    item.time = st;
-    item.level = level;
+_internal_log :: proc(level : LogLevel, txt : string, loc := #caller_location) {
+    item         := LogItem{};
+    item.text     = strings.new_string(txt);
+    item.time     = _get_system_time();;
+    item.level    = level;
+    item.loc_line = loc.line;
+    item.loc_file = string_util.remove_path_from_file(loc.file_path);
 
     append(&_internal_data.current_log, item);
-    item.text = strings.new_string(tempStr); //Note: needed cause clear console free's the item.text
+    item.text = strings.new_string(txt); //Note: needed cause clear console free's the item.text
     append(&_internal_data.log, item);
     _internal_data._scroll_to_bottom = true;
+  
     when OUTPUT_TO_FILE {
         _update_log_file();
     }
+    when OUTPUT_TO_CLI {
+        h := os.stdout;
+        switch level {
+            case LogLevel.Error : {
+                h = os.stderr;
+            }
+
+            case LogLevel.ConsoleInput : {
+                h = os.stdout;
+            }
+        }
+
+        fmt.fprintf(h, "%s %s\n", _log_level_strings[level], txt);
+    }
 }
 
+//TODO(Hoej): make this appedn to the logfile instead of truncating everytime. Should be faster
 _update_log_file :: proc() {
     if len(_internal_data.log_file_name) <= 0 {
         st := _get_system_time();
@@ -141,10 +156,11 @@ _update_log_file :: proc() {
     os.seek(h, 0, 2);
     for log in _internal_data.log {
         buf : [_BUF_SIZE]u8;
-        str := fmt.bprintf(buf[..], "[%2d:%2d:%2d-%3d]%s\n", log.time.hour,   log.time.minute, 
-                                                              log.time.second, log.time.millisecond, 
-                                                              log.text);
-        os.write(h, cast([]u8)str);
+        str := fmt.bprintf(buf[..], "[%2d:%2d:%2d-%3d]%s %s\n", _log_level_strings[log.level],
+                                                               log.time.hour,   log.time.minute, 
+                                                               log.time.second, log.time.millisecond, 
+                                                               log.text);
+        os.write(h, cast([]u8)str); 
         os.seek(h, 0, 2);
     }
     os.close(h);   
@@ -170,36 +186,38 @@ add_default_commands :: proc() {
     add_command("Help",  default_help_command);
 }
 
-//TODO(Hoej): Display is horrible since work is incomplete, need to figure out how I want to do it
 draw_log :: proc(show : ^bool) {
     imgui.begin("Log", show, imgui.WindowFlags.ShowBorders |  imgui.WindowFlags.NoCollapse);
     {
         imgui.begin_child("Items");
         {
+            imgui.columns(count = 4, border = false);
             for t in _internal_data.log {
+                imgui.set_column_width(width = 80);
                 imgui.text("%2d:%2d:%2d-%3d", t.time.hour, t.time.minute, t.time.second, t.time.millisecond);
-                imgui.same_line();
-
-                imgui.same_line();
+                imgui.next_column();
+                pop := false;
                 switch t.level {
                     case LogLevel.Error : {
-                        imgui.text("[Error]:");
-                        imgui.same_line();
-                        imgui.text_colored(imgui.Vec4{1, 0, 0, 1}, t.text);
+                        imgui.push_style_color(imgui.Color.Text, imgui.Vec4{1, 0, 0, 1});
+                        pop = true;
                     }
 
                     case LogLevel.ConsoleInput : {
-                        imgui.text("\\\\:     ");
-                        imgui.same_line();
-                        imgui.text_colored(imgui.Vec4{0.7, 0.7, 0.7, 1}, t.text);
-                    }
-
-                    case : {
-                        imgui.text("        ");
-                        imgui.same_line();
-                        imgui.text(t.text);
+                        imgui.push_style_color(imgui.Color.Text, imgui.Vec4{0.7, 0.7, 0.7, 1});
+                        pop = true;
                     }
                 }
+
+                imgui.set_column_width(width = 45);
+                imgui.text(_log_level_strings[t.level]);
+                imgui.next_column();
+                imgui.set_column_width(width = 150);
+                imgui.text("(%s:%d)", t.loc_file, t.loc_line);
+                imgui.next_column();
+                imgui.text(t.text);
+                if pop do imgui.pop_style_color();
+                imgui.next_column();
             }
         }
         imgui.end_child();
@@ -240,6 +258,7 @@ draw_console :: proc(show : ^bool) {
                         pop = true;
                     }
                 }
+                imgui.text(_log_level_strings[t.level]); imgui.same_line();
                 imgui.text_wrapped(t.text);
                 if pop do imgui.pop_style_color();
             }
@@ -273,7 +292,7 @@ enter_input :: proc(input : []u8) {
        input[0] != ' ' {
         i := _find_string_null(input[..]);
         str := string(input[0..i]);
-        _internal_log(str, LogLevel.ConsoleInput);
+        _internal_log(LogLevel.ConsoleInput, str);
         append(&_internal_data.history, strings.new_string(str));
         if !execute_command(str) {
             cmd_name, _ := string_util.split_first(str, ' ');
