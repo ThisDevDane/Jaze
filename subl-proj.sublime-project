@@ -17,6 +17,10 @@
             "path": "./build",
         },
         {
+            "name": "Mantle",
+            "path": "../odin-mantle",
+        },
+        {
             "name": "Odin Compiler: Core",
             "path": "../../Odin/core",
         },

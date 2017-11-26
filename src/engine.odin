@@ -6,23 +6,23 @@
  *  @Creation: 04-05-2017 15:13:05
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 24-09-2017 22:27:01
+ *  @Last Time: 25-10-2017 22:51:03
  *  
  *  @Description:
  *      Contains the engine context.
  */
 import "core:math.odin";
-import "main.odin";
 import "input.odin";
 import "time.odin";
 import "renderer.odin";
+import imgui "mantle:libbrew/brew_imgui.odin";
 
 Context :: struct {
     settings             : ^Setting,
     input                : ^input.Input,
     virtual_screen       : ^renderer.VirtualScreen,
-    win32                : ^p32.Data_t,
-    imgui_state          : ^jimgui.State,
+    //win32                : ^p32.Data_t,
+    imgui_state          : ^imgui.State,
     time                 : ^time.Data,
     render_state         : ^renderer.State_t,
 
@@ -43,16 +43,20 @@ create_context :: proc() -> ^Context {
     ctx.input          = new(input.Input);
     ctx.settings       = new(Setting);
     ctx.virtual_screen = renderer.create_virtual_screen(1920, 1080);
-    ctx.win32          = new(p32.Data_t);
-    ctx.imgui_state    = new(jimgui.State);
+    //ctx.win32          = new(p32.Data_t);
+    ctx.imgui_state    = new(imgui.State);
     ctx.time           = time.create_data();
 
     return ctx;
 }
 
-set_context_defaults :: proc(ctx : ^Context) {
+create_default_context :: proc() -> ^Context {
+    ctx := create_context();
+
     ctx.adaptive_vsync = true;
     ctx.settings.program_running = true;
     ctx.settings.show_debug_menu = true;
     ctx.settings.show_cursor = true;
+
+    return ctx;
 }

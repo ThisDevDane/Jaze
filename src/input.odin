@@ -6,7 +6,7 @@
  *  @Creation: 03-05-2017 17:54:46
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 24-09-2017 22:27:05
+ *  @Last Time: 11-11-2017 14:06:32
  *  
  *  @Description:
  *      Contains constructs related to Input.
@@ -16,9 +16,11 @@
 import win32 "core:sys/windows.odin";
 import "core:math.odin";
 
-import "xinput.odin";
+import "mantle:libbrew/win/window.odin";
 
-ButtonStates :: enum {
+import "mantle:odin-xinput/xinput.odin";
+
+ButtonStates :: enum u8 {
     Up,
     Held,
     Down,
@@ -27,7 +29,7 @@ ButtonStates :: enum {
 
 Binding :: struct {
     id       : string,
-    key      : win32.KeyCode,
+    key      : win32.Key_Code,
     x_button : xinput.Buttons, 
 }
 
@@ -40,6 +42,7 @@ Input :: struct {
     _old_key_states : [256]ButtonStates,
     x_state         : [4]xinput.GamepadState,
     _old_x_state    : [4]xinput.GamepadState,
+    char_queue      : [dynamic]rune,
 }
 
 update :: proc(input : ^Input) {
@@ -49,12 +52,14 @@ update :: proc(input : ^Input) {
     update_xinput(input);
 }
 
-update_mouse_position :: proc(input : ^Input, handle : p32.WndHandle) {
-    input.mouse_pos = p32.GetCursorPos(handle);
+update_mouse_position :: proc(input : ^Input, handle : window.WndHandle) {
+    x, y := window.get_mouse_pos(handle);
+    input.mouse_pos[0] = f32(x);
+    input.mouse_pos[1] = f32(y); 
 }
 
 update_keyboard :: proc(input : ^Input) {
-    for k in win32.KeyCode {
+    for k in win32.Key_Code {
         if win32.get_key_state(i32(k)) < 0 {
             if input._old_key_states[k] == ButtonStates.Down || 
                input._old_key_states[k] == ButtonStates.Held {
@@ -85,13 +90,13 @@ update_xinput :: proc(input : ^Input) {
 }
 
 set_input_neutral :: proc(input : ^Input) {
-    for k in win32.KeyCode { //@TODO(Hoej): should probably do a memset here instead;
+    for k in win32.Key_Code { //@TODO(Hoej): should probably do a memset here instead;
        input.key_states[k] = ButtonStates.Neutral;
        input._old_key_states[k] = ButtonStates.Neutral;
     }
 }
 
-add_binding :: proc(input : ^Input, name : string, key : win32.KeyCode) {
+add_binding :: proc(input : ^Input, name : string, key : win32.Key_Code) {
     _, ok := input.bindings[name];
     if ok {
         input.bindings[name].key = key;
@@ -111,7 +116,7 @@ add_binding :: proc(input : ^Input, name : string, xKey : xinput.Buttons) {
     } else {
         new : Binding;
         new.id = name;
-        new.key = win32.KeyCode.Noname;
+        new.key = win32.Key_Code.Noname;
         new.x_button = xKey;
         input.bindings[name] = new;
     }
@@ -138,9 +143,9 @@ get_button_state :: proc(input : ^Input, name : string) -> ButtonStates {
 }
 
 add_char_to_queue :: proc(input : ^Input, char : rune) {
-    //TODO(Hoej)
+    append(&input.char_queue, char);
 }
 
 clear_char_queue :: proc(input : ^Input) {
-    //TODO(Hoej)
+    clear(&input.char_queue);
 }

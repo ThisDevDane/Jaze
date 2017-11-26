@@ -6,63 +6,42 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 24-09-2017 23:13:07
+ *  @Last Time: 24-11-2017 23:56:47
  *  
  *  @Description:
  *      Contains all the drawing code for debug windows.
  */
-import "core:fmt.odin";
+import       "core:fmt.odin";
 import win32 "core:sys/windows.odin";
-import gl "libbrew/win/opengl.odin";
-import "xinput.odin";
-import imgui "libbrew/brew_imgui.odin";
-import "main.odin";
-import "time.odin";
-import "catalog.odin";
-import "console.odin";
-//import "game.odin";
+
+import       "mantle:odin-xinput/xinput.odin"; 
+import gl    "mantle:libbrew/gl.odin";
+import wgl   "mantle:libbrew/win/opengl_wgl.odin";
+import imgui "mantle:libbrew/brew_imgui.odin";
+
+import        "time.odin";
+import        "catalog.odin";
+import        "console.odin";
+import        "debug_info.odin";
+import shower "window_shower.odin";
+import ja     "asset.odin";
 import jinput "input.odin";
-import ja "asset.odin";
-//import je "entity.odin";
-//import p32 "platform_win32.odin";
 
-STD_WINDOW :: /*imgui.GuiWindowFlags.ShowBorders |*/  imgui.GuiWindowFlags.NoCollapse;
+STD_WINDOW :: imgui.WindowFlags.ShowBorders |  imgui.WindowFlags.NoCollapse;
 
-_GlobalDebugWndBools : map[string]bool;
-_ChosenCatalog : i32;
+_chosen_catalog : i32;
 _PreviewSize := imgui.Vec2{20, 20};
 _ShowID : gl.Texture = 1;
-_ChosenEntity : ^je.Entity;
 
-get_window_state :: proc(str : string) -> bool {
-    return _GlobalDebugWndBools[str];
-}
-
-set_window_state :: proc(str : string, state : bool) {
-    _GlobalDebugWndBools[str] = state;
-}
-
-toggle_window_state :: proc(str : string) {
-    _GlobalDebugWndBools[str] = !_GlobalDebugWndBools[str];
-}
-
-try_show_window :: proc(id : string, p : proc(b : ^bool)) {
-    if get_window_state(id) {
-        b := get_window_state(id);
-        p(&b);
-        set_window_state(id, b);
-    }
-}
-
-show_struct_info :: proc(name : string, show : ^bool, data : any) {
+/*show_struct_info :: proc(name : string, show : ^bool, data : any) {
     imgui.begin(name, show, STD_WINDOW);
     {
         imgui.columns(2, "nil", true);
-        info := type_info_base(data.type_info).(^TypeInfo.Struct);
+        info := type_info_base(data.type_info).(^Type_Info.Struct);
         for n, i in info.names {
             imgui.text("%s", n);
             imgui.next_column();
-            match t in info.types[i] {
+            switch t in info.types[i] {
                 case TypeInfo.Pointer : {
                     if t.elem == nil {
                         imgui.text("RAWPTR");
@@ -96,127 +75,18 @@ show_struct_info :: proc(name : string, show : ^bool, data : any) {
         }
     }
     imgui.end();
-}
-
-show_entity_list :: proc(gameCtx : ^game.Context, show : ^bool) {
-    PrintNormalTower :: proc(t : je.Tower) {
-        imgui.indent(10);
-        {
-            if imgui.collapsing_header("Transform", 0) {
-                imgui.indent(10);
-                imgui.text("Position: %v", t.Position);
-                imgui.text("Scale: %v", t.Scale);
-                imgui.text("Rotation: %v", t.Rotation);
-                imgui.unindent(10);
-            }
-            imgui.text("Damage: %v", t.Damage);
-            imgui.text("Attack Speed: %v", t.AttackSpeed);
-            if t.Texture != nil {
-                imgui.text_wrapped("texture: %v", t.Texture^);
-            } else {
-                imgui.text("texture: N/A");
-            } 
-        }
-        imgui.unindent(10);
-    }
-    
-    PrintSlowTower :: proc(e : je.Tower.Slow) {
-        imgui.indent(10);
-        {
-            imgui.text("Slow Rate: %v", e.SlowFactor);
-        }
-        imgui.unindent(10);
-    }
-
-    imgui.begin("Entity List", show, STD_WINDOW);
-    {
-        imgui.columns(2, "nil", false);
-        imgui.begin_child("Entities", imgui.Vec2{0, -20}, true, 0);
-        {
-            for i := gameCtx.entity_list.Front;
-                i != nil;
-                i = i.Next {
-                if i.Entity == nil {
-                    continue;
-                }
-                buf : [256]byte;
-                str := fmt.bprintf(buf[..], "%s(%d)", i.Entity.Name, i.Entity.GUID);
-                if imgui.button(str, imgui.Vec2{-1, 0}) {
-                    _ChosenEntity = i.Entity;   
-                }
-            }
-        }
-        imgui.end_child();
-        imgui.next_column();
-        imgui.begin_child("Entity", imgui.Vec2{0, -20}, true, 0);
-        {
-            if _ChosenEntity != nil {
-                imgui.text("GUID: %v", _ChosenEntity.GUID);
-                imgui.text("Name: %v", _ChosenEntity.Name);
-                match e in _ChosenEntity {
-                    case je.Entity.Tower : {
-                        match t in e.T {
-                            case je.Tower.Slow : {
-                                imgui.text("Match: %d", e.T.__tag);
-                                PrintNormalTower(e.T);
-                                PrintSlowTower(t);
-                            }
-
-                            case je.Tower.Basic : {
-                                imgui.text("Match: %d", e.T.__tag);
-                                PrintNormalTower(e.T);
-                            }
-
-                            case : {
-                                imgui.text("Match: %d", e.T.__tag);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        imgui.end_child();
-        imgui.columns(1, "nil", false);
-        imgui.separator();
-        imgui.text_colored(imgui.Vec4{1, 1, 1, 0.2}, "Entities: %d", gameCtx.entity_list.Count);
-    }
-    imgui.end();
-
-
-}
-
-show_debug_windows_states :: proc(show : ^bool) {
-    imgui.begin("Debug Window States", show, STD_WINDOW);
-    {
-        imgui.text("Chosen Catalog Index: %d", _ChosenCatalog);
-        imgui.text("texture Preview Sixe: <%.2f,%.2f>", _PreviewSize.x, _PreviewSize.y);
-        imgui.text("texture Show ID:      %d", _ShowID);
-        imgui.separator();
-
-        imgui.begin_child("Window States", imgui.Vec2{0, 0}, true, 0);
-        imgui.columns(2, "nil", true);
-        for val, id in _GlobalDebugWndBools {
-            imgui.text("%s", id);
-            imgui.next_column();
-            imgui.text("%t", val);
-            imgui.next_column();
-            imgui.separator();
-        }
-        imgui.columns(1, "nil", true);
-        imgui.end_child();
-    }
-    imgui.end();
-}
+}*/
 
 stat_overlay :: proc(show : ^bool) {
     imgui.set_next_window_pos(imgui.Vec2{5, 25}, 0);
-    imgui.push_style_color(imgui.GuiCol.WindowBg, imgui.Vec4{0.23, 0.23, 0.23, 0.4});
-    imgui.begin("Stat Overlay", show, imgui.GuiWindowFlags.NoMove | imgui.GuiWindowFlags.NoTitleBar | imgui.GuiWindowFlags.NoResize | imgui.GuiWindowFlags.NoSavedSettings); 
+    imgui.push_style_color(imgui.Color.WindowBg, imgui.Vec4{0.23, 0.23, 0.23, 0.4});
+    imgui.begin("Stat Overlay", show, imgui.WindowFlags.NoMove | imgui.WindowFlags.NoTitleBar | imgui.WindowFlags.NoResize | imgui.WindowFlags.NoSavedSettings); 
     {
         io := imgui.get_io();
         imgui.text("Framerate: %.1ffps (%fms) ", io.framerate, 1000.0 / io.framerate);
+        imgui.text("Draw Calls: %d calls", /*debug_info.ogl.draw_calls*/ -1);
         imgui.separator();
-        imgui.text("Draw Calls: %d calls", gl.debug_info.draw_calls);
+        imgui.text("Mouse Pos: <%v,%v>", io.mouse_pos.x, io.mouse_pos.y);
     }   
     imgui.end();
     imgui.pop_style_color(1);
@@ -232,7 +102,7 @@ opengl_extensions :: proc(name : string, extensions : [dynamic]string, show : ^b
     imgui.end();
 }
 
-opengl_texture_overview :: proc(show : ^bool) {
+show_gl_texture_overview :: proc(show : ^bool) {
     _CalculateMaxcolumns :: proc(w : f32, csize : f32, max : i32) -> i32 {
         columns := i32(w / csize);
         if columns > max {
@@ -247,40 +117,43 @@ opengl_texture_overview :: proc(show : ^bool) {
 
     imgui.begin("Loaded Textures", show, STD_WINDOW);
     {
-        imgui.drag_float("Preview Size:", &_PreviewSize.x, 0.2, 20, 100, "%.0f", 1);
-        imgui.separator();
-        _PreviewSize.y = _PreviewSize.x;
-        size : imgui.Vec2;
-        imgui.get_window_size(&size);
-        columns := _CalculateMaxcolumns(size.x, _PreviewSize.x + 24, i32(len(gl.debug_info.loaded_textures)));
-        imgui.begin_child("", imgui.Vec2{0, 0}, false, 0);
+        imgui.columns(count = 2, border = false);
         {
-            imgui.columns(columns, "nil", false);
-            for id in gl.debug_info.loaded_textures {
-                imgui.image(imgui.TextureID(uint(id)), _PreviewSize, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0.91, 0.4, 0.23, 1});
-                if imgui.is_item_hovered() {
-                    imgui.begin_tooltip();
-                    {
-                        imgui.text("ID: %d", id);
+            imgui.drag_float("Preview Size:", &_PreviewSize.x, 0.2, 20, 100, "%.0f", 1);
+            imgui.separator();
+            _PreviewSize.y = _PreviewSize.x;
+            size := imgui.get_window_size();
+            columns := _CalculateMaxcolumns(size.x, _PreviewSize.x + 12, i32(len(debug_info.ogl.textures)));
+            imgui.begin_child("", imgui.Vec2{0, 0}, false, 0);
+            {
+                imgui.columns(columns, "nil", false);
+                for id in debug_info.ogl.textures {
+                    color := id == _ShowID ? imgui.Vec4{1, 1, 1, 1} : imgui.Vec4{0.91, 0.4, 0.23, 1};
+                    imgui.image(user_texture_id = imgui.TextureID(uintptr(id)), 
+                                size = _PreviewSize, 
+                                border_col = color);
+                    if imgui.is_item_hovered() {
+                        imgui.begin_tooltip();
+                        {
+                            imgui.text("ID: %d", id);
+                        }
+                        imgui.end_tooltip();
                     }
-                    imgui.end_tooltip();
+                    if imgui.is_item_clicked(0) {
+                        _ShowID = id;
+                    }
+                    imgui.next_column();
                 }
-                if imgui.is_item_clicked(0) {
-                    _ShowID = id;
-                }
-                imgui.next_column();
+                imgui.columns_reset();
             }
-            imgui.columns(1, "nil", false);
-            }
-        imgui.end_child();
-    }
-    imgui.end();
-
-    imgui.begin("texture View", nil, STD_WINDOW | imgui.GuiWindowFlags.NoScrollbar);
-    {
-        size : imgui.Vec2;
-        imgui.get_window_size(&size);
-        imgui.image(imgui.TextureID(uint(_ShowID)), imgui.Vec2{size.x-16, size.y-35}, imgui.Vec2{0, 0}, imgui.Vec2{1, 1}, imgui.Vec4{1, 1, 1, 1}, imgui.Vec4{0.91, 0.4, 0.23, 0});
+            imgui.end_child();
+        }
+        imgui.next_column();
+        size := imgui.get_window_size();
+        imgui.image(user_texture_id = imgui.TextureID(uintptr(_ShowID)), 
+                    size = imgui.Vec2{size.x, size.y - 60}, 
+                    border_col = imgui.Vec4{0.91, 0.4, 0.23, 0});
+        imgui.next_column();
     }
     imgui.end();
 }
@@ -289,94 +162,75 @@ opengl_info :: proc(vars : ^gl.OpenGLVars, show : ^bool) {
     imgui.begin("OpenGL Info", show, STD_WINDOW);
     {
         imgui.text("Versions:");
-        imgui.indent(20.0);
-            imgui.text("Highest: %d.%d", vars.version_major_max, vars.version_minor_max);
-            imgui.text("Current: %d.%d", vars.version_major_cur, vars.version_major_cur);
+        imgui.indent();
+            imgui.text("Highest: NOT_WORKING");
+            imgui.text("Current: %s", vars.version_string);
             imgui.text("GLSL:    %s", vars.glsl_version_string);
-        imgui.unindent(20.0);
-        imgui.text("Lib Address 0x%x", gl.debug_info.lib_address);
+        imgui.unindent();
+        imgui.text("Lib Address 0x%x", debug_info.ogl.lib_address);
         imgui.separator();
             imgui.text("Vendor:   %s", vars.vendor_string);
             imgui.text("Render:   %s", vars.renderer_string);
-            imgui.text("CtxFlags: %d", vars.context_flags);
         imgui.separator();
             imgui.text("Number of extensions:       %d", vars.num_extensions); imgui.same_line(0, -1);
             if imgui.small_button("View##Ext") {
-                set_window_state("OpenGLShowExtensions", true);
+                shower.set_window_state("OpenGLShowExtensions", true);
             }
             imgui.text("Number of WGL extensions:   %d", vars.num_wgl_extensions);imgui.same_line(0, -1);
             if imgui.small_button("View##WGL") {
-                set_window_state("OpenGLShowWGLExtensions", true);
+                shower.set_window_state("OpenGLShowWGLExtensions", true);
             }
-            imgui.text("Number of loaded Textures: %d", len(gl.debug_info.loaded_textures)); imgui.same_line(0, -1);
+            imgui.text("Number of loaded Textures: %d", len(debug_info.ogl.textures)); imgui.same_line(0, -1);
             if imgui.small_button("View##texture") {
-                set_window_state("ShowGLtextureOverview", true);
+                shower.set_window_state("texture_overview", true);
             }
-            imgui.text("Number of functions loaded: %d/%d", gl.debug_info.number_of_functions_loaded_successed, gl.debug_info.number_of_functions_loaded); 
+            imgui.text("Number of functions loaded: %d/%d", debug_info.ogl.number_of_functions_loaded_successed, debug_info.ogl.number_of_functions_loaded); 
         imgui.separator();
-        if imgui.collapsing_header("Loaded Functions", 0) {
-            imgui.begin_child("Functions###FuncLoad", imgui.Vec2{0, 0}, true, 0);
-            imgui.columns(2, "nil", false);
+        if imgui.collapsing_header("Loaded Functions") {
+            imgui.begin_child(str_id = "Functions###FuncLoad", border = true);
+            imgui.columns(count = 3, border = false);
             suc : string;
-            for status in gl.debug_info.statuses {
+            for status in debug_info.ogl.statuses {
+                imgui.set_column_width(width = 250);
                 imgui.text(status.name);
-/*                if(imgui.is_item_hovered()) {
-                    imgui.BeginTooltip();
-                    imgui.PushtextWrapPos(450.0);
-                    imgui.text("%s @ 0x%X", status.Name, status.Address);
-                    /*buf : [4095]byte;
-                    procString : string;
-                    */
-                    
-                    test1, ok1 := union_cast(^Type_Info.Procedure)status.TypeInfo;
-                    test2, ok2 := union_cast(^Type_Info.Tuple)test1.params;
-                    imgui.text("%t", ok1);
-                    imgui.text("%t", ok2);
-                    imgui.text("%d", len(test2.names));
-                    for info in test2.names {
-                        imgui.text(info);
-                    }
-
-                    imgui.PoptextWrapPos();
-                    imgui.endTooltip();
-                }*/
                 imgui.next_column();
+                imgui.set_column_width(width = 100);
                 c : imgui.Vec4;
-                if status.success {
+                if status.success { 
                     c = imgui.Vec4{0,0.78,0,1};
                     suc = "true";
                 } else {
                     c = imgui.Vec4{1,0,0,1};
                     suc = "false";
                 }
-
                 imgui.text_colored(c, "Loaded: %s", suc);
                 imgui.next_column();
-
+                imgui.text("@ 0x%X", status.address);
+                imgui.next_column();
             }
-            imgui.columns(1, "nil", false);
+            imgui.columns_reset();
             imgui.end_child();
         }
     }
     imgui.end();
 
-    if get_window_state("OpenGLShowExtensions") {
-        b := get_window_state("OpenGLShowExtensions");
+    if shower.get_window_state("OpenGLShowExtensions") {
+        b := shower.get_window_state("OpenGLShowExtensions");
         opengl_extensions("Extensions##Ext", vars.extensions, &b);
-        set_window_state("OpenGLShowExtensions", b);
+        shower.set_window_state("OpenGLShowExtensions", b);
     }
 
-    if get_window_state("OpenGLShowWGLExtensions") {
-        b := get_window_state("OpenGLShowWGLExtensions");
+    if shower.get_window_state("OpenGLShowWGLExtensions") {
+        b := shower.get_window_state("OpenGLShowWGLExtensions");
         opengl_extensions("WGL Extensions", vars.wgl_extensions, &b);
-        set_window_state("OpenGLShowWGLExtensions", b);
+        shower.set_window_state("OpenGLShowWGLExtensions", b);
     }
 
-    try_show_window("ShowGLtextureOverview", opengl_texture_overview);
+    //try_show_window("ShowGLtextureOverview", opengl_texture_overview);
 }
 
-_print_gamepad_name :: proc(id : int, err : xinput.Error) {
-    imgui.text("Gamepad %d(", id+1);
+_print_gamepad_name :: proc(user : xinput.User, err : xinput.Error) {
+    imgui.text("Gamepad %d(", int(user)+1);
     b := err == xinput.Success;
     c : imgui.Vec4;
     if b {
@@ -394,26 +248,38 @@ show_xinput_info_window :: proc(show : ^bool) {
     imgui.begin("XInput Info", show, STD_WINDOW);
     {
         imgui.text("Version: %s", xinput.Version);
-        imgui.text("Lib Address: 0x%x", int(xinput.DebugInfo.LibAddress));
-        imgui.text("Number of functions loaded: %d/%d", xinput.DebugInfo.NumberOfFunctionsLoadedSuccessed, xinput.DebugInfo.NumberOfFunctionsLoaded); 
-        if imgui.collapsing_header("Loaded Functions", 0) {
-            imgui.begin_child("Functions", imgui.Vec2{0, 150}, true, 0);
-            imgui.columns(2, "nil", false);
-            for status in xinput.DebugInfo.Statuses {
-                imgui.text(status.Name);
+        imgui.text("Lib Address: 0x%x", 0/*int(debug_info.xinput.LibAddress)*/);
+        imgui.text("Number of functions loaded: %d/%d", debug_info.xinput.number_of_functions_loaded_successed, debug_info.xinput.number_of_functions_loaded); 
+        if imgui.collapsing_header("Loaded Functions") {
+            imgui.begin_child("Functions###FuncLoad", imgui.Vec2{0, 150}, true);
+            imgui.columns(3, "nil", false);
+            suc : string;
+            for status in debug_info.xinput.statuses {
+                imgui.text(status.name);
                 imgui.next_column();
-                imgui.text("Loaded: %t @ 0x%x", status.Success, status.Address);
+                c : imgui.Vec4;
+                if status.success { 
+                    c = imgui.Vec4{0,0.78,0,1};
+                    suc = "true";
+                } else {
+                    c = imgui.Vec4{1,0,0,1};
+                    suc = "false";
+                }
+                imgui.text_colored(c, "Loaded: %s", suc);
+                imgui.next_column();
+                imgui.text("@ 0x%X", status.address);
                 imgui.next_column();
 
+
             }
-            imgui.columns(1, "nil", false);
+            imgui.columns_reset();
             imgui.end_child();
         }
 
         imgui.columns(2, "nil", true);
-        for user, i in xinput.User {
+        for user in xinput.User {
             cap, err := xinput.GetCapabilities(user);
-            _print_gamepad_name(i, err);
+            _print_gamepad_name(user, err);
             if err == xinput.Success {
                 imgui.text("Capabilites:");
                 imgui.indent(20.0);
@@ -439,11 +305,11 @@ show_xinput_info_window :: proc(show : ^bool) {
             }
 
             imgui.next_column();
-            if i%2 == 1 {
+            if int(user)%2 == 0 {
                 imgui.separator();
             }
         }
-        imgui.columns(1, "nil", false);
+        imgui.columns_reset();
     }
     imgui.end();
 }
@@ -452,13 +318,12 @@ show_xinput_state_window :: proc(show : ^bool) {
     imgui.begin("XInput State", show, STD_WINDOW);
     {
         imgui.columns(2, "nil", true);
-        for user, i in xinput.User {
+        for user in xinput.User {
             state, err := xinput.GetState(user);
-            _print_gamepad_name(i, err);
+            _print_gamepad_name(user, err);
             if err == xinput.Success {
                 imgui.indent(10.0);
                 {
-                    imgui.separator();
                     imgui.text("button States:");
                     imgui.indent(10.0);
                     {
@@ -482,7 +347,6 @@ show_xinput_state_window :: proc(show : ^bool) {
                         imgui.text("Y:             %t", IsButtonPressed(state, xinput.Buttons.Y)            );
                     }
                     imgui.unindent(10.0);
-                    imgui.separator();
                     imgui.text("Trigger States:");
                     imgui.indent(10.0);
                     {
@@ -490,7 +354,6 @@ show_xinput_state_window :: proc(show : ^bool) {
                         imgui.text("Right Trigger: %d(%.1f%%)", state.gamepad.right_trigger, (f32(state.gamepad.right_trigger)/255.0)*100.0);
                     }
                     imgui.unindent(10.0);
-                    imgui.separator();
                     imgui.text("Stick States:");
                     imgui.indent(10.0);
                     {
@@ -498,95 +361,96 @@ show_xinput_state_window :: proc(show : ^bool) {
                         imgui.text("Right Stick: <%d, %d>", state.gamepad.rx, state.gamepad.ry);
                     }
                     imgui.unindent(10.0);
-                    imgui.separator();
                 }
                 imgui.unindent(10.0);
             }
             
             imgui.next_column();
-            if i%2 == 1 {
+            if int(user)%2 == 0 {
                 imgui.separator();
             }
         }
-        imgui.columns(1, "nil", false);
+        imgui.columns_reset();
     }
     imgui.end();
 }
 
-show_catalog_window :: proc(show : ^bool) {
-
-    PrintName :: proc(asset : ^ja.Asset) {
-        PrintLoadedUploaded :: proc(name : string, load : bool, up : bool, asset : ^ja.Asset) {
-            imgui.text(name);
-            ToolTip(asset);
-            imgui.same_line(0, 0);
-            imgui.text_colored(imgui.Vec4{1,0,0,1}, " %s", load ? "[Loaded]" : "");
-            imgui.same_line(0, 0);
-            imgui.text_colored(imgui.Vec4{0,0.78,0,1}, "%s", up ? "[Uploaded]" : "");
+show_catalog_window :: proc(catalogs : []^catalog.Catalog, show : ^bool) {
+    if imgui.begin("Catalog Window", show, STD_WINDOW) {
+        defer imgui.end();
+        names : [dynamic]string;
+        for c, i in catalogs {
+            append(&names, c.name);
         }
-
-        match a in asset {
-            case ja.Asset.Texture : {
-                PrintLoadedUploaded(a.file_info.name, a.loaded_from_disk, a.gl_id != 0, asset);
-            }
-
-            case ja.Asset.Shader : {
-                PrintLoadedUploaded(a.file_info.name, a.loaded_from_disk, a.gl_id != 0, asset);
-            }
-
-            case : {
-                imgui.text("%s %s", a.file_info.name, a.loaded_from_disk ? "[Loaded]" : "");
-                ToolTip(asset);
+        imgui.combo("Chosen", &_chosen_catalog, names[..]);
+        imgui.separator();
+        catalog := catalogs[_chosen_catalog];
+        imgui.text("Name:         %s", catalog.name);
+        imgui.text("Path:         %s", catalog.path);
+        imgui.text("Asset Kinds:");
+        imgui.indent(20);
+        {
+            for k, v in catalog.items_kind {
+                imgui.text("%v %v", k, v);
             }
         }
-    }
+        imgui.unindent(20);
+        if imgui.begin_child(str_id = "Items", size = imgui.Vec2{0, -18}) {
+            defer imgui.end_child();
+            imgui.columns(count = 2, border = false);
+            for a in catalog.items {
+                imgui.selectable(label = a.file_name, flags = imgui.SelectableFlags.SpanAllColumns);
+                if imgui.is_item_hovered() {
+                    imgui.begin_tooltip();
+                    defer imgui.end_tooltip();
 
-    ToolTip :: proc(val : ^ja.Asset) {
-      if(imgui.is_item_hovered()) {
-            imgui.begin_tooltip();
-            imgui.text("Path:        %s", val.file_info.path);
-            imgui.text("Disk Size:   %.2fKB", f32(val.file_info.size)/1024.0);
-            match e in val {
-                case ja.Asset.Texture : {
-                    imgui.text("ID:          %d", e.gl_id);
-                    imgui.text("Size:        %dx%d", e.width, e.height);
-                    imgui.text("Comp:        %d", e.comp);
+                    imgui.text("Path: %v", a.path);
+                    //imgui.text("Kind: %v", a.kind);
+                    imgui.text("Size: %d bytes", a.size);
+
+                    switch b in a.derived {
+                        case ^ja.Texture: {
+                            imgui.text("OpenGL ID:  %v", b.gl_id);
+                            imgui.text("Width:      %v", b.width);
+                            imgui.text("Height:     %v", b.height);
+                            imgui.text("Comp:       %v", b.comp);
+                        }
+
+                        case ^ja.Shader: {
+                            imgui.text("OpenGL ID:  %v", b.gl_id);
+                            imgui.text("Type: %v", b.type_);
+                            imgui.text("Length: %v", len(b.source));
+                        }
+
+                        case ^ja.Model_3d: {
+                            if b.loaded {
+                                imgui.text("Vertices: %d", b.vert_num);
+                                imgui.text("Normals: %d",  b.norm_num);
+                                imgui.text("UVs: %d",      b.uvs_num);
+                            } else {
+                                imgui.text("Not loaded...");
+                            }
+                        }
+                    }
                 }
-
-                case ja.Asset.Shader : {
-                    imgui.text("ID:          %d", e.gl_id);
-                    imgui.text("Type:        %v", e.type_);
+                imgui.next_column();
+                col := imgui.Vec4{};
+                if a.loaded {
+                    col = imgui.Vec4{0, 0.7, 0, 1};
+                } else {
+                    col = imgui.Vec4{1, 0, 0, 1};
                 }
+                imgui.text_colored(col, a.loaded ? "Loaded" : "Not Loaded");
+                imgui.next_column();
             }
-            imgui.end_tooltip();
+            imgui.columns_reset();
         }
+        imgui.separator();
+        imgui.text_colored(imgui.Vec4{1, 1, 1, 0.4}, 
+                           "Files: %d | Current Size: %d | Max Size: %d", catalog.files_in_catalog, 
+                                                                          catalog.current_size, 
+                                                                          catalog.max_size);
     }
-
-    imgui.begin("Catalogs", show, STD_WINDOW);
-    {
-        imgui.combo("Catalog", &_ChosenCatalog, catalog.debug_info.catalog_names[..], -1);
-        imgui.separator();
-        cat := catalog.debug_info.catalogs[_ChosenCatalog];
-        imgui.text("Folder Path:     %s", cat.path);
-        imgui.text("Kind:            %v", cat.kind);
-        imgui.text("Accepted Extensions: ");
-        imgui.indent(10.0);
-        for ext in cat.accepted_extensions {
-            imgui.text(ext);
-        }
-        imgui.unindent(10.0);
-        imgui.separator();
-        imgui.begin_child("Files", imgui.Vec2{0, -18}, true, 0);
-        for val in cat.items {
-            PrintName(val);
-        }
-        imgui.end_child();
-        imgui.separator();
-        imgui.text("No. of files: %d/%d", len(cat.items), cat.files_in_folder);
-        imgui.same_line(0, -1);
-        imgui.text("In Memory: %.2fKB/%.2fKB", f32(cat.current_size)/1024.0, f32(cat.max_size)/1024.0);
-    }
-    imgui.end();
 }
 
 show_input_window :: proc(input : ^jinput.Input, show : ^bool) {
@@ -625,7 +489,7 @@ show_input_window :: proc(input : ^jinput.Input, show : ^bool) {
             imgui.next_column();
         }
 
-        imgui.columns(1, "nil", true);
+        imgui.columns_reset();
 
         PrintDownHeld :: proc(keyStates : []jinput.ButtonStates) {
             imgui.columns(2, "nil", true);
@@ -634,7 +498,7 @@ show_input_window :: proc(input : ^jinput.Input, show : ^bool) {
             imgui.text("State");
             imgui.separator();
             imgui.next_column();
-            for k in win32.KeyCode {
+            for k in win32.Key_Code {
                 if keyStates[k] == jinput.ButtonStates.Down || 
                    keyStates[k] == jinput.ButtonStates.Held {
                     imgui.text("%v", k);
@@ -652,7 +516,7 @@ show_input_window :: proc(input : ^jinput.Input, show : ^bool) {
             imgui.text("State");
             imgui.separator();
             imgui.next_column();
-            for k in win32.KeyCode {
+            for k in win32.Key_Code {
                 if keyStates[k] == jinput.ButtonStates.Up || 
                    keyStates[k] == jinput.ButtonStates.Neutral {
                     imgui.text("%v", k);
@@ -664,13 +528,13 @@ show_input_window :: proc(input : ^jinput.Input, show : ^bool) {
         }
 
         imgui.separator();
-        if imgui.collapsing_header("Key states", 0) {
+        if imgui.collapsing_header("Key states") {
             imgui.columns(2, "nil", true);
-            imgui.begin_child("Down Held", imgui.Vec2{0, 0}, true, 0);
+            imgui.begin_child("Down Held", imgui.Vec2{0, 0}, true);
             PrintDownHeld(input.key_states[..]);
             imgui.end_child();
             imgui.next_column();
-            imgui.begin_child("Up Neutral", imgui.Vec2{0, 0}, true, 0);
+            imgui.begin_child("Up Neutral", imgui.Vec2{0, 0}, true);
             PrintUpNeutral(input.key_states[..]);
             imgui.end_child();
             imgui.next_column();

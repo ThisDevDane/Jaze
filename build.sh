@@ -5,9 +5,6 @@ SRC=src/main.odin
 build_success(){
 	mv -f ./src/*.exe ./build
 	echo Build Success
-	rm -f src/*.ll
-	rm -f src/*.bc
-	rm -f src/*.obj
 	otime.exe -end $OTM $ERR
 }
 
@@ -19,14 +16,12 @@ build_failed(){
 if [ ! -d "build" ]; then
 	mkdir build
 fi
-
 otime.exe -begin $OTM
-odin.exe build $SRC
+echo Compiling with opt=$1...
+odin.exe build $SRC -opt=$1 -collection=mantle=../odin-mantle
 ERR=$?
 if [ $ERR -eq 0 ]; then
 	build_success
 else
 	build_failed
 fi
-
-

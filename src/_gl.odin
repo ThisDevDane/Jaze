@@ -1,12 +1,12 @@
 /*
- *  @Name:     gl
+ *  @Name:     _gl
  *  
  *  @Author:   Mikkel Hjortshoej
  *  @Email:    hjortshoej@handmade.network
  *  @Creation: 26-04-2017 16:23:18
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 24-09-2017 22:00:40
+ *  @Last Time: 07-10-2017 14:27:08
  *  
  *  @Description:
  *      This is an OpenGL wrapper. Currently assumes GL 3.3 Core.

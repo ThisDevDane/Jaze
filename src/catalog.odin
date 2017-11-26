@@ -2,95 +2,82 @@
  *  @Name:     catalog
  *  
  *  @Author:   Mikkel Hjortshoej
- *  @Email:    hjortshoej@handmade.network
- *  @Creation: 01-05-2017 18:28:11
+ *  @Email:    hoej@northwolfprod.com
+ *  @Creation: 29-10-2017 21:45:51
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 24-09-2017 23:09:48
+ *  @Last Time: 26-11-2017 20:01:52
  *  
  *  @Description:
- *      Contains the catalog construct.
- *      A catalog is a collection of asset that may or may not have been put in memory.
- *      When querying a catalog for an asset it may do relevant work related to the asset to make it ready for usage,
- *      such include;
- *          - Texture: it will be uploaded the the GPU.
- *          - Shader:  it will be compiled and if success it will upload it to the GPU.
+ *  
  */
 
-import "core:fmt.odin";
 import "core:os.odin";
+import "core:fmt.odin";
 import "core:strings.odin";
-import win32 "core:sys/windows.odin";
-import j32 "jwin32.odin";
-import ja "asset.odin";
-import gl "libbrew/win/opengl.odin";
-//import gl_util "gl_util.odin";
-import "console.odin";
+
+import "mantle:libbrew/gl.odin";
+import "mantle:libbrew/win/file.odin";
+import "mantle:libbrew/string_util.odin";
+
+import      "gl_util.odin";
+import      "debug_info.odin";
+import      "console.odin";
+import ja   "asset.odin";
 import stbi "stb_image.odin";
 
-CREATE_META_FILES :: false;
-
-Err :: int;
-
-ERR_SUCCESS         : Err : 0;
-ERR_PATH_NOT_FOUND  : Err : 1;
-ERR_NO_FILES_FOUND  : Err : 2;
-ERR_ASSET_NOT_FOUND : Err : 2;
-
-Kind :: enum {
+Asset_Kind :: enum {
     Texture,
-    Shader,
     Sound,
+    ShaderSource,
+    Font,
+    Model3D,
+    Meta,
+    TextAsset,
+    Unknown,
 }
+
+_extensions_to_types : map[string]Asset_Kind;
+created_catalogs : [dynamic]^Catalog;
 
 Catalog :: struct {
     name : string,
     path : string,
-    kind : Kind,
-    files_in_folder : int,
-    items: map[string]^ja.Asset,
-    max_size : uint, // This is if all assets are loaded
-    current_size: uint, // This is the currently loaded asset size
-    accepted_extensions : [dynamic]string,
+
+    items      : map[string]^ja.Asset,
+    items_kind : map[Asset_Kind]int,
+
+    files_in_catalog : int,
+    max_size         : int,
+    current_size     : int,
 }
 
-DebugInfo :: struct {
-    number_of_catalogs : int,
-    catalog_names : [dynamic]string,
-    catalogs : [dynamic]^Catalog,
+add_extensions :: proc(kind : Asset_Kind, exts : ...string) {
+    for e in exts {
+        _extensions_to_types[e] = kind;
+    }
 }
 
-debug_info : DebugInfo;
-
-create_new :: proc(kind : Kind, path : string, acceptedExtensions : string) -> (^Catalog, Err) {
-    return create_new(kind, path, path, acceptedExtensions);
+create :: proc(path : string) -> ^Catalog {
+    return create(path, path);
 }
 
-create_new :: proc(kind : Kind, identifier : string, path : string, acceptedExtensions : string) -> (^Catalog, Err) {
-    
-    add_texture :: proc(res : ^Catalog file : ja.FileInfo) {
-        asset := new(ja.Asset);
-        texture := ja.Asset.Texture{};
-        texture.file_info = file;
-        texture.loaded_from_disk = false;
-        c_str := strings.new_c_string(file.path); defer free(c_str);
-        w, h, c : i32;
-        stbi.info(c_str, &w, &h, &c);
-        texture.width  = int(w);
-        texture.height = int(h);
-        texture.comp   = int(c);
-        asset^ = texture;
-        res.items[asset.file_info.name] = asset;
+create :: proc(name : string, path : string) -> ^Catalog {
+    add_texture :: proc(asset : ^ja.Asset) {
+        texture := new(ja.Texture);
+        err := stbi.info(&asset.info.path[0], &texture.width, &texture.height, &texture.comp);
+        if err == 0 {
+            console.log_error("asset %s could not be opened or is not a recognized format by stb_image", asset.file_name);
+        }
+        texture.asset = asset;
+        asset.derived = texture;
     }
 
-    add_shader :: proc(res : ^Catalog file : ja.FileInfo) {
-        asset := new(ja.Asset);
-        shader := ja.Asset.Shader{};
-        shader.file_info = file;
-        shader.loaded_from_disk = false;
+    add_shader :: proc(asset : ^ja.Asset) {
+        shader := new(ja.Shader);
 
         //TODO(@Hoej): Fix this, this is bad
-        match shader.file_info.ext {
+        switch string_util.get_last_extension(asset.path) {
             case ".vs" : { shader.type_ = gl.ShaderTypes.Vertex; }
             case ".glslv" : { shader.type_ = gl.ShaderTypes.Vertex; }
             case ".vert" : { shader.type_ = gl.ShaderTypes.Vertex; }
@@ -99,248 +86,193 @@ create_new :: proc(kind : Kind, identifier : string, path : string, acceptedExte
             case ".frag" : { shader.type_ = gl.ShaderTypes.Fragment; }
             case ".glslf" : { shader.type_ = gl.ShaderTypes.Fragment; }
         }
-
-        asset^ = shader;
-        res.items[asset.file_info.name] = asset;
+        shader.asset = asset;
+        asset.derived = shader;
     }
 
-    add_sound :: proc(res : ^Catalog file : ja.FileInfo) {
-        asset := new(ja.Asset);
-        sound := ja.Asset.Sound{};
-        sound.file_info = file;
-        sound.loaded_from_disk = false;
-        asset^ = sound;
-        res.items[asset.file_info.name] = asset;        
-    }    
-
-    extract_accepted_extensions :: proc(res : ^Catalog, acceptedExtensions : string) {
-        if acceptedExtensions != "" {
-            strlen := len(acceptedExtensions);
-            last := 0;
-            for i := 0; i < strlen; i +=1  {
-                if acceptedExtensions[i] == ',' {
-                    append(res.accepted_extensions, acceptedExtensions[last..i]);
-                    last = i+1;
-                }
-
-                if i == strlen-1 {
-                    append(res.accepted_extensions, acceptedExtensions[last..i+1]);
-                }
-            } 
-        }
+    add_text_asset :: proc(asset : ^ja.Asset) {
+        text_asset := new(ja.TextAsset);
+        text_asset.extension = string_util.get_last_extension(asset.info.path);
+        text_asset.asset = asset;
+        asset.derived = text_asset;
     }
 
-    //Check if path exists
-    pstr := strings.new_c_string(path); defer free(pstr);
-    attr := win32.get_file_attributes_a(pstr);
-    if _is_directory(attr) {
+    add_font :: proc(asset : ^ja.Asset) {
+        font := new(ja.Font);
+        font.asset = asset;
+        asset.derived = font;
+    }
 
+    add_model_3d :: proc(asset : ^ja.Asset) {
+        model := new(ja.Model_3d);
+        model.asset = asset;
+        asset.derived = model;
+    }
+
+    if file.is_directory(path) {
         res := new(Catalog);
-        res.name = identifier;
-        buf := make([]byte, win32.MAX_PATH);
-        res.path = fmt.bprintf(buf[..], "%s%s", path, path[len(path)-1] == '/' ? "" : "/");
-        res.kind = kind;
-        extract_accepted_extensions(res, acceptedExtensions);
-        data := win32.FindData{};
-        fmt.bprintf(buf[..], "%s%s", path, path[len(path)-1] == '\\' ? "*" : "\\*");
-        fileH := win32.find_first_file_a(&buf[0], &data);
+        res.name = name;
+        res.path = path;
 
-        if fileH != win32.INVALID_HANDLE {
-            for win32.find_next_file_a(fileH, &data) == win32.TRUE {
-                if _is_directory(data.file_attributes) {
-                    continue;
-                }
-                nameBuf := make([]byte, len(data.file_name));
-                copy(nameBuf, data.file_name[..]);
-                str := strings.to_odin_string(&nameBuf[0]);
-                ext := _get_file_extension(str);
-                accepted := false;
-                file := ja.FileInfo{};
-                for accepted_ext in res.accepted_extensions {
-                    if ext == accepted_ext {                        
-                        file = _create_file_info(res.path, str, data);
-                        res.max_size += uint(file.size);
-                        //Check for meta file and make if not existing
-                        match kind {
-                            case Kind.Texture : {
-                                add_texture(res, file);
-                            }
+        entries := file.get_all_entries_in_directory(path, true);
+        res.files_in_catalog = len(entries);
+        for e in entries {
+            ext := string_util.get_last_extension(e);
 
-                            case Kind.Shader : {
-                                add_shader(res, file);
-                            }
+            asset := new(ja.Asset);
 
-                            case Kind.Sound : {
-                                add_sound(res, file);
-                            }
+            info := ja.Asset_Info{};
+            asset.info.file_name = string_util.remove_last_extension(e);
+            asset.info.file_name = string_util.remove_path_from_file(asset.info.file_name);
+            asset.info.path = e;
+            asset.info.size += int(file.get_file_size(e));
+            res.max_size += asset.info.size;            
+            if val, ok := _extensions_to_types[ext]; ok {
+                switch val {
+                    case Asset_Kind.Texture: {
+                        add_texture(asset);
+                    }
 
-                            case : {
-                                fmt.println(kind);
-                                panic("FUCK");
-                            }
-                        }
-                        accepted = true;
-                        break;
+                    case Asset_Kind.ShaderSource: {
+                        add_shader(asset);
+                    }
+
+                    case Asset_Kind.TextAsset: {
+                        add_text_asset(asset);
                     }
                 }
-                if accepted {
-                    _meta_file_check_and_create(file);
-                }
-                res.files_in_folder += 1;
+                res.items_kind[val] += 1;
+            } else {
+                res.items_kind[Asset_Kind.Unknown] += 1;
+                asset.derived = new(ja.Unknown);
+            }
+            
+            _, exists := res.items[asset.info.file_name];
+            if exists {
+                console.log_error("(%s catalog) Asset id: %s already exists, overwriting...", res.name, asset.info.file_name);
+                val := res.items[asset.info.file_name];
+                free(val); 
             }
 
-            debug_info.number_of_catalogs -= 1;
-            append(debug_info.catalog_names, res.name);
-            append(debug_info.catalogs, res);
-            return res, ERR_SUCCESS;
-        } else {
-            free(res);
-            return nil, ERR_NO_FILES_FOUND;
+            res.items[asset.info.file_name] = asset;
         }
-
+        append(&created_catalogs, res);
+        return res;
     } else {
-        return nil, ERR_PATH_NOT_FOUND;
+        return nil;
     }
 }
 
-find :: proc(catalog : ^Catalog, assetName : string/*, upload : bool*/) -> (^ja.Asset, Err) {
-    load_texture :: proc(e : ^ja.Asset.Texture, cat : ^Catalog) {
-        if e.gl_id == 0/* && upload*/ {
-            c_str := strings.new_c_string(e.file_info.path); defer free(c_str);
-            w, h, c : i32;
-            e.data = stbi.load(c_str, &w, &h, &c, 0); //defer stbi.image_free(data);
-            e.loaded_from_disk = true;
-            cat.current_size += uint(e.file_info.size);
-            e.width  = int(w);
-            e.height = int(h);
-            e.comp   = int(c);
-            e.gl_id = gl.gen_texture();
-            gl.bind_texture(gl.TextureTargets.Texture2D, e.gl_id);
-            format : gl.PixelDataFormat;
-            match e.comp {
-                case 1 : {
-                    format = gl.PixelDataFormat.Red;
-                }
-
-                case 2 : {
-                    format = gl.PixelDataFormat.RG;
-                }
-
-                case 3 : {
-                    format = gl.PixelDataFormat.RGB;
-                }
-
-                case 4 : {
-                    format = gl.PixelDataFormat.RGBA;
-                }
-            }
-            gl.tex_image2d(gl.TextureTargets.Texture2D, 0, gl.InternalColorFormat.RGBA, 
-                          i32(e.width), i32(e.height), format, 
-                          gl.Texture2DDataType.UByte, e.data);
-            gl.generate_mipmap(gl.MipmapTargets.Texture2D);
-
-            gl.tex_parameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MinFilter, gl.TextureParametersValues.LinearMipmapLinear);
-            gl.tex_parameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MagFilter, gl.TextureParametersValues.Linear);
-
-            gl.tex_parameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.WrapS, gl.TextureParametersValues.ClampToEdge);
-            gl.tex_parameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.WrapT, gl.TextureParametersValues.ClampToEdge);
-        }
-    }
-
-    load_shader :: proc(e : ^ja.Asset.Shader, cat : ^Catalog) {
-        if !e.loaded_from_disk {
-            e.loaded_from_disk = true;
-            data, _ := os.read_entire_file(e.file_info.path);
-            e.data = data;
-            e.source = strings.to_odin_string(&data[0]);
-            cat.current_size += uint(len(data));
-        }
-
-        if e.gl_id == 0/* && upload*/ {
-            e.gl_id, _ = gl_util.create_and_compile_shader(e.type_, e.source);
-        }
-    }
-
-    _, ok := catalog.items[assetName];
+find :: proc(catalog : ^Catalog, id_str : string) -> ^ja.Asset {
+    asset, ok := catalog.items[id_str];
 
     if ok {
-        asset := catalog.items[assetName];
-        if !asset.loaded_from_disk {
-
-            match e in asset {
-                case ja.Asset.Texture : {
-                    load_texture(e, catalog);
-                }
-
-                case ja.Asset.Shader : {
-                    load_shader(e, catalog);
-                }
-
-                case ja.Asset.Sound : 
-                case ja.Asset.ShaderProgram :
-                case : {
-                    console.log_error("Can't load asset of type: %T, yet...", e);
-                }
+        switch b in asset.derived {
+            case ^ja.Texture : {
+                _load_texture(b, catalog);
             }
+
+            case ^ja.Shader : {
+                _load_shader(b, catalog);
+            }
+
+            case ^ja.Shader : {
+                _load_shader(b, catalog);
+            }
+
+            case : 
+                console.log_error("CATALOG FIND ERROR");
         }
-        return asset, ERR_SUCCESS;
+
+        return asset;
     }
 
-    return nil, ERR_ASSET_NOT_FOUND;
+    return nil;
 }
 
-/////////////////////////////
-//////// Util
-_get_file_extension :: proc(filename : string) -> string {
-    strLen := len(filename);
+_load_model_3d :: proc(model : ^ja.Model_3d, cat : ^Catalog) {
 
-    for i := strLen-1; i > 0; i -= 1 {
-        if filename[i] == '.' {
-            res := filename[i..strLen];
-            if res == "." {
-                return "";
-            } else {
-                return res;
-            }
+}
+
+_load_texture :: proc(texture : ^ja.Texture, cat : ^Catalog) {
+    if !texture.info.loaded {
+        //TODO(Hoej): Probably shouldn't keep this around. Should free it.
+        texture.data = stbi.load(&texture.info.path[0], &texture.width, &texture.height, &texture.comp, 0);
+        if texture.data != nil {
+            texture.info.loaded = true;
+            cat.current_size += texture.info.size;
+        } else {
+            console.log_error("Image %s could not be loaded by stb_image", texture.info.file_name);
         }
     }
 
-    return "";
-}
-_get_file_name_without_extension :: proc(filename : string) -> string {
-    extlen := len(_get_file_extension(filename));
-    namelen := len(filename);
-    return filename[0..(namelen-extlen)];
-}
+    if texture.gl_id == 0 && texture.info.loaded {
+        texture.gl_id = gl.gen_texture();
+        append(&debug_info.ogl.textures, texture.gl_id);
+        prev_id := gl.get_integer(gl.GetIntegerNames.TextureBinding2D);
+        gl.bind_texture(gl.TextureTargets.Texture2D, texture.gl_id);
+        format : gl.PixelDataFormat;
+        switch texture.comp {
+            case 1 : {
+                format = gl.PixelDataFormat.Red;
+            }
 
-_is_directory :: proc(attr : u32) -> bool {
-   return (i32(attr) != win32.INVALID_FILE_ATTRIBUTES) && 
-          ((attr & win32.FILE_ATTRIBUTE_DIRECTORY) == win32.FILE_ATTRIBUTE_DIRECTORY);
-}
+            case 2 : {
+                format = gl.PixelDataFormat.RG;
+            }
 
-_create_file_info :: proc(path : string filename : string, data : win32.FindData) -> ja.FileInfo {
-    file := ja.FileInfo{};
-    file.name = _get_file_name_without_extension(filename);
-    file.ext  = _get_file_extension(filename);
-    pathBuf := make([]byte, win32.MAX_PATH);
-    file.path = fmt.bprintf(pathBuf[..], "%s%s", path, filename);
-    MAXDWORD :: 0xffffffff;
-    file.size =  u64(data.file_size_high) * u64(MAXDWORD+1) + u64(data.file_size_low);
-    return file;
-}
+            case 3 : {
+                format = gl.PixelDataFormat.RGB;
+            }
 
-_meta_file_check_and_create :: proc(asset_file : ja.FileInfo) {
-    if asset_file.ext == ".jeta" {
-        return;
+            case 4 : {
+                format = gl.PixelDataFormat.RGBA;
+            }
+        }
+        gl.tex_image2d(gl.TextureTargets.Texture2D, 0,              gl.InternalColorFormat.RGBA,
+                       texture.width,               texture.height, format, 
+                       gl.Texture2DDataType.UByte,  texture.data); 
+        gl.generate_mipmap(gl.MipmapTargets.Texture2D);
+
+        gl.tex_parameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MinFilter, gl.TextureParametersValues.LinearMipmapLinear);
+        gl.tex_parameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.MagFilter, gl.TextureParametersValues.Linear);
+
+        gl.tex_parameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.WrapS, gl.TextureParametersValues.ClampToEdge);
+        gl.tex_parameteri(gl.TextureTargets.Texture2D, gl.TextureParameters.WrapT, gl.TextureParametersValues.ClampToEdge);
+
+        gl.bind_texture(gl.TextureTargets.Texture2D, gl.Texture(prev_id));
     }
-    buf : [1024]byte;
-    meta_path := fmt.bprintf(buf[..], "%s.jeta", asset_file.path);
-    data := win32.FindData{};
-    fileH := win32.find_first_file_a(&buf[0], &data);
-    if fileH == win32.INVALID_HANDLE {
-        when CREATE_META_FILES {
-            console.log("meta file for %s not found. Creating meta file.", asset_file.path);
-            os.open(meta_path, os.O_WRONLY|os.O_CREAT, 0);
+}
+
+_load_shader :: proc(shader : ^ja.Shader, cat : ^Catalog) {
+    if !shader.info.loaded {
+        data, success := os.read_entire_file(shader.info.path);
+        if success {
+            shader.data = data;
+            shader.source = strings.to_odin_string(&shader.data[0]);
+
+            shader.info.loaded = true;
+            cat.current_size += shader.info.size;
+        } else {
+            console.log_error("%s could not be read from disk", shader.info.file_name);
+        }
+    }
+
+    if shader.gl_id == 0 && shader.info.loaded {
+        success := gl_util.create_and_compile_shader(shader);
+        if !success {
+            console.log_error("Shader %s could not be compiled", shader.info.file_name);
+        }
+    }
+}
+
+_load_font :: proc(font : ^ja.Font, cat : ^Catalog) {
+    if !font.loaded {
+        data, ok := os.read_entire_file(font.path);
+        if ok {
+            font.data = data;
+        } else {
+            console.log_error("Could not load font %s", font.file_name);
         }
     }
 }

@@ -6,19 +6,18 @@
  *  @Creation: 13-05-2017 23:48:58
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 24-09-2017 23:08:32
+ *  @Last Time: 15-11-2017 18:22:25
  *  
  *  @Description:
  *      Functions and data related to the renderer. 
  */
 import "core:math.odin";
 
-//import rq"render_queue.odin";
-import gl "libbrew/win/opengl.odin";
-import "engine.odin";
+import gl "mantle:libbrew/gl.odin";
+//import "engine.odin";
 import "catalog.odin";
 import "console.odin";
-//import glUtil "gl_util.odin";
+import glUtil "gl_util.odin";
 import ja "asset.odin";
 
 PixelsToUnits :: 64;
@@ -31,7 +30,7 @@ Command :: struct {
     derived : union { BitmapCmd, RectCmd, CircleCmd},
 }
 BitmapCmd :: struct {
-    texture : ^ja.Asset.Texture,
+    texture : ^ja.Texture,
 }
 
 RectCmd :: struct {
@@ -72,9 +71,9 @@ VirtualScreen :: struct {
 
 create_virtual_screen :: proc(w, h : int) -> ^VirtualScreen {
     screen := new(VirtualScreen);
-    screen.dimension.x = 1280;
-    screen.dimension.y = 720;
-    screen.aspect_ratio = screen.dimension.x / screen.dimension.y;
+    screen.dimension[0] = 1280;
+    screen.dimension[1] = 720;
+    screen.aspect_ratio = screen.dimension[0] / screen.dimension[1];
 
     return screen;
 }
@@ -82,15 +81,15 @@ create_virtual_screen :: proc(w, h : int) -> ^VirtualScreen {
 init :: proc(shaderCat : ^catalog.Catalog) -> ^State_t {
     state := new(State_t); 
 
-    vertexAsset, ok1 := catalog.find(shaderCat, "test_vert");
+/*    vertexAsset, ok1 := catalog.find(shaderCat, "test_vert");
     fragAsset, ok2 := catalog.find(shaderCat, "test_frag");
 
     if ok1 != catalog.ERR_SUCCESS || ok2 != catalog.ERR_SUCCESS {
         panic("Couldn't find the Bitmap shaders");
     }
 
-    vertex := vertexAsset.(^ja.Asset.Shader);
-    frag :=   fragAsset.(^ja.Asset.Shader);
+    vertex := vertexAsset.derived.(^ja.Shader);
+    frag :=   fragAsset.derived.(^ja.Shader);
     state.bitmap_program = glUtil.create_program(vertex^, frag^);
 
     vertexAsset, ok1 = catalog.find(shaderCat, "basic_vert");
@@ -100,8 +99,8 @@ init :: proc(shaderCat : ^catalog.Catalog) -> ^State_t {
         panic("Couldn't find the Solid shaders");
     }
 
-    vertex = vertexAsset.(^ja.Asset.Shader);
-    frag   = fragAsset.(^ja.Asset.Shader);
+    vertex = vertexAsset.derived.(^ja.Shader);
+    frag =   fragAsset.derived.(^ja.Shader);
     state.solid_program = glUtil.create_program(vertex^, frag^);
 
 
@@ -124,8 +123,8 @@ init :: proc(shaderCat : ^catalog.Catalog) -> ^State_t {
         1, 2, 3,
     };
 
-    gl.buffer_data(gl.BufferTargets.Array, size_of_val(vertices), &vertices[0], gl.BufferDataUsage.StaticDraw);
-    gl.buffer_data(gl.BufferTargets.ElementArray, size_of_val(elements), &elements[0], gl.BufferDataUsage.StaticDraw);
+    gl.buffer_data(gl.BufferTargets.Array, size_of(vertices), &vertices[0], gl.BufferDataUsage.StaticDraw);
+    gl.buffer_data(gl.BufferTargets.ElementArray, size_of(elements), &elements[0], gl.BufferDataUsage.StaticDraw);
 
 
     state.bitmap_program.Uniforms["Model"] = gl.get_uniform_location(state.bitmap_program, "Model");
@@ -149,20 +148,20 @@ init :: proc(shaderCat : ^catalog.Catalog) -> ^State_t {
     gl.vertex_attrib_pointer(u32(state.bitmap_program.Attributes["VertPos"]),  3, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), nil);
     gl.vertex_attrib_pointer(u32(state.bitmap_program.Attributes["UV"]),       2, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), rawptr(int(3 * size_of(f32))));
     gl.enable_vertex_attrib_array(u32(state.solid_program.Attributes["VertPos"]));
-
+*/
 
     return state;
 }
 
 calculate_ortho :: proc(window : math.Vec2, scaleFactor : math.Vec2, far, near : f32) -> math.Mat4 {
-    w := (window.x);
-    h := (window.y);
+    w := (window[0]);
+    h := (window[1]);
     l := -(w/ 2);
     r := w / 2;
     b := h / 2;
     t := -(h / 2);
     proj  := math.ortho3d(l, r, t, b, far, near);
-    return math.scale(proj, math.Vec3{scaleFactor.x, scaleFactor.y, 1.0});
+    return math.scale(proj, math.Vec3{scaleFactor[0], scaleFactor[1], 1.0});
 }
 
 create_view_matrix_from_camera :: proc(camera : ^Camera_t) -> math.Mat4 {
@@ -177,19 +176,19 @@ screen_to_world :: proc(screen_pos : math.Vec2, proj, view : math.Mat4, area : D
     map_to_range :: proc(t : f32, min : f32, max : f32) -> f32 {
         return (t - min) / (max - min);
     }
-    u := map_to_range(screen_pos.x, f32(area.x), f32(area.x + area.width));
-    v := map_to_range(screen_pos.y, f32(area.y), f32(area.y + area.height));
+    u := map_to_range(screen_pos[0], f32(area.x), f32(area.x + area.width));
+    v := map_to_range(screen_pos[1], f32(area.y), f32(area.y + area.height));
     p := math.Vec4{u * 2 - 1,
                    v * 2 - 1,
                    -1, 1};
 
     p = math.mul(math.inverse(proj), p);
-    p = math.Vec4{p.x, p.y, -1, 0};
+    p = math.Vec4{p[0], p[1], -1, 0};
     world := math.mul(math.inverse(view), p);
-    return math.Vec3{world.x + cam.pos.x, -world.y + cam.pos.y, 0}; 
+    return math.Vec3{world[0] + cam.pos[0], -world[1] + cam.pos[1], 0}; 
 }
 
-render_queue :: proc(ctx : ^engine.Context, camera : ^Camera_t, queue : ^rq.Queue) {
+/*render_queue :: proc(ctx : ^engine.Context, camera : ^Camera_t, queue : ^rq.Queue) {
     gl.enable(gl.Capabilities.DepthTest);
     gl.enable(gl.Capabilities.Blend);
     gl.depth_func(gl.DepthFuncs.Lequal);
@@ -221,7 +220,7 @@ render_queue :: proc(ctx : ^engine.Context, camera : ^Camera_t, queue : ^rq.Queu
     for !rq.IsEmpty(queue) {
         rcmd, _ := rq.Dequeue(queue);
 
-        match cmd in rcmd {
+        switch cmd in rcmd {
             case Command.Bitmap : {
                 height := f32(cmd.texture.height) / PixelsToUnits;
                 width := f32(cmd.texture.width) / PixelsToUnits;
