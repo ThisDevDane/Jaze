@@ -6,7 +6,7 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 24-11-2017 23:56:47
+ *  @Last Time: 11-12-2017 04:41:35
  *  
  *  @Description:
  *      Contains all the drawing code for debug windows.
@@ -391,14 +391,14 @@ show_catalog_window :: proc(catalogs : []^catalog.Catalog, show : ^bool) {
         imgui.indent(20);
         {
             for k, v in catalog.items_kind {
-                imgui.text("%v %v", k, v);
+                imgui.text("%v %v%s", v, k, v > 1 ? "s" : "");
             }
         }
         imgui.unindent(20);
         if imgui.begin_child(str_id = "Items", size = imgui.Vec2{0, -18}) {
             defer imgui.end_child();
             imgui.columns(count = 2, border = false);
-            for a in catalog.items {
+            for _, a in catalog.items {
                 imgui.selectable(label = a.file_name, flags = imgui.SelectableFlags.SpanAllColumns);
                 if imgui.is_item_hovered() {
                     imgui.begin_tooltip();
@@ -468,7 +468,7 @@ show_input_window :: proc(input : ^jinput.Input, show : ^bool) {
         imgui.next_column();
 
         if len(input.bindings) > 0 {
-            for v in input.bindings {
+            for _, v in input.bindings {
                 imgui.text("%v", v.id);
                 imgui.next_column();
                 imgui.text("%v", v.key);

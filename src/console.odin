@@ -6,7 +6,7 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 27-11-2017 00:35:35
+ *  @Last Time: 11-12-2017 04:36:35
  *  
  *  @Description:
  *      The console is an in engine window that can be pulled up for viewing.
@@ -67,19 +67,21 @@ _log_level_strings := []string{
 
 _error_callback : proc();
 
-log :: proc(fmt_ : string, args : ...any, loc := #caller_location) {
-    buf  : [_BUF_SIZE]u8;
-    str := fmt.bprintf(buf[..], fmt_, ...args);   
+logf :: proc(fmt_ : string, args : ...any, loc := #caller_location) {
+    data : [_BUF_SIZE]u8;
+    buf  := fmt.string_buffer_from_slice(data[..]);
+    str  := fmt.sbprintf(&buf, fmt_, ...args);   
     _internal_log(LogLevel.Info, str, loc);
 }
 
 log :: proc(args : ...any, loc := #caller_location) {
-    buf  : [_BUF_SIZE]u8;
-    str := fmt.bprint(buf[..], ...args);   
+    data : [_BUF_SIZE]u8;
+    buf  := fmt.string_buffer_from_slice(data[..]);
+    str  := fmt.sbprint(&buf, ...args);   
     _internal_log(LogLevel.Info, str, loc);
 }
 
-log_error :: proc(fmt_ : string, args : ...any, loc := #caller_location) {
+logf_error :: proc(fmt_ : string, args : ...any, loc := #caller_location) {
     buf  : [_BUF_SIZE]u8;
     str := fmt.bprintf(buf[..], fmt_, ...args);   
     _internal_log(LogLevel.Error, str, loc);
@@ -173,7 +175,7 @@ add_command :: proc(name : string p : CommandProc) {
 default_help_command :: proc(args : []string) {
     log("Available Commands: ");
     for val, key in _internal_data.commands {
-        log("\t%s", key);
+        logf("\t%s", key);
     }
 }
 
@@ -296,7 +298,7 @@ enter_input :: proc(input : []u8) {
         append(&_internal_data.history, strings.new_string(str));
         if !execute_command(str) {
             cmd_name, _ := string_util.split_first(str, ' ');
-            log_error("%s is not a command", cmd_name);
+            logf_error("%s is not a command", cmd_name);
         }
         input[0] = 0;
         _internal_data._scroll_to_bottom = true;

@@ -6,7 +6,7 @@
  *  @Creation: 31-05-2017 21:57:56
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 27-11-2017 00:13:43
+ *  @Last Time: 11-12-2017 04:39:54
  *  
  *  @Description:
  *      Entry point of Jaze
@@ -97,7 +97,7 @@ free_lib :: proc(lib : rawptr) {
 }
 
 main :: proc() {
-context <- mem.context_from_allocator(leak.leakcheck()) {
+/*context <- mem.context_from_allocator(leak.leakcheck()) */{
     console.set_error_callback(console_error_callback);
     console.add_default_commands();
     console.log("Program Start...");
@@ -142,12 +142,7 @@ context <- mem.context_from_allocator(leak.leakcheck()) {
     gl_vars               := gl.OpenGLVars{};
     
     console.log("Setting up catalogs...");
-    catalog.add_extensions(catalog.Asset_Kind.Texture, ".png", ".bmp", ".PNG", ".jpg", ".jpeg");
-    catalog.add_extensions(catalog.Asset_Kind.Sound, ".ogg");
-    catalog.add_extensions(catalog.Asset_Kind.ShaderSource, ".vs", ".vert", ".glslv");
-    catalog.add_extensions(catalog.Asset_Kind.ShaderSource, ".fs", ".frag", ".glslf");
-    catalog.add_extensions(catalog.Asset_Kind.Font, ".ttf");
-    catalog.add_extensions(catalog.Asset_Kind.Model3D, ".obj");
+    catalog.add_default_extensions();
     test_catalog    := catalog.create("test", "data\\test");
     texture_catalog := catalog.create("texture", "data\\textures");
     shader_catalog  := catalog.create("shader", "data\\shaders");
@@ -170,14 +165,11 @@ context <- mem.context_from_allocator(leak.leakcheck()) {
     xinput.init(set_proc_xinput, load_lib, true);
 
     console.log("Model test setup");
-    vertexAsset  := catalog.find(shader_catalog, "basic_vert");
-    fragAsset    := catalog.find(shader_catalog, "basic_frag");
-    vertex       := vertexAsset.derived.(^ja.Shader);
-    frag         := fragAsset.derived.(^ja.Shader);
+    vertex  := catalog.find(shader_catalog, "basic_vert", ja.Shader);
+    frag    := catalog.find(shader_catalog, "basic_frag", ja.Shader);
     test_program := gl_util.create_program(vertex, frag);
     test_program.Attributes["model_pos"] = gl.get_attrib_location(test_program, "model_pos");
     test_program.Attributes["model_norm"] = gl.get_attrib_location(test_program, "model_norm");
-
     test_program.Uniforms["angle"] = gl.get_uniform_location(test_program, "angle");
     test_program.Uniforms["res"] = gl.get_uniform_location(test_program, "res");
 
@@ -186,8 +178,8 @@ context <- mem.context_from_allocator(leak.leakcheck()) {
     test_vbo := gl.gen_vbo();
     test_normals := gl.gen_vbo();
     test_ebo := gl.gen_ebo();
-    model_asset := catalog.find(model_catalog, "monkey");
-    model := model_asset.derived.(^ja.Model_3d);
+    model := catalog.find(model_catalog, "monkey", ja.Model_3d);
+    
     {
         if model != nil {
             gl.bind_buffer(test_vbo);

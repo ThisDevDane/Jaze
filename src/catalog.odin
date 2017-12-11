@@ -6,7 +6,7 @@
  *  @Creation: 29-10-2017 21:45:51
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 26-11-2017 23:41:47
+ *  @Last Time: 11-12-2017 04:32:51
  *  
  *  @Description:
  *  
@@ -53,6 +53,15 @@ Catalog :: struct {
     current_size     : int,
 }
 
+add_default_extensions :: proc() {
+    add_extensions(Asset_Kind.Texture, ".png", ".bmp", ".PNG", ".jpg", ".jpeg");
+    add_extensions(Asset_Kind.Sound, ".ogg");
+    add_extensions(Asset_Kind.ShaderSource, ".vs", ".vert", ".glslv");
+    add_extensions(Asset_Kind.ShaderSource, ".fs", ".frag", ".glslf");
+    add_extensions(Asset_Kind.Font, ".ttf");
+    add_extensions(Asset_Kind.Model3D, ".obj");
+}
+
 add_extensions :: proc(kind : Asset_Kind, exts : ...string) {
     for e in exts {
         _extensions_to_types[e] = kind;
@@ -68,7 +77,7 @@ create :: proc(name : string, path : string) -> ^Catalog {
         texture := new(ja.Texture);
         err := stbi.info(&asset.info.path[0], &texture.width, &texture.height, &texture.comp);
         if err == 0 {
-            console.log_error("asset %s could not be opened or is not a recognized format by stb_image", asset.file_name);
+            console.logf_error("asset %s could not be opened or is not a recognized format by stb_image", asset.file_name);
         }
         texture.asset = asset;
         asset.derived = texture;
@@ -117,16 +126,18 @@ create :: proc(name : string, path : string) -> ^Catalog {
 
         entries := file.get_all_entries_in_directory(path, true);
         res.files_in_catalog = len(entries);
-        for e in entries {
-            ext := string_util.get_last_extension(e);
+        for entry_path in entries {
+            ext := string_util.get_last_extension(entry_path);
 
             asset := new(ja.Asset);
 
             info := ja.Asset_Info{};
-            asset.info.file_name = string_util.remove_last_extension(e);
+            //NOTE(Hoej): Looks funny but is correct, first removes the extension but the path is still there
+            //            so the second one removes it
+            asset.info.file_name = string_util.remove_last_extension(entry_path);
             asset.info.file_name = string_util.remove_path_from_file(asset.info.file_name);
-            asset.info.path = e;
-            asset.info.size += int(file.get_file_size(e));
+            asset.info.path = entry_path;
+            asset.info.size += file.get_file_size(entry_path);
             res.max_size += asset.info.size;            
             if val, ok := _extensions_to_types[ext]; ok {
                 switch val {
@@ -155,7 +166,7 @@ create :: proc(name : string, path : string) -> ^Catalog {
             
             val, exists := res.items[asset.info.file_name];
             if exists {
-                console.log_error("(%s catalog) Asset id: %s already exists, overwriting...\n%s vs %s", res.name, 
+                console.logf_error("(%s catalog) Asset id: %s already exists, overwriting...\n%s vs %s", res.name, 
                                                                                                         asset.info.file_name, 
                                                                                                         val.info.path, 
                                                                                                         asset.info.path);
@@ -167,8 +178,22 @@ create :: proc(name : string, path : string) -> ^Catalog {
         append(&created_catalogs, res);
         return res;
     } else {
-        console.log_error("(%s catalog) %s is either not a folder or does not exists.", name, path);
+        console.logf_error("(%s catalog) %s is either not a folder or does not exists.", name, path);
         return nil;
+    }
+}
+
+find :: proc(catalog : ^Catalog, id_str : string, T : type) -> ^T {
+    ptr := find(catalog, id_str);
+    if ptr != nil {
+        res, ok := ptr.derived.(^T);
+        if ok {
+            return res;
+        } else {
+            return nil;
+        }
+    } else {
+        return nil;       
     }
 }
 
@@ -195,12 +220,12 @@ find :: proc(catalog : ^Catalog, id_str : string) -> ^ja.Asset {
 
             case : 
                 //TODO(Hoej): Make better error message
-                console.log_error("CATALOG FIND ERROR");
+                console.logf_error("(%s Catalog) System does not know how to load '%s' of type %T", catalog.name, id_str, b);
         }
 
         return asset;
     }
-
+    console.logf_error("(%s Catalog) Could not find an asset named '%s'", catalog.name, id_str);
     return nil;
 }
 
@@ -212,7 +237,7 @@ _load_model_3d :: proc(model : ^ja.Model_3d, cat : ^Catalog) {
             model^ = obj.parse(string(text));
             model.asset = asset;
         } else {
-            console.log_error("Could not read %s", model.file_name);
+            console.logf_error("(%s Catalog) Could not read %s", cat.name, model.file_name);
         }
     } 
 }
@@ -225,7 +250,7 @@ _load_texture :: proc(texture : ^ja.Texture, cat : ^Catalog) {
             texture.info.loaded = true;
             cat.current_size += texture.info.size;
         } else {
-            console.log_error("Image %s could not be loaded by stb_image", texture.info.file_name);
+            console.logf_error("Image %s could not be loaded by stb_image", texture.info.file_name);
         }
     }
 
@@ -277,14 +302,14 @@ _load_shader :: proc(shader : ^ja.Shader, cat : ^Catalog) {
             shader.info.loaded = true;
             cat.current_size += shader.info.size;
         } else {
-            console.log_error("%s could not be read from disk", shader.info.file_name);
+            console.logf_error("%s could not be read from disk", shader.info.file_name);
         }
     }
 
     if shader.gl_id == 0 && shader.info.loaded {
         success := gl_util.create_and_compile_shader(shader);
         if !success {
-            console.log_error("Shader %s could not be compiled", shader.info.file_name);
+            console.logf_error("Shader %s could not be compiled", shader.info.file_name);
         }
     }
 }
@@ -295,7 +320,7 @@ _load_font :: proc(font : ^ja.Font, cat : ^Catalog) {
         if ok {
             font.data = data;
         } else {
-            console.log_error("Could not load font %s", font.file_name);
+            console.logf_error("Could not load font %s", font.file_name);
         }
     }
 }

@@ -6,7 +6,7 @@
  *  @Creation: 13-05-2017 23:48:58
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 15-11-2017 18:22:25
+ *  @Last Time: 06-12-2017 22:15:48
  *  
  *  @Description:
  *      Functions and data related to the renderer. 
@@ -165,7 +165,7 @@ calculate_ortho :: proc(window : math.Vec2, scaleFactor : math.Vec2, far, near :
 }
 
 create_view_matrix_from_camera :: proc(camera : ^Camera_t) -> math.Mat4 {
-    view := math.scale(math.mat4_identity(), math.Vec3{camera.zoom, camera.zoom, 1});
+    view := math.scale(math.identity(math.Mat4), math.Vec3{camera.zoom, camera.zoom, 1});
     //rot := math.mat4_rotate(math.Vec3{0, 0, 1}, math.to_radians(camera.Rot));
     //view = math.mul(view, rot);
     tr := math.mat4_translate(-camera.pos);
