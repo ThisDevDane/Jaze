@@ -6,7 +6,7 @@
  *  @Creation: 23-11-2017 00:26:57
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 26-11-2017 20:20:47
+ *  @Last Time: 11-12-2017 04:54:17
  *  
  *  @Description:
  *      A (bad) Wavefront OBJ parser.
@@ -24,24 +24,21 @@ parse :: proc(text : string) -> ja.Model_3d {
     line, rem := string_util.get_line_and_remainder(text);
     for rem != "" {
         line_header := get_line_header(line);
+        switch(line_header) {
+            case "v" : 
+                parse_f32_triple_line(line[len("v")+1..], &result.vertices);
 
-        if line_header == "v" {
-            parse_f32_triple_line(line[len("v")+1..], &result.vertices);
-        }
+            case "vn" :
+                parse_f32_triple_line(line[len("vn")+1..], &result.normals);
 
-        if line_header == "vn" {
-            parse_f32_triple_line(line[len("vn")+1..], &result.normals);
-        }
+            case "vt" :
+                parse_f32_triple_line(line[len("vt")+1..], &result.uvs);
 
-        if line_header == "vt" {
-            parse_f32_triple_line(line[len("vt")+1..], &result.uvs);
-        }
-
-        //TODO(Hoej): Parse uv and normal indices, remember that UVs are optional eg 'f 23//2 25//1 73//9'
-        if line_header == "f" {
-            parse_indices_line(line[len("f")+1..], &result.vert_indices, 
-                                                   &result.norm_indicies,
-                                                   &result.uv_indicies);
+            //TODO(Hoej): Parse uv and normal indices, remember that UVs are optional eg 'f 23//2 25//1 73//9'
+            case "f" : 
+                parse_indices_line(line[len("f")+1..], &result.vert_indices, 
+                                                       &result.norm_indicies,
+                                                       &result.uv_indicies);
         }
 
         line, rem = string_util.get_line_and_remainder(rem);
