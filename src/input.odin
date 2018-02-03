@@ -6,7 +6,7 @@
  *  @Creation: 03-05-2017 17:54:46
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 11-11-2017 14:06:32
+ *  @Last Time: 25-01-2018 00:07:21 UTC+1
  *  
  *  @Description:
  *      Contains constructs related to Input.
@@ -16,9 +16,9 @@
 import win32 "core:sys/windows.odin";
 import "core:math.odin";
 
-import "mantle:libbrew/win/window.odin";
+import "shared:libbrew/win/window.odin";
 
-import "mantle:odin-xinput/xinput.odin";
+import "shared:odin-xinput/xinput.odin";
 
 ButtonStates :: enum u8 {
     Up,
@@ -96,7 +96,9 @@ set_input_neutral :: proc(input : ^Input) {
     }
 }
 
-add_binding :: proc(input : ^Input, name : string, key : win32.Key_Code) {
+add_binding :: proc[add_binding_keybord, add_binding_gamepad];
+
+add_binding_keybord :: proc(input : ^Input, name : string, key : win32.Key_Code) {
     _, ok := input.bindings[name];
     if ok {
         input.bindings[name].key = key;
@@ -109,7 +111,7 @@ add_binding :: proc(input : ^Input, name : string, key : win32.Key_Code) {
     }
 }
 
-add_binding :: proc(input : ^Input, name : string, xKey : xinput.Buttons) {
+add_binding_gamepad :: proc(input : ^Input, name : string, xKey : xinput.Buttons) {
         _, ok := input.bindings[name];
     if ok {
         input.bindings[name].x_button = xKey;

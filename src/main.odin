@@ -6,7 +6,7 @@
  *  @Creation: 31-05-2017 21:57:56
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 11-12-2017 04:39:54
+ *  @Last Time: 03-02-2018 21:36:37 UTC+1
  *  
  *  @Description:
  *      Entry point of Jaze
@@ -16,35 +16,35 @@ import "core:os.odin";
 import "core:strings.odin";
 import "core:mem.odin";
 
-import       "mantle:libbrew/win/window.odin";
-import       "mantle:libbrew/win/msg.odin";
-import       "mantle:libbrew/win/file.odin";
-import misc  "mantle:libbrew/win/misc.odin";
-import input "mantle:libbrew/win/keys.odin";
-import wgl   "mantle:libbrew/win/opengl.odin";
+import       "shared:libbrew/win/window.odin";
+import       "shared:libbrew/win/msg.odin";
+import       "shared:libbrew/win/file.odin";
+import misc  "shared:libbrew/win/misc.odin";
+import input "shared:libbrew/win/keys.odin";
+import wgl   "shared:libbrew/win/opengl.odin";
 
-import       "mantle:libbrew/gl.odin";
-import imgui "mantle:libbrew/brew_imgui.odin";
-import       "mantle:libbrew/string_util.odin";
+import         "shared:libbrew/gl.odin";
+import imgui   "shared:libbrew/brew_imgui.odin";
+import         "shared:libbrew/string_util.odin";
+import console "shared:libbrew/imgui_console.odin";
+import leak    "shared:libbrew/leakcheck.odin";
 
-import       "mantle:odin-xinput/xinput.odin"; 
-import curl  "mantle:ocurl/ocurl_easy.odin";
+import       "shared:odin-xinput/xinput.odin"; 
+import curl  "shared:ocurl/ocurl_easy.odin";
 
 import         "debug_info.odin";
 import         "gl_util.odin";
 import         "engine.odin";
-import         "console.odin";
 import         "catalog.odin";
-import leak    "leakcheck_allocator.odin";
 import obj     "obj_parser.odin";
 import shower  "window_shower.odin";
 import dbg_win "debug_windows.odin";
 import jinput  "input.odin";
 import ja      "asset.odin";
-import kvs     "key_value_store.odin";
+//import kvs     "key_value_store.odin";
 
 opengl_debug_callback :: proc "cdecl" (source : gl.DebugSource, type_ : gl.DebugType, id : i32, severity : gl.DebugSeverity, length : i32, message : ^u8, userParam : rawptr) {
-    console.log_error("[%v | %v | %v] %s \n", source, type_, severity, strings.to_odin_string(message));
+    console.logf_error("[%v | %v | %v] %s \n", source, type_, severity, strings.to_odin_string(message));
 }
 
 console_error_callback :: proc() {
@@ -96,15 +96,61 @@ free_lib :: proc(lib : rawptr) {
     misc.free_library(misc.LibHandle(lib));
 }
 
+jaze_style :: proc() {
+    style := imgui.get_style();
+
+    style.window_padding        = imgui.Vec2{6, 6};
+    style.window_rounding       = 0;
+    style.child_rounding        = 2;
+    style.frame_padding         = imgui.Vec2{4 ,2};
+    style.frame_rounding        = 2;
+    style.frame_border_size     = 1;
+    style.item_spacing          = imgui.Vec2{8, 4};
+    style.item_inner_spacing    = imgui.Vec2{4, 4};
+    style.touch_extra_padding   = imgui.Vec2{0, 0};
+    style.indent_spacing        = 20;
+    style.scrollbar_size        = 12;
+    style.scrollbar_rounding    = 9;
+    style.grab_min_size         = 9;
+    style.grab_rounding         = 1;
+    style.window_title_align    = imgui.Vec2{0.48, 0.5};
+    style.button_text_align     = imgui.Vec2{0.5, 0.5};
+
+    style.colors[imgui.Color.Text]                  = imgui.Vec4{1.00, 1.00, 1.00, 1.00};
+    style.colors[imgui.Color.TextDisabled]          = imgui.Vec4{0.63, 0.63, 0.63, 1.00};
+    style.colors[imgui.Color.WindowBg]              = imgui.Vec4{0.23, 0.23, 0.23, 0.98};
+    style.colors[imgui.Color.ChildBg]               = imgui.Vec4{0.20, 0.20, 0.20, 1.00};
+    style.colors[imgui.Color.PopupBg]               = imgui.Vec4{0.25, 0.25, 0.25, 0.96};
+    style.colors[imgui.Color.Border]                = imgui.Vec4{0.18, 0.18, 0.18, 0.98};
+    style.colors[imgui.Color.BorderShadow]          = imgui.Vec4{0.00, 0.00, 0.00, 0.04};
+    style.colors[imgui.Color.FrameBg]               = imgui.Vec4{0.00, 0.00, 0.00, 0.29};
+    style.colors[imgui.Color.TitleBg]               = imgui.Vec4{32.0/255.00, 32.0/255.00, 32.0/255.00, 1};
+    style.colors[imgui.Color.TitleBgCollapsed]      = imgui.Vec4{0.12, 0.12, 0.12, 0.49};
+    style.colors[imgui.Color.TitleBgActive]         = imgui.Vec4{32.0/255.00, 32.0/255.00, 32.0/255.00, 1};
+    style.colors[imgui.Color.MenuBarBg]             = imgui.Vec4{0.11, 0.11, 0.11, 0.42};
+    style.colors[imgui.Color.ScrollbarBg]           = imgui.Vec4{0.00, 0.00, 0.00, 0.08};
+    style.colors[imgui.Color.ScrollbarGrab]         = imgui.Vec4{0.27, 0.27, 0.27, 1.00};
+    style.colors[imgui.Color.ScrollbarGrabHovered]  = imgui.Vec4{0.78, 0.78, 0.78, 0.40};
+    style.colors[imgui.Color.CheckMark]             = imgui.Vec4{0.78, 0.78, 0.78, 0.94};
+    style.colors[imgui.Color.SliderGrab]            = imgui.Vec4{0.78, 0.78, 0.78, 0.94};
+    style.colors[imgui.Color.Button]                = imgui.Vec4{0.42, 0.42, 0.42, 0.60};
+    style.colors[imgui.Color.ButtonHovered]         = imgui.Vec4{0.78, 0.78, 0.78, 0.40};
+    style.colors[imgui.Color.Header]                = imgui.Vec4{0.31, 0.31, 0.31, 0.98};
+    style.colors[imgui.Color.HeaderHovered]         = imgui.Vec4{0.78, 0.78, 0.78, 0.40};
+    style.colors[imgui.Color.HeaderActive]          = imgui.Vec4{0.80, 0.50, 0.50, 1.00};
+    style.colors[imgui.Color.TextSelectedBg]        = imgui.Vec4{0.65, 0.35, 0.35, 0.26};
+    style.colors[imgui.Color.ModalWindowDarkening]  = imgui.Vec4{0.20, 0.20, 0.20, 0.35};
+}
+
+
 main :: proc() {
-/*context <- mem.context_from_allocator(leak.leakcheck()) */{
     console.set_error_callback(console_error_callback);
     console.add_default_commands();
     console.log("Program Start...");
     app_handle := misc.get_app_handle();
     width, height := 1280, 720;
     console.log("Creating Window...");
-    wnd_handle := window.create_window(app_handle, "LibBrew Example", true, 100, 100, width, height);
+    wnd_handle := window.create_window(app_handle, "Jaze", width, height);
     console.log("Creating GL Context...");
     glCtx      := wgl.create_gl_context(wnd_handle, 4, 5);
     console.log("Load GL Functions...");
@@ -112,7 +158,7 @@ main :: proc() {
 
     dear_state := new(imgui.State);
     console.log("Initialize Dear ImGui...");
-    imgui.init(dear_state, wnd_handle);
+    imgui.init(dear_state, wnd_handle, jaze_style, true);
 
     wgl.swap_interval(-1);
     gl.clear_color(41/255.0, 57/255.0, 84/255.0, 1);
@@ -130,24 +176,20 @@ main :: proc() {
     time_data             := misc.create_time_data();
     acc_time              := 0.0;
     i                     := 0;
-    dragging              := false;
-    sizing_x              := false;
-    sizing_y              := false;
-    maximized             := false;
     shift_down            := false;
     new_frame_state       := imgui.FrameState{};
     show_test             := false;
     show_gl_info          := false;
     show_shower_state    := false;
-    gl_vars               := gl.OpenGLVars{};
+    gl_vars               := gl.Opengl_Vars{};
     
     console.log("Setting up catalogs...");
     catalog.add_default_extensions();
+    catalog.setup_mutex();
     test_catalog    := catalog.create("test", "data\\test");
     texture_catalog := catalog.create("texture", "data\\textures");
     shader_catalog  := catalog.create("shader", "data\\shaders");
     sound_catalog   := catalog.create("sound", "data\\sounds");
-    map_catalog     := catalog.create("map", "data\\maps");
     font_catalog    := catalog.create("font", "data\\fonts");
     model_catalog   := catalog.create("model", "data\\models");
     
@@ -178,7 +220,14 @@ main :: proc() {
     test_vbo := gl.gen_vbo();
     test_normals := gl.gen_vbo();
     test_ebo := gl.gen_ebo();
-    model := catalog.find(model_catalog, "monkey", ja.Model_3d);
+    model := catalog.find(model_catalog, "knightRed", ja.Model_3d);
+    console.logf("Vert: %d", model.vert_num);
+    console.logf("Norm: %d", model.norm_num);
+    console.logf("UV:   %d", model.uv_num);
+
+    console.logf("Vert Ind: %d", model.vert_ind_num);
+    console.logf("Norm Ind: %d", model.norm_ind_num);
+    console.logf("UV Ind:   %d", model.uv_ind_num);
     
     {
         if model != nil {
@@ -203,6 +252,7 @@ main :: proc() {
 main_loop: 
     for {
         prev_lm_down = lm_down ? true : false;
+        new_frame_state.mouse_wheel = 0;
         for msg.poll_message(&message) {
             switch msg in message {
                 case msg.MsgQuitMessage : {
@@ -251,10 +301,10 @@ main_loop:
                     jinput.set_input_neutral(EngineContext.input);
                 }
 
-                /*case msg.Msg.MouseMove : {
+                case msg.MsgMouseMove : {
                     mpos_x = msg.x;
                     mpos_y = msg.y;
-                }*/
+                }
 
                 case msg.MsgSizeChange : {
                     width = msg.width;
@@ -262,11 +312,15 @@ main_loop:
                     gl.viewport(0, 0, i32(width), i32(height));
                     gl.scissor (0, 0, i32(width), i32(height));
                 }
+
+                case msg.MsgMouseWheel : {
+                    new_frame_state.mouse_wheel = msg.distance;
+                }
             }
         }
         dt := misc.time(&time_data);
         acc_time += dt;
-        mpos_x, mpos_y = window.get_mouse_pos(wnd_handle);
+        //mpos_x, mpos_y = window.get_mouse_pos(wnd_handle);
         new_frame_state.deltatime = f32(dt);
         new_frame_state.mouse_x = mpos_x;
         new_frame_state.mouse_y = mpos_y;
@@ -274,6 +328,8 @@ main_loop:
         new_frame_state.window_height = height;
         new_frame_state.left_mouse = lm_down;
         new_frame_state.right_mouse = rm_down;
+
+        catalog.handle_changes();
 
         gl.clear(gl.ClearFlags.COLOR_BUFFER | gl.ClearFlags.DEPTH_BUFFER);
 
@@ -290,133 +346,63 @@ main_loop:
             jinput.update(EngineContext.input);
         }
         imgui.begin_new_frame(&new_frame_state);
-        imgui.begin_main_menu_bar();
-        {
-            h := imgui.is_window_hovered();
-            f := imgui.is_window_focused();
-            if f && h { //NOTE: kinda works, needs more work
-                dragging = true;
-                if imgui.is_mouse_double_clicked(0) {
-                    dragging = false;
-                    if !maximized {
-                        window.maximize_window(wnd_handle);
-                        maximized = true;
-                    } else {
-                        window.restore_window(wnd_handle);
-                        maximized = false;
-                    }
-                }
-            } else {
-                dragging = false;
-            }
-
-            imgui.begin_menu("Jaze    |###WindowTitle", false);
-            if imgui.begin_menu("Misc###LibbrewMain") {
+        if imgui.begin_main_menu_bar() {
+            defer imgui.end_main_menu_bar();
+            
+            if imgui.begin_menu("Misc") {
+                defer imgui.end_menu();
                 if imgui.checkbox("Adpative Vsync", &adaptive_vsync) {
                     wgl.swap_interval(adaptive_vsync ? -1 : 0);
                 }
-                if imgui.menu_item(label = "Show Test Window") {
+
+                if imgui.menu_item("Show Test Window") {
                     shower.toggle_window_state("test_window");
                 }
+                
                 imgui.menu_item(label = "LibBrew Info", enabled = false);
-                if imgui.menu_item(label = "OpenGL Info") {
+                
+                if imgui.menu_item("OpenGL Info") {
                     shower.toggle_window_state("opengl_info");
                 }
+                
                 if imgui.begin_menu("xInput") {
-                    if imgui.menu_item(label = "Info") {
+                    defer imgui.end_menu();
+                    if imgui.menu_item("Info") {
                         shower.toggle_window_state("xinput_info");
                     }
-                    if imgui.menu_item(label = "State") {
+                    if imgui.menu_item("State") {
                         shower.toggle_window_state("xinput_state");
                     }
-                    imgui.end_menu();
                 }
-                if imgui.menu_item(label = "Debug Windows Info") {
+                
+                if imgui.menu_item("Debug Windows Info") {
                     shower.toggle_window_state("debug_state");
                 }
-                if imgui.menu_item(label = "Console") {
+                
+                if imgui.menu_item("Console") {
                     shower.toggle_window_state("console");
                 }
-                if imgui.menu_item(label = "Catalog") {
+                
+                if imgui.menu_item("Catalog") {
                     shower.toggle_window_state("catalog_window");
                 }
-                if imgui.menu_item(label = "Input") {
+                
+                if imgui.menu_item("Input") {
                     shower.toggle_window_state("input_window");
                 }
+                
                 imgui.separator();
                 imgui.menu_item("Toggle Fullscreen", "Alt+Enter", false);
+                
                 if imgui.menu_item("Exit", "LShift + Esc") {
                     break main_loop;
                 }
-                imgui.end_menu();
             }
         }
-        imgui.end_main_menu_bar();
-        if imgui.is_mouse_down(0) && dragging {
-            d : imgui.Vec2;
-            imgui.get_mouse_drag_delta(&d);
-            x, y := window.get_window_pos(wnd_handle);
-            window.set_window_pos(wnd_handle, x + int(d.x), y + int(d.y));
-            if maximized && d.x != 0 && d.y != 0 {
-                maximized = false;
-                window.restore_window(wnd_handle);
-            }
-        } else {
-            dragging = false;
-        }
-
-        is_between :: inline proc(v, min, max : int) -> bool {
-            return v >= min && v <= max;
-        }
-
-        if lm_down && !prev_lm_down { 
-            if is_between(mpos_x, width-4, width+4) {
-                sizing_x = true;
-            }
-
-            if is_between(mpos_y, height-4, height+4) {
-                sizing_y = true;
-            }
-        }
-
-        new_w : int;
-        new_h : int;
-       
-        if (sizing_x || sizing_y) && lm_down {
-            new_w = sizing_x ? mpos_x+2 : width;
-            new_h = sizing_y ? mpos_y+2 : height;
-            window.set_window_size(wnd_handle, new_w+2, new_h+2);
-        } else {
-            sizing_x = false;
-            sizing_y = false;
-        }
-       /* if imgui.begin("Source Test") {
-            output_line_number :: proc(i : int) {
-                imgui.push_style_color(imgui.GuiCol.Text, imgui.Vec4{1, 1, 1, 0.4});
-                imgui.text("%v", i); imgui.same_line(0, 5);
-                imgui.pop_style_color();
-            }
-
-            imgui.begin_child(str_id = "source", border = false);
-            {
-                i := 0;
-                output_line_number(i);
-                line, r := string_util.get_line_and_remainder(shader.source);
-                imgui.text(line);
-                for r != "" {
-                    line, r = string_util.get_line_and_remainder(r);
-                    i += 1;
-                    output_line_number(i);
-                    imgui.text(line);
-                }
-            }
-            imgui.end_child();
-        }
-        imgui.end();*/
 
         if shower.get_window_state("test_window") {
             b := shower.get_window_state("test_window");
-            imgui.show_test_window(&b);
+            imgui.show_demo_window(&b);
             shower.set_window_state("test_window", b);
         }
 
@@ -437,12 +423,31 @@ main_loop:
             shower.set_window_state("catalog_window", b);
         }
 
+        {
+            c := shower.get_window_state("console");
+            cl := shower.get_window_state("console_log");
+            ch := shower.get_window_state("console_history");
+            if c {
+                console.draw_console(&c, &cl, &ch);
+            }
+
+            if cl {
+                console.draw_log(&cl);
+            }
+
+            if ch {
+                console.draw_history(&ch);
+            }
+
+            shower.set_window_state("console", c);
+            shower.set_window_state("console_log", cl);
+            shower.set_window_state("console_history", ch);
+        }
+     
         shower.try_show_window("texture_overview", dbg_win.show_gl_texture_overview);
         shower.try_show_window("debug_state",      shower.show_debug_windows_states);
         shower.try_show_window("xinput_info",      dbg_win.show_xinput_info_window);
         shower.try_show_window("xinput_state",     dbg_win.show_xinput_state_window);
-        shower.try_show_window("console",          console.draw_console);
-        shower.try_show_window("console_log",      console.draw_log);
 
         dbg_win.stat_overlay(nil);
 
@@ -456,5 +461,4 @@ main_loop:
 
     console.log("Ending Application...");
     imgui.shutdown();
-}
 }

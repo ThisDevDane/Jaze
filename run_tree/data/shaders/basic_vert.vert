@@ -14,7 +14,9 @@ vec3 convert(vec3 model_pos) {
 } 
 
 void main() {
-    gl_Position.xyz = convert(model_pos);
+    vec3 pos = model_pos;
+    pos += 1;
+    gl_Position.xyz = convert(pos);
     gl_Position.x *= res.y/res.x;
     gl_Position.w   = 1.0;
     //vert_norm = convert(model_norm);

@@ -6,12 +6,12 @@
  *  @Creation: 21-04-2017 03:04:34
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 24-11-2017 23:22:22
+ *  @Last Time: 03-02-2018 21:19:46 UTC+1
  *  
  *  @Description:
  *      Contains the asset construct and associated data.
  */
-import gl "mantle:libbrew/gl.odin";
+import gl "shared:libbrew/gl.odin";
 
 Asset_Info :: struct {
     file_name : string,
@@ -38,8 +38,11 @@ Shader :: struct {
     using asset : ^Asset,
     gl_id       : gl.Shader,
     type_       : gl.ShaderTypes,
-    source      : string,
+    program     : gl.Program,
+
     data        : []u8,
+    source      : string,
+    fnv64_hash  : u64,
 }
 
 TextAsset :: struct {
@@ -60,12 +63,12 @@ Model_3d :: struct {
     uvs      : [dynamic]f32,
 
     vert_indices  : [dynamic]u32,  
-    norm_indicies : [dynamic]u32,  
-    uv_indicies   : [dynamic]u32,
+    norm_indices : [dynamic]u32,  
+    uv_indices   : [dynamic]u32,
 
     vert_num : int,
     norm_num : int,
-    uvs_num  : int,
+    uv_num   : int,
 
     vert_ind_num : int,
     norm_ind_num : int,

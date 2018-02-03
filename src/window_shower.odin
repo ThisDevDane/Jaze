@@ -6,13 +6,13 @@
  *  @Creation: 15-11-2017 18:23:51
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 15-11-2017 20:25:40
+ *  @Last Time: 02-02-2018 22:37:46 UTC+1
  *  
  *  @Description:
  *  
  */
 
-import imgui "mantle:libbrew/brew_imgui.odin";
+import imgui "shared:libbrew/brew_imgui.odin";
 
 global_debug_wnd_bools : map[string]bool;
 
@@ -43,11 +43,11 @@ try_show_window :: proc(id : string, p : proc(b : ^bool)) {
 }
 
 show_debug_windows_states :: proc(show : ^bool) {
-    imgui.begin("Debug Window States", show, imgui.WindowFlags.ShowBorders |  imgui.WindowFlags.NoCollapse);
+    imgui.begin("Debug Window States", show, imgui.Window_Flags.NoCollapse);
     {
         imgui.begin_child("Window States");
         imgui.columns(2, "nil", true);
-        for val, id in global_debug_wnd_bools {
+        for id, val in global_debug_wnd_bools {
             imgui.text("%s", id);
             imgui.next_column();
             imgui.text("%t", val);

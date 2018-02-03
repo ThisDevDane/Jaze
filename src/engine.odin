@@ -6,7 +6,7 @@
  *  @Creation: 04-05-2017 15:13:05
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 26-11-2017 23:39:34
+ *  @Last Time: 25-01-2018 00:04:28 UTC+1
  *  
  *  @Description:
  *      Contains the engine context.
@@ -15,7 +15,7 @@ import "core:math.odin";
 import "input.odin";
 import "time.odin";
 import "renderer.odin";
-import imgui "mantle:libbrew/brew_imgui.odin";
+import imgui "shared:libbrew/brew_imgui.odin";
 
 Context :: struct {
     settings             : ^Setting,

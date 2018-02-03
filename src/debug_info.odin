@@ -6,13 +6,13 @@
  *  @Creation: 27-10-2017 23:21:47
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 13-11-2017 00:46:31
+ *  @Last Time: 25-01-2018 00:04:19 UTC+1
  *  
  *  @Description:
  *  
  */
 
-import "mantle:libbrew/gl.odin";
+import "shared:libbrew/gl.odin";
 
 Function_Load_Status :: struct {
     name    : string,

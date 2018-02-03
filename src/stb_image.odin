@@ -3,7 +3,7 @@ foreign import stbi"../external/stb_image.lib"
 //
 // load image by filename, open file, or memory buffer
 //
-Io_Callbacks :: struct #ordered {
+Io_Callbacks :: struct {
     read : proc "cdecl"(user: rawptr, data: ^u8, size: i32) -> i32, // fill 'data' with 'size' u8s.  return number of u8s actually read
     skip : proc "cdecl"(user: rawptr, n: i32),                        // skip the next 'n' u8s, or 'unget' the last -n u8s if negative
     eof  : proc "cdecl"(user: rawptr) -> i32,                         // returns nonzero if we are at end of file/data

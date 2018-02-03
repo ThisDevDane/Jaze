@@ -6,7 +6,7 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 11-12-2017 04:41:35
+ *  @Last Time: 03-02-2018 21:19:06 UTC+1
  *  
  *  @Description:
  *      Contains all the drawing code for debug windows.
@@ -14,20 +14,20 @@
 import       "core:fmt.odin";
 import win32 "core:sys/windows.odin";
 
-import       "mantle:odin-xinput/xinput.odin"; 
-import gl    "mantle:libbrew/gl.odin";
-import wgl   "mantle:libbrew/win/opengl_wgl.odin";
-import imgui "mantle:libbrew/brew_imgui.odin";
+import       "shared:odin-xinput/xinput.odin"; 
+import gl    "shared:libbrew/gl.odin";
+import wgl   "shared:libbrew/win/opengl_wgl.odin";
+import imgui "shared:libbrew/brew_imgui.odin";
+import console "shared:libbrew/imgui_console.odin";
 
 import        "time.odin";
 import        "catalog.odin";
-import        "console.odin";
 import        "debug_info.odin";
 import shower "window_shower.odin";
 import ja     "asset.odin";
 import jinput "input.odin";
 
-STD_WINDOW :: imgui.WindowFlags.ShowBorders |  imgui.WindowFlags.NoCollapse;
+STD_WINDOW :: imgui.Window_Flags.NoCollapse;
 
 _chosen_catalog : i32;
 _PreviewSize := imgui.Vec2{20, 20};
@@ -80,10 +80,10 @@ _ShowID : gl.Texture = 1;
 stat_overlay :: proc(show : ^bool) {
     imgui.set_next_window_pos(imgui.Vec2{5, 25}, 0);
     imgui.push_style_color(imgui.Color.WindowBg, imgui.Vec4{0.23, 0.23, 0.23, 0.4});
-    imgui.begin("Stat Overlay", show, imgui.WindowFlags.NoMove | imgui.WindowFlags.NoTitleBar | imgui.WindowFlags.NoResize | imgui.WindowFlags.NoSavedSettings); 
+    imgui.begin("Stat Overlay", show, imgui.Window_Flags.NoMove | imgui.Window_Flags.NoTitleBar | imgui.Window_Flags.NoResize | imgui.Window_Flags.NoSavedSettings); 
     {
         io := imgui.get_io();
-        imgui.text("Framerate: %.1ffps (%fms) ", io.framerate, 1000.0 / io.framerate);
+        imgui.text("Framerate: %.0ffps (%fms) ", io.framerate, 1000.0 / io.framerate);
         imgui.text("Draw Calls: %d calls", /*debug_info.ogl.draw_calls*/ -1);
         imgui.separator();
         imgui.text("Mouse Pos: <%v,%v>", io.mouse_pos.x, io.mouse_pos.y);
@@ -158,7 +158,7 @@ show_gl_texture_overview :: proc(show : ^bool) {
     imgui.end();
 }
 
-opengl_info :: proc(vars : ^gl.OpenGLVars, show : ^bool) {
+opengl_info :: proc(vars : ^gl.Opengl_Vars, show : ^bool) {
     imgui.begin("OpenGL Info", show, STD_WINDOW);
     {
         imgui.text("Versions:");
@@ -385,28 +385,36 @@ show_catalog_window :: proc(catalogs : []^catalog.Catalog, show : ^bool) {
         imgui.combo("Chosen", &_chosen_catalog, names[..]);
         imgui.separator();
         catalog := catalogs[_chosen_catalog];
-        imgui.text("Name:         %s", catalog.name);
-        imgui.text("Path:         %s", catalog.path);
-        imgui.text("Asset Kinds:");
+        imgui.columns(2, "info", false);
+        imgui.set_column_width(-1, 45);
+        {
+            imgui.text("Path:"); imgui.next_column(); imgui.text("%s", catalog.path); imgui.next_column();
+        }
+        imgui.columns_reset();
+
+        imgui.text("Asset Kinds:");        
         imgui.indent(20);
         {
+            imgui.columns(2, "kinds", false);
+            imgui.set_column_width(-1, 35);
             for k, v in catalog.items_kind {
-                imgui.text("%v %v%s", v, k, v > 1 ? "s" : "");
+                imgui.text("%v", v); imgui.next_column(); imgui.text("%v%s", k, v > 1 ? "s" : ""); imgui.next_column();
             }
+            imgui.columns_reset();
         }
         imgui.unindent(20);
         if imgui.begin_child(str_id = "Items", size = imgui.Vec2{0, -18}) {
             defer imgui.end_child();
             imgui.columns(count = 2, border = false);
             for _, a in catalog.items {
-                imgui.selectable(label = a.file_name, flags = imgui.SelectableFlags.SpanAllColumns);
+                imgui.selectable(label = a.file_name, flags = imgui.Selectable_Flags.SpanAllColumns);
                 if imgui.is_item_hovered() {
                     imgui.begin_tooltip();
                     defer imgui.end_tooltip();
 
                     imgui.text("Path: %v", a.path);
-                    //imgui.text("Kind: %v", a.kind);
-                    imgui.text("Size: %d bytes", a.size);
+                    imgui.text("Size: %d byts", a.size);
+                    imgui.text("Address: %p", a);
 
                     switch b in a.derived {
                         case ^ja.Texture: {
@@ -426,7 +434,7 @@ show_catalog_window :: proc(catalogs : []^catalog.Catalog, show : ^bool) {
                             if b.loaded {
                                 imgui.text("Vertices: %d", b.vert_num);
                                 imgui.text("Normals: %d",  b.norm_num);
-                                imgui.text("UVs: %d",      b.uvs_num);
+                                imgui.text("UVs: %d",      b.uv_num); 
                             } else {
                                 imgui.text("Not loaded...");
                             }

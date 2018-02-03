@@ -2,11 +2,11 @@
  *  @Name:     catalog
  *  
  *  @Author:   Mikkel Hjortshoej
- *  @Email:    hoej@northwolfprod.com
+ *  @Email:    fyoucon@gmail.com
  *  @Creation: 29-10-2017 21:45:51
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 11-12-2017 04:32:51
+ *  @Last Time: 03-02-2018 21:34:53 UTC+1
  *  
  *  @Description:
  *  
@@ -15,14 +15,21 @@
 import "core:os.odin";
 import "core:fmt.odin";
 import "core:strings.odin";
+import "core:thread.odin";
+import "core:mem.odin";
+import "core:sync.odin";
+import "core:hash.odin";
 
-import "mantle:libbrew/gl.odin";
-import "mantle:libbrew/win/file.odin";
-import "mantle:libbrew/string_util.odin";
+import win32 "core:sys/windows.odin"; //FIXME
+
+import "shared:libbrew/gl.odin";
+import "shared:libbrew/win/file.odin";
+import "shared:libbrew/string_util.odin";
+import "shared:libbrew/dyna_util.odin";
+import console "shared:libbrew/imgui_console.odin";
 
 import      "gl_util.odin";
 import      "debug_info.odin";
-import      "console.odin";
 import ja   "asset.odin";
 import obj  "obj_parser.odin";
 import stbi "stb_image.odin";
@@ -51,6 +58,49 @@ Catalog :: struct {
     files_in_catalog : int,
     max_size         : int,
     current_size     : int,
+
+    _notify_thread : ^thread.Thread,
+}
+
+Change_Type :: enum {
+    Modify,
+    Add,
+    Remove,
+}
+
+Change_Notification :: struct {
+    change : Change_Type,
+    asset_id : string,
+    catalog : ^Catalog,
+}
+
+_change_mutex : sync.Mutex;
+_change_queue : [dynamic]Change_Notification;
+
+setup_mutex :: proc() {
+    sync.mutex_init(&_change_mutex);
+}
+
+handle_changes :: proc() {
+    //TODO(Hoej): Use try locks instead.
+    sync.mutex_lock(&_change_mutex);
+    qlen := len(_change_queue);
+    sync.mutex_unlock(&_change_mutex);
+    
+    for qlen > 0{
+        sync.mutex_lock(&_change_mutex);
+        noti := dyna_util.pop_front(&_change_queue);
+        qlen -= 1;
+        sync.mutex_unlock(&_change_mutex);
+        
+        //handle
+        asset := find(noti.catalog, noti.asset_id);
+        switch a in asset.derived {
+            case ^ja.Shader : {
+                _reload_shader(a, noti.catalog);
+            }
+        }
+    }
 }
 
 add_default_extensions :: proc() {
@@ -66,10 +116,6 @@ add_extensions :: proc(kind : Asset_Kind, exts : ...string) {
     for e in exts {
         _extensions_to_types[e] = kind;
     }
-}
-
-create :: proc(path : string) -> ^Catalog {
-    return create(path, path);
 }
 
 create :: proc(name : string, path : string) -> ^Catalog {
@@ -126,7 +172,9 @@ create :: proc(name : string, path : string) -> ^Catalog {
 
         entries := file.get_all_entries_in_directory(path, true);
         res.files_in_catalog = len(entries);
+
         for entry_path in entries {
+            if file.is_directory(entry_path) do continue;
             ext := string_util.get_last_extension(entry_path);
 
             asset := new(ja.Asset);
@@ -175,7 +223,11 @@ create :: proc(name : string, path : string) -> ^Catalog {
 
             res.items[asset.info.file_name] = asset;
         }
+
         append(&created_catalogs, res);
+        
+        _setup_notification(res);
+        
         return res;
     } else {
         console.logf_error("(%s catalog) %s is either not a folder or does not exists.", name, path);
@@ -183,7 +235,9 @@ create :: proc(name : string, path : string) -> ^Catalog {
     }
 }
 
-find :: proc(catalog : ^Catalog, id_str : string, T : type) -> ^T {
+find :: proc[find_typed, find_untyped];
+
+find_typed :: proc(catalog : ^Catalog, id_str : string, T : type) -> ^T {
     ptr := find(catalog, id_str);
     if ptr != nil {
         res, ok := ptr.derived.(^T);
@@ -197,7 +251,7 @@ find :: proc(catalog : ^Catalog, id_str : string, T : type) -> ^T {
     }
 }
 
-find :: proc(catalog : ^Catalog, id_str : string) -> ^ja.Asset {
+find_untyped :: proc(catalog : ^Catalog, id_str : string) -> ^ja.Asset {
     asset, ok := catalog.items[id_str];
 
     if ok {
@@ -236,6 +290,7 @@ _load_model_3d :: proc(model : ^ja.Model_3d, cat : ^Catalog) {
             asset := model.asset;
             model^ = obj.parse(string(text));
             model.asset = asset;
+            model.info.loaded = true;
         } else {
             console.logf_error("(%s Catalog) Could not read %s", cat.name, model.file_name);
         }
@@ -301,6 +356,7 @@ _load_shader :: proc(shader : ^ja.Shader, cat : ^Catalog) {
 
             shader.info.loaded = true;
             cat.current_size += shader.info.size;
+            shader.fnv64_hash = hash.fnv64(shader.data);
         } else {
             console.logf_error("%s could not be read from disk", shader.info.file_name);
         }
@@ -314,6 +370,36 @@ _load_shader :: proc(shader : ^ja.Shader, cat : ^Catalog) {
     }
 }
 
+_reload_shader :: proc(shader : ^ja.Shader, cat : ^Catalog) {
+    if !shader.info.loaded {
+        return;
+    }
+    data, success := os.read_entire_file(shader.info.path);
+    if len(data) == len(shader.data) {
+        checksum := hash.fnv64(data);
+        if shader.fnv64_hash == checksum {
+            return;
+        }
+    }
+
+    cat.current_size -= shader.info.size;
+    if success {
+        shader.data = data;
+        shader.fnv64_hash = hash.fnv64(shader.data);
+        shader.source = strings.to_odin_string(&shader.data[0]);
+        cat.current_size += shader.info.size;
+    } else {
+         console.logf_error("%s could not be read from disk", shader.info.file_name);
+         return;
+    }
+
+    console.logf("(%s catalog) Re-compiling %s shader", cat.name, shader.file_name);
+    ok := gl_util.compile_shader(shader);
+    if ok {
+        gl.link_program(shader.program);
+    }
+}
+
 _load_font :: proc(font : ^ja.Font, cat : ^Catalog) {
     if !font.loaded {
         data, ok := os.read_entire_file(font.path);
@@ -323,4 +409,109 @@ _load_font :: proc(font : ^ja.Font, cat : ^Catalog) {
             console.logf_error("Could not load font %s", font.file_name);
         }
     }
+}
+
+_setup_notification :: proc(cat : ^Catalog) {
+    cstr := strings.new_c_string(cat.path); defer free(cstr);
+    dirh := win32.create_file_a(cstr, win32.FILE_GENERIC_READ, win32.FILE_SHARE_READ | win32.FILE_SHARE_DELETE | win32.FILE_SHARE_WRITE, nil, 
+                                win32.OPEN_EXISTING, win32.FILE_FLAG_BACKUP_SEMANTICS, nil);
+    if dirh == win32.INVALID_HANDLE {
+        console.logf_error("(%s catalog) Could not open directory at.", cat.name, cat.path);
+        return;
+    }
+    
+    _payload :: struct {
+        dir_handle : win32.Handle,
+        cat        : ^Catalog,
+        buf        : rawptr,
+        buf_len    : u32,
+    }
+
+    p := new(_payload);
+    p.dir_handle = dirh;
+    p.cat = cat;
+    p.buf = alloc(4096);
+    p.buf_len = 4096;
+
+    _proc :: proc(thread : ^thread.Thread) -> int {
+        using p := cast(^_payload)thread.data;
+        for {
+            out : u32;
+            ok := win32.read_directory_changes_w(dir_handle, buf, buf_len, false,
+                                                  win32.FILE_NOTIFY_CHANGE_LAST_WRITE | win32.FILE_NOTIFY_CHANGE_FILE_NAME, 
+                                                  &out, nil, nil);
+            if ok {
+                c := cast(^win32.File_Notify_Information)buf;
+                for c != nil {
+                    wlen := int(c.file_name_length) / size_of(u16);
+                    wstr := &c.file_name[0];
+                    req := win32.wide_char_to_multi_byte(win32.CP_UTF8, 0, 
+                                            wstr, i32(wlen),
+                                            nil, 0, 
+                                            nil, nil);
+                    asset_id := "N/A";
+                    if req != 0 {
+                        buf := make([]byte, req);
+                        ok := win32.wide_char_to_multi_byte(win32.CP_UTF8, 0, 
+                                                      wstr, i32(wlen),
+                                                      &buf[0], i32(len(buf)), 
+                                                      nil, nil);
+                        str := string(buf[..]);
+                        asset_id = string_util.remove_last_extension(str);
+                    } 
+
+                    switch c.action {
+                        case win32.FILE_ACTION_ADDED : {
+                        }
+
+                        case win32.FILE_ACTION_REMOVED : {
+                        }
+
+                        case win32.FILE_ACTION_MODIFIED : {
+                            
+                            noti := Change_Notification{};
+                            noti.change = Change_Type.Modify;
+                            noti.asset_id = asset_id;
+                            noti.catalog = cat;
+                            _push_change(noti);
+                        }                                                
+                    }
+
+                    if c.next_entry_offset == 0 {
+                        c = nil;
+                    } else {
+                        c = c + c.next_entry_offset;
+                    }
+                }
+            } else {
+                console.log(win32.get_last_error());
+                break;
+            }
+        }
+
+        win32.close_handle(dir_handle);
+        free(p);
+        return 0;
+    }
+
+    cat._notify_thread = thread.create(_proc);
+    cat._notify_thread.data = p;
+    thread.start(cat._notify_thread);
+}
+
+_push_change :: proc(noti : Change_Notification) -> bool {
+    sync.mutex_lock(&_change_mutex);
+    already := false;
+    for c in _change_queue {
+        if c.asset_id == noti.asset_id &&
+           c.change == noti.change {
+            already = true;
+            break;
+        }
+    }
+        
+    if !already do append(&_change_queue, noti);
+
+    sync.mutex_unlock(&_change_mutex);
+    return !already;
 }

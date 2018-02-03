@@ -6,7 +6,7 @@
  *  @Creation: 21-04-2017 03:04:34
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 11-12-2017 04:32:50
+ *  @Last Time: 03-02-2018 21:30:45 UTC+1
  *  
  *  @Description:
  *      Contains random GL utility functions.
@@ -14,8 +14,8 @@
 
 import "core:fmt.odin";
 import "core:strings.odin";
-import "mantle:libbrew/gl.odin";
-import "console.odin";
+import "shared:libbrew/gl.odin";
+import console "shared:libbrew/imgui_console.odin";
 import ja "asset.odin";
 
 create_and_compile_shader :: proc(shader : ^ja.Shader) -> bool {
@@ -25,15 +25,18 @@ create_and_compile_shader :: proc(shader : ^ja.Shader) -> bool {
         return false;
     }
 
+    return compile_shader(shader);
+}
+
+compile_shader :: proc(shader : ^ja.Shader) -> bool {
     gl.shader_source(shader.gl_id, shader.source);
     gl.compile_shader(shader.gl_id);
 
     success := gl.get_shader_value(shader.gl_id, gl.GetShaderNames.CompileStatus);
     if success == 0 {
-        console.log_error("------ Shader Error(%s|%v) ---", shader.info.file_name, shader.type_);
+        console.logf_error("====== Shader Error( %s | %v ) ======", shader.info.file_name, shader.type_);
         console.log_error(gl.get_shader_info_log(shader.gl_id)); 
-        console.log_error("------------------------------");
-        gl.delete_shader(shader.gl_id);
+        console.log_error("=====================================");
         return false;
     }
 
@@ -52,6 +55,9 @@ create_program :: proc(vertex, frag : ^ja.Shader) -> gl.Program {
 
     result.Vertex = vertex.gl_id;
     result.Fragment = frag.gl_id;
+
+    vertex.program = result;
+    frag.program = result;
 
     gl.link_program(result);
     return result;

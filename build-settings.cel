@@ -1,0 +1,7 @@
+opt_level = 0
+generate_debug = true
+keep_temp_files = false
+main_file = "src/main.odin"
+app_name = "jaze"
+files_to_move = []
+files_to_delete = []

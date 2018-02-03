@@ -1,7 +1,7 @@
 # Custom
 [Bb]uild/
 *.otm
-[Rr]un_tree/imgui.ini
+imgui.ini
 [Pp]ackages/
 *.7z
 nohup.out

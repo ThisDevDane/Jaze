@@ -17,8 +17,8 @@
             "path": "./build",
         },
         {
-            "name": "Mantle",
-            "path": "../odin-mantle",
+            "name": "Shared",
+            "path": "../../Odin/shared",
         },
         {
             "name": "Odin Compiler: Core",

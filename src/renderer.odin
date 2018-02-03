@@ -6,17 +6,17 @@
  *  @Creation: 13-05-2017 23:48:58
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 06-12-2017 22:15:48
+ *  @Last Time: 03-02-2018 18:15:47 UTC+1
  *  
  *  @Description:
  *      Functions and data related to the renderer. 
  */
 import "core:math.odin";
 
-import gl "mantle:libbrew/gl.odin";
+import gl "shared:libbrew/gl.odin";
+import console "shared:libbrew/imgui_console.odin";
 //import "engine.odin";
 import "catalog.odin";
-import "console.odin";
 import glUtil "gl_util.odin";
 import ja "asset.odin";
 
