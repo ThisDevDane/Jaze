@@ -6,7 +6,7 @@
  *  @Creation: 13-05-2017 23:48:58
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 05-02-2018 03:19:41 UTC+1
+ *  @Last Time: 05-02-2018 04:56:15 UTC+1
  *  
  *  @Description:
  *      Functions and data related to the renderer. 
@@ -65,7 +65,7 @@ init :: proc(s_cat : ^catalog.Catalog, m_cat : ^catalog.Catalog, width, height :
     test_vbo = gl.gen_vbo();
     test_normals = gl.gen_vbo();
     test_ebo = gl.gen_ebo();
-    model := catalog.find(m_cat, "siegeTrebuchet", ja.Model_3d);
+    model := catalog.find(m_cat, "siegeRam", ja.Model_3d);
     if model != nil {
         gl.bind_buffer(test_vbo);
         gl.enable_vertex_attrib_array(test_program.attributes["vert_pos"]);
@@ -112,5 +112,10 @@ render :: proc(acc_time : f64, width, height : int) {
     //gl.uniform(test_program.uniforms["color"], 1.0, 0.0, 0.0, 1.0);
     gl.enable(gl.Capabilities.DepthTest);
     gl.bind_buffer(test_vbo);
+/*    gl.polygon_mode(gl.PolygonFace.Front, gl.PolygonModes.Line);
+    gl.polygon_mode(gl.PolygonFace.Back, gl.PolygonModes.Line);*/
     gl.draw_arrays(gl.DrawModes.Triangles, 0, len(entity.model.vertices));
+    /*gl.polygon_mode(gl.PolygonFace.Front, gl.PolygonModes.Fill);
+    gl.polygon_mode(gl.PolygonFace.Back, gl.PolygonModes.Fill);
+    gl.draw_arrays(gl.DrawModes.Triangles, 0, len(entity.model.vertices));*/
 }

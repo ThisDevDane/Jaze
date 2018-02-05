@@ -6,7 +6,7 @@
  *  @Creation: 23-11-2017 00:26:57
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 05-02-2018 04:06:01 UTC+1
+ *  @Last Time: 05-02-2018 05:05:49 UTC+1
  *  
  *  @Description:
  *      A (bad) Wavefront OBJ parser.
@@ -37,7 +37,15 @@ Mtl_Lib :: struct {
 parse :: proc(text : string, path : string) -> ja.Model_3d {
     result := ja.Model_3d{};
 
-    mtl_lib       := Mtl_Lib{};
+    mtl_lib       := Mtl_Lib{
+        {
+            "wood" = {name = "wood", diffuse = math.Vec3{1, 0, 0}},
+            "wall" = {name = "wall", diffuse = math.Vec3{0, 1, 0}},
+            "roof" = {name = "roof", diffuse = math.Vec3{0, 0, 1}},
+            "cotton" = {name = "cotton", diffuse = math.Vec3{1, 1, 0}},
+        }
+    };
+
     mtl_lib_found := false;
     current_mtl   := Mtl{diffuse = math.Vec3{1, 0, 1}};
     
@@ -70,7 +78,6 @@ parse :: proc(text : string, path : string) -> ja.Model_3d {
                 if mtl_lib_found {
                     name := line[len("usemtl")+1..len(line)-1];
                     mtl, ok := mtl_lib.materials[name];
-                    fmt.println(mtl);
                     if !ok {
                         console.logf_error("Could not find material %s in the mtllib", name);
                         break;
@@ -146,40 +153,36 @@ parse_vec2_line :: proc(line : string) -> math.Vec2 {
 parse_indices_line :: proc(line : string, vpos, norms : []math.Vec3, uvs : []math.Vec2, mtl : Mtl) -> []ja.Vertex {
     result : [dynamic]ja.Vertex;
     start := 0;
-    for r, end in line {
-        if r == ' ' || r == '\n' || (r == '\r' && line[end+1] == '\n')  {
-            vtx := ja.Vertex{};
-            vtx.color = mtl.diffuse;
-            index_trio := line[start..end];
-            start = end+1;
-            values := string_util.split_by(index_trio, '/');
-            defer free(values);
-            vcount := len(values);
-            if vcount == 1 {
-                vi := u32(strconv.parse_uint(values[0], 0))-1;
-                vtx.pos = vpos[vi];
-                vtx.pos.y = -vtx.pos.y; // Flip y
-            } else if vcount == 2 {
-                vi := u32(strconv.parse_uint(values[0], 0))-1;
-                ui := u32(strconv.parse_uint(values[1], 0))-1;
-                
-                vtx.pos = vpos[vi];
-                vtx.pos.y = -vtx.pos.y; // Flip y
-                vtx.uv = uvs[ui];
-            } else if vcount == 3 {
-                vi := u32(strconv.parse_uint(values[0], 0))-1;
-                ui := u32(strconv.parse_uint(values[1], 0))-1;
-                ni := u32(strconv.parse_uint(values[2], 0))-1;
-                vtx.pos = vpos[vi];
-                vtx.pos.y = -vtx.pos.y; // Flip y
-                vtx.uv = uvs[ui];
-                vtx.norm = norms[ni];
-            }
-            append(&result, vtx);
-            if r == '\n' || (r == '\r' && line[end+1] == '\n')   {
-                break;
-            }
+
+    indices := string_util.split_by(line[..len(line)-1], ' '); defer free(indices);
+    for ind in indices {
+        values := string_util.split_by(ind, '/'); defer free(values);
+        vtx := ja.Vertex{};
+        vtx.color = mtl.diffuse;
+
+        vcount := len(values);
+        if vcount == 1 {
+            vi := u32(strconv.parse_uint(values[0], 0))-1;
+            vtx.pos = vpos[vi];
+            vtx.pos.y = -vtx.pos.y; // Flip y
+        } else if vcount == 2 {
+            vi := u32(strconv.parse_uint(values[0], 0))-1;
+            ui := u32(strconv.parse_uint(values[1], 0))-1;
+            
+            vtx.pos = vpos[vi];
+            vtx.pos.y = -vtx.pos.y; // Flip y
+            vtx.uv = uvs[ui];
+        } else if vcount == 3 {
+            vi := u32(strconv.parse_uint(values[0], 0))-1;
+            ui := u32(strconv.parse_uint(values[1], 0))-1;
+            ni := u32(strconv.parse_uint(values[2], 0))-1;
+            vtx.pos = vpos[vi];
+            vtx.pos.y = -vtx.pos.y; // Flip y
+            vtx.uv = uvs[ui];
+            vtx.norm = norms[ni];
         }
+
+        append(&result, vtx);
     }
 
     return result[..];
