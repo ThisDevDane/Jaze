@@ -6,58 +6,76 @@
  *  @Creation: 16-05-2017 21:52:47
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 26-11-2017 23:37:29
+ *  @Last Time: 03-02-2018 23:32:58 UTC+1
  *  
  *  @Description:
  *      Contains a "generic" key value storage.
  */
-import "console.odin";
 
-KeyValueStore :: struct {
+import "core:fmt.odin";
+
+Key_Value_Store :: struct {
     _data : map[string]any,
 }
 
-Set       :: proc(store : ^KeyValueStore, id : string, value : any) {
-    store._data[id] = value; 
-}
+set :: proc(store : ^Key_Value_Store, id : string, value : any) {
+    switch v in value {
+        case int, uint, f64, string : {
+            store._data[id] = value;
+        }
 
-GetF64    :: proc(store : ^KeyValueStore, id : string) -> f64 {
-    val, ok := store._data[id];
-    if !ok { return 0; }
-    switch v in val {
-        case f64 : { return v; }
-        case  : { return 0; }
+        case i32 : {
+            store._data[id] = int(v);
+        }
+
+        case u32 : {
+            store._data[id] = uint(v);
+        }
+
+        case f32 : {
+            store._data[id] = f64(v);
+        }
+
+        case : {
+            fmt.println("Can't store", value);
+        }
     }
 }
 
-GetF32    :: proc(store : ^KeyValueStore, id : string) -> f32 {
+get :: proc(store : ^Key_Value_Store, id : string, T : type) -> T {
     val, ok := store._data[id];
-    if !ok { return 0; }
+    if !ok { return T{}; }
     switch v in val {
-        case f32 : { return v; }
-        case  : { return 0; }
-    }
-}
+        case int: {
+            if T == int {
+                return v;
+            } else {
+                return 0;
+            }
+        }
 
-GetInt    :: proc(store : ^KeyValueStore, id : string) -> int {
-    val, ok := store._data[id];
-    if !ok { return 0; }
-    switch v in val {
-        case int : { return v; }
-        case  : { return 0; }
-    }
-}
+        case uint: {
+            if T == uint {
+                return v;
+            } else {
+                return 0;
+            }
+        }
 
-GetString :: proc(store : ^KeyValueStore, id : string) -> string {
-    val, ok := store._data[id];
-    if !ok { return "<nil>"; }
-    switch v in val {
-        case string : { return v; }
-        case     : { return "<nil>"; }
-    }
-}
+        case f64: {
+            if T == f64 {
+                return v;
+            } else {
+                return 0;
+            }
+        }
 
-GetAny    :: proc(store : ^KeyValueStore, id : string) -> any {
-    val, ok := store._data[id];
-    return ok ? val : any{};
+        case string: {
+            if T == string {
+                return v;
+            } else {
+                return 0;
+            }
+        }
+    }
 }

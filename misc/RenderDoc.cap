@@ -16,7 +16,7 @@
   </Options>
   <Inject>false</Inject>
   <AutoStart>false</AutoStart>
-  <Executable>E:\Repo\Jaze\build\main.exe</Executable>
+  <Executable>E:\Repo\Jaze\build\jaze.exe</Executable>
   <WorkingDir>E:\Repo\Jaze\run_tree</WorkingDir>
   <CmdLine />
   <Environment />

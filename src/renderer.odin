@@ -6,262 +6,111 @@
  *  @Creation: 13-05-2017 23:48:58
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 03-02-2018 18:15:47 UTC+1
+ *  @Last Time: 05-02-2018 03:19:41 UTC+1
  *  
  *  @Description:
  *      Functions and data related to the renderer. 
  */
+import "core:fmt.odin";
 import "core:math.odin";
 
 import gl "shared:libbrew/gl.odin";
 import console "shared:libbrew/imgui_console.odin";
-//import "engine.odin";
-import "catalog.odin";
-import glUtil "gl_util.odin";
+import    "catalog.odin";
+import    "gl_util.odin";
 import ja "asset.odin";
 
-PixelsToUnits :: 64;
-
-Command :: struct {
-    render_pos : math.Vec3,
-    rotation  : f32, 
-    scale     : math.Vec3,
-    
-    derived : union { BitmapCmd, RectCmd, CircleCmd},
-}
-BitmapCmd :: struct {
-    texture : ^ja.Texture,
-}
-
-RectCmd :: struct {
-    color : math.Vec4,
-}
-
-CircleCmd :: struct {
-    diameter : f32,
-}
-
-State_t :: struct {
-    bitmap_program : gl.Program,
-    solid_program : gl.Program,
-    vao : gl.VAO,
-    vbo : gl.VBO,
-    ebo : gl.EBO,
-}
-
-Camera_t :: struct {
+Camera :: struct {
     pos  : math.Vec3,
-    rot  : f32,
-    zoom : f32,
-    near : f32,
-    far  : f32,
+    near_clipplane : f32,
+    far_clipplane  : f32,
+
+    fov            : int,
+
+    pixel_width    : int,
+    pixel_height   : int,
 }
 
-DrawRegion :: struct {
-    x : i32,
-    y : i32,
-    width : i32,
-    height : i32,
+camera : Camera;
+test_program : gl.Program;
+test_vao : gl.VAO;
+test_vbo : gl.VBO;
+test_normals : gl.VBO;
+test_ebo : gl.EBO;
+entity := Entity{};
+
+Entity :: struct {
+    position : math.Vec3,
+    rotation : math.Vec3,
+    scale    : math.Vec3,
+
+    model    : ^ja.Model_3d,
 }
 
-VirtualScreen :: struct {
-    dimension : math.Vec2,
-    aspect_ratio : f32,
-}
+init :: proc(s_cat : ^catalog.Catalog, m_cat : ^catalog.Catalog, width, height : int) {
+    camera = Camera{};
+    camera.pos = math.Vec3{-7, 11, -170};
+    camera.near_clipplane = 0.1;
+    camera.far_clipplane = 1000;
+    camera.pixel_width = width;
+    camera.pixel_height = height;
+    camera.fov = 60;
 
-create_virtual_screen :: proc(w, h : int) -> ^VirtualScreen {
-    screen := new(VirtualScreen);
-    screen.dimension[0] = 1280;
-    screen.dimension[1] = 720;
-    screen.aspect_ratio = screen.dimension[0] / screen.dimension[1];
-
-    return screen;
-}
-
-init :: proc(shaderCat : ^catalog.Catalog) -> ^State_t {
-    state := new(State_t); 
-
-/*    vertexAsset, ok1 := catalog.find(shaderCat, "test_vert");
-    fragAsset, ok2 := catalog.find(shaderCat, "test_frag");
-
-    if ok1 != catalog.ERR_SUCCESS || ok2 != catalog.ERR_SUCCESS {
-        panic("Couldn't find the Bitmap shaders");
+    console.log("Model test setup");
+    vertex  := catalog.find(s_cat, "basic_vert", ja.Shader);
+    frag    := catalog.find(s_cat, "basic_frag", ja.Shader);
+    test_program = gl_util.create_program(vertex, frag);
+    test_vao = gl.gen_vertex_array();
+    gl.bind_vertex_array(test_vao);
+    test_vbo = gl.gen_vbo();
+    test_normals = gl.gen_vbo();
+    test_ebo = gl.gen_ebo();
+    model := catalog.find(m_cat, "siegeTrebuchet", ja.Model_3d);
+    if model != nil {
+        gl.bind_buffer(test_vbo);
+        gl.enable_vertex_attrib_array(test_program.attributes["vert_pos"]);
+        gl.enable_vertex_attrib_array(test_program.attributes["vert_uv"]);
+        gl.enable_vertex_attrib_array(test_program.attributes["vert_norm"]);
+        gl.enable_vertex_attrib_array(test_program.attributes["vert_color"]);
+        //gl.vertex_attrib_pointer(test_program.attributes["vert_uv"],   2, gl.VertexAttribDataType.Float, false, size_of(ja.Vertex), offset_of(ja.Vertex, uv));
+        gl.vertex_attrib_pointer(test_program.attributes["vert_pos"],  3, gl.VertexAttribDataType.Float, false, size_of(ja.Vertex), offset_of(ja.Vertex, pos));
+        //gl.vertex_attrib_pointer(test_program.attributes["vert_norm"], 3, gl.VertexAttribDataType.Float, false, size_of(ja.Vertex), offset_of(ja.Vertex, norm));
+        gl.vertex_attrib_pointer(test_program.attributes["vert_color"], 3, gl.VertexAttribDataType.Float, false, size_of(ja.Vertex), offset_of(ja.Vertex, color));
+        gl.buffer_data(gl.BufferTargets.Array, i32(len(model.vertices[..])) * size_of(model.vertices[0]), rawptr(&model.vertices[0]), gl.BufferDataUsage.StaticDraw);
+    } else {
+        console.log_error("Could not load monkey");       
     }
 
-    vertex := vertexAsset.derived.(^ja.Shader);
-    frag :=   fragAsset.derived.(^ja.Shader);
-    state.bitmap_program = glUtil.create_program(vertex^, frag^);
-
-    vertexAsset, ok1 = catalog.find(shaderCat, "basic_vert");
-    fragAsset, ok2 = catalog.find(shaderCat, "basic_frag");
-
-    if ok1 != catalog.ERR_SUCCESS || ok2 != catalog.ERR_SUCCESS {
-        panic("Couldn't find the Solid shaders");
-    }
-
-    vertex = vertexAsset.derived.(^ja.Shader);
-    frag =   fragAsset.derived.(^ja.Shader);
-    state.solid_program = glUtil.create_program(vertex^, frag^);
-
-
-    state.vao = gl.gen_vertex_array();
-    gl.bind_vertex_array(state.vao);
-    state.vbo = gl.gen_vbo();
-    gl.bind_buffer(state.vbo);
-    state.ebo = gl.gen_ebo();
-    gl.bind_buffer(state.ebo);
-
-    vertices := []f32 {
-         1, 1, 0,  1.0, 0.0, // Top Right
-         1, 0, 0,  1.0, 1.0, // Bottom Right
-         0, 0, 0,  0.0, 1.0, // Bottom Left
-         0, 1, 0,  0.0, 0.0, // Top Left
-    };
-
-    elements := []u32 {
-        0, 1, 3,
-        1, 2, 3,
-    };
-
-    gl.buffer_data(gl.BufferTargets.Array, size_of(vertices), &vertices[0], gl.BufferDataUsage.StaticDraw);
-    gl.buffer_data(gl.BufferTargets.ElementArray, size_of(elements), &elements[0], gl.BufferDataUsage.StaticDraw);
-
-
-    state.bitmap_program.Uniforms["Model"] = gl.get_uniform_location(state.bitmap_program, "Model");
-    state.bitmap_program.Uniforms["View"]  = gl.get_uniform_location(state.bitmap_program, "View");
-    state.bitmap_program.Uniforms["Proj"]  = gl.get_uniform_location(state.bitmap_program, "Proj");
-
-    state.bitmap_program.Attributes["Position"] = gl.get_attrib_location(state.bitmap_program, "Position");
-    state.bitmap_program.Attributes["UV"] = gl.get_attrib_location(state.bitmap_program, "UV");
-    gl.vertex_attrib_pointer(u32(state.bitmap_program.Attributes["Position"]), 3, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), nil);
-    gl.vertex_attrib_pointer(u32(state.bitmap_program.Attributes["UV"]),       2, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), rawptr(int(3 * size_of(f32))));
-    gl.enable_vertex_attrib_array(u32(state.bitmap_program.Attributes["Position"]));
-    gl.enable_vertex_attrib_array(u32(state.bitmap_program.Attributes["UV"]));
-
-    state.solid_program.Uniforms["Model"] = gl.get_uniform_location(state.solid_program, "Model");
-    state.solid_program.Uniforms["View"]  = gl.get_uniform_location(state.solid_program, "View");
-    state.solid_program.Uniforms["Proj"]  = gl.get_uniform_location(state.solid_program, "Proj");
-
-    state.solid_program.Uniforms["Color"]  = gl.get_uniform_location(state.solid_program, "Color");
-
-    state.solid_program.Attributes["VertPos"] = gl.get_attrib_location(state.solid_program, "VertPos");
-    gl.vertex_attrib_pointer(u32(state.bitmap_program.Attributes["VertPos"]),  3, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), nil);
-    gl.vertex_attrib_pointer(u32(state.bitmap_program.Attributes["UV"]),       2, gl.VertexAttribDataType.Float, false, 5 * size_of(f32), rawptr(int(3 * size_of(f32))));
-    gl.enable_vertex_attrib_array(u32(state.solid_program.Attributes["VertPos"]));
-*/
-
-    return state;
+    entity.model = model;
 }
 
-calculate_ortho :: proc(window : math.Vec2, scaleFactor : math.Vec2, far, near : f32) -> math.Mat4 {
-    w := (window[0]);
-    h := (window[1]);
-    l := -(w/ 2);
-    r := w / 2;
-    b := h / 2;
-    t := -(h / 2);
-    proj  := math.ortho3d(l, r, t, b, far, near);
-    return math.scale(proj, math.Vec3{scaleFactor[0], scaleFactor[1], 1.0});
+calculate_proj :: proc(camera : Camera) -> math.Mat4 {
+    aspect := f32(camera.pixel_width) / f32(camera.pixel_height);
+    result := math.perspective(f32(camera.fov) * aspect, aspect, camera.near_clipplane, camera.far_clipplane);
+    return result;
 }
 
-create_view_matrix_from_camera :: proc(camera : ^Camera_t) -> math.Mat4 {
-    view := math.scale(math.identity(math.Mat4), math.Vec3{camera.zoom, camera.zoom, 1});
-    //rot := math.mat4_rotate(math.Vec3{0, 0, 1}, math.to_radians(camera.Rot));
-    //view = math.mul(view, rot);
-    tr := math.mat4_translate(-camera.pos);
-    return math.mul(view, tr);
+create_view_from_camera :: proc(camera : Camera) -> math.Mat4 {
+    return math.mul(math.identity(math.Mat4), math.mat4_translate(camera.pos));
 }
 
-screen_to_world :: proc(screen_pos : math.Vec2, proj, view : math.Mat4, area : DrawRegion, cam : ^Camera_t) -> math.Vec3 {
-    map_to_range :: proc(t : f32, min : f32, max : f32) -> f32 {
-        return (t - min) / (max - min);
-    }
-    u := map_to_range(screen_pos[0], f32(area.x), f32(area.x + area.width));
-    v := map_to_range(screen_pos[1], f32(area.y), f32(area.y + area.height));
-    p := math.Vec4{u * 2 - 1,
-                   v * 2 - 1,
-                   -1, 1};
-
-    p = math.mul(math.inverse(proj), p);
-    p = math.Vec4{p[0], p[1], -1, 0};
-    world := math.mul(math.inverse(view), p);
-    return math.Vec3{world[0] + cam.pos[0], -world[1] + cam.pos[1], 0}; 
+create_model_from_entity :: proc(entity : Entity) -> math.Mat4 {
+    return math.mat4_rotate(math.Vec3{0, 1, 0}, math.to_radians(entity.rotation.y));
 }
 
-/*render_queue :: proc(ctx : ^engine.Context, camera : ^Camera_t, queue : ^rq.Queue) {
+render :: proc(acc_time : f64, width, height : int) {
+    entity.rotation.y = f32(acc_time) * 15;
+    proj := calculate_proj(camera);
+    view := create_view_from_camera(camera);
+    model := create_model_from_entity(entity);
+
+    gl.bind_vertex_array(test_vao);
+    gl.use_program(test_program);
+    gl.uniform(test_program.uniforms["proj"], proj);
+    gl.uniform(test_program.uniforms["view"], view);
+    gl.uniform(test_program.uniforms["model"], model);
+    //gl.uniform(test_program.uniforms["color"], 1.0, 0.0, 0.0, 1.0);
     gl.enable(gl.Capabilities.DepthTest);
-    gl.enable(gl.Capabilities.Blend);
-    gl.depth_func(gl.DepthFuncs.Lequal);
-    gl.blend_func(gl.BlendFactors.SrcAlpha, gl.BlendFactors.OneMinusSrcAlpha);  
-    view := create_view_matrix_from_camera(camera);
-    proj := calculate_ortho(ctx.window_size, ctx.scale_factor, camera.far, camera.near);
-
-    create_model_mat :: proc(pos, texSize, scale : math.Vec3, rotation_ : f32) -> math.Mat4 {
-        textureScale := math.scale(math.mat4_identity(), texSize);
-        cmdScale := math.scale(math.mat4_identity(), scale);
-        matScale := math.mul(textureScale, cmdScale);
-
-        rotation := math.mat4_rotate(math.Vec3{0, 0, 1}, math.to_radians(rotation_));
-        model := math.mul(matScale, rotation);
-
-        offset := math.mat4_translate(math.Vec3{-0.5, -0.5, 0});
-        model = math.mul(model, offset);                
-
-        translation := math.mat4_translate(pos);
-        model = math.mul(translation, model);
-        return model;
-    }
-    lastTex := 0;
-    lastProgram := 0;
-    vpu := false;
-
-    gl.bind_vertex_array(ctx.render_state.vao);    
-
-    for !rq.IsEmpty(queue) {
-        rcmd, _ := rq.Dequeue(queue);
-
-        switch cmd in rcmd {
-            case Command.Bitmap : {
-                height := f32(cmd.texture.height) / PixelsToUnits;
-                width := f32(cmd.texture.width) / PixelsToUnits;
-                texSize := math.Vec3{width, height, 1};
-
-                if lastProgram != int(ctx.render_state.bitmap_program.ID) {
-                    gl.use_program(ctx.render_state.bitmap_program);
-                    lastProgram = int(ctx.render_state.bitmap_program.ID);
-                }
-                if !vpu {
-                    gl.uniform_matrix4fv(ctx.render_state.bitmap_program.Uniforms["View"],  view,  false);
-                    gl.uniform_matrix4fv(ctx.render_state.bitmap_program.Uniforms["Proj"],  proj,  false);
-                    vpu = true;
-                }
-
-                gl.uniform_matrix4fv(ctx.render_state.bitmap_program.Uniforms["Model"], create_model_mat(cmd.render_pos, texSize, cmd.scale, cmd.rotation), false);
-
-                if lastTex != int(cmd.texture.gl_id) {
-                    gl.bind_texture(gl.TextureTargets.Texture2D, cmd.texture.gl_id);
-                    lastTex = int(cmd.texture.gl_id);
-                }
-                gl.draw_elements(gl.DrawModes.Triangles, 6, gl.DrawElementsType.UInt, nil);
-            }
-
-            case Command.Rect : {
-
-                if lastProgram != int(ctx.render_state.solid_program.ID) {
-                    gl.use_program(ctx.render_state.solid_program);
-                    lastProgram = int(ctx.render_state.solid_program.ID);
-                }
-                if !vpu {
-                    gl.uniform_matrix4fv(ctx.render_state.solid_program.Uniforms["View"],  view,  false);
-                    gl.uniform_matrix4fv(ctx.render_state.solid_program.Uniforms["Proj"],  proj,  false);
-                    vpu = true;
-                }
-                gl.uniform_matrix4fv(ctx.render_state.solid_program.Uniforms["Model"], create_model_mat(cmd.render_pos, math.Vec3{1,1,1}, cmd.scale, cmd.rotation), false);
-
-                gl.uniform(ctx.render_state.solid_program.Uniforms["Color"], cmd.color);
-
-                gl.draw_elements(gl.DrawModes.Triangles, 6, gl.DrawElementsType.UInt, nil);
-            }
-        }
-    }
+    gl.bind_buffer(test_vbo);
+    gl.draw_arrays(gl.DrawModes.Triangles, 0, len(entity.model.vertices));
 }

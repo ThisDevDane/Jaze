@@ -6,11 +6,12 @@
  *  @Creation: 21-04-2017 03:04:34
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 03-02-2018 21:19:46 UTC+1
+ *  @Last Time: 05-02-2018 03:07:55 UTC+1
  *  
  *  @Description:
  *      Contains the asset construct and associated data.
  */
+import "core:math.odin";
 import gl "shared:libbrew/gl.odin";
 
 Asset_Info :: struct {
@@ -56,23 +57,16 @@ Font :: struct {
     data        : []u8,
 }
 
+Vertex :: struct {
+    pos   : math.Vec3,
+    uv    : math.Vec2,
+    norm  : math.Vec3,
+    color : math.Vec3,
+}
+
 Model_3d :: struct {
     using asset : ^Asset,
-    vertices : [dynamic]f32,
-    normals  : [dynamic]f32,
-    uvs      : [dynamic]f32,
-
-    vert_indices  : [dynamic]u32,  
-    norm_indices : [dynamic]u32,  
-    uv_indices   : [dynamic]u32,
-
-    vert_num : int,
-    norm_num : int,
-    uv_num   : int,
-
-    vert_ind_num : int,
-    norm_ind_num : int,
-    uv_ind_num   : int,
+    vertices : [dynamic]Vertex,
 }
 
 Unknown :: struct {

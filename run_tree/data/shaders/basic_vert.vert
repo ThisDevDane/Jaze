@@ -1,24 +1,23 @@
 #version 330
 
-in vec3 model_pos;
-in vec3 model_norm;
-out vec3 vert_norm;
+in vec3 vert_pos;
+in vec2 vert_uv;
+in vec3 vert_norm;
+in vec3 vert_color;
 
-uniform float angle;
-uniform vec2 res;
+out vec3 frag_norm;
+out mat4 frag_modelview;
+out vec2 frag_uv;
+out vec3 frag_color;
 
-vec3 convert(vec3 model_pos) {
-    return vec3(model_pos.x*cos(angle) - model_pos.z*sin(angle), 
-                model_pos.y, 
-                model_pos.x*sin(angle) + model_pos.z*cos(angle));
-} 
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 proj;
 
 void main() {
-    vec3 pos = model_pos;
-    pos += 1;
-    gl_Position.xyz = convert(pos);
-    gl_Position.x *= res.y/res.x;
-    gl_Position.w   = 1.0;
-    //vert_norm = convert(model_norm);
-    vert_norm = model_norm;
+    gl_Position = proj * view * model * vec4(vert_pos, 1.0);
+    frag_norm = vert_norm;
+    frag_modelview = view * model;
+    frag_uv = vert_uv;
+    frag_color = vert_color;
 }

@@ -6,7 +6,7 @@
  *  @Creation: 21-04-2017 03:04:34
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 03-02-2018 21:30:45 UTC+1
+ *  @Last Time: 05-02-2018 01:09:46 UTC+1
  *  
  *  @Description:
  *      Contains random GL utility functions.
@@ -45,7 +45,7 @@ compile_shader :: proc(shader : ^ja.Shader) -> bool {
 
 create_program :: proc(vertex, frag : ^ja.Shader) -> gl.Program {
     result := gl.create_program();
-    if result.ID == 0 {
+    if result.id == 0 {
         console.log_error("Could not create a new program");
         return result;
     }
@@ -53,12 +53,32 @@ create_program :: proc(vertex, frag : ^ja.Shader) -> gl.Program {
     gl.attach_shader(result, vertex.gl_id);
     gl.attach_shader(result, frag.gl_id);
 
-    result.Vertex = vertex.gl_id;
-    result.Fragment = frag.gl_id;
+    result.vertex = vertex.gl_id;
+    result.fragment = frag.gl_id;
 
     vertex.program = result;
     frag.program = result;
 
     gl.link_program(result);
+
+    get_all_attribs_from_program(&result);
+    get_all_uniforms_from_program(&result);
+
     return result;
+}
+
+get_all_uniforms_from_program :: proc(program : ^gl.Program) {
+    count := gl.get_program_value(program^, gl.GetProgramNames.ActiveUniforms);
+    for i in 0..count {
+        uni := gl.get_active_uniform(program^, uint(i));
+        program.uniforms[uni.name] = uni;
+    }
+}
+
+get_all_attribs_from_program :: proc(program : ^gl.Program) {
+    count := gl.get_program_value(program^, gl.GetProgramNames.ActiveAttributes);
+    for i in 0..count {
+        attrib := gl.get_active_attrib(program^, uint(i));
+        program.attributes[attrib.name] = attrib;
+    }
 }

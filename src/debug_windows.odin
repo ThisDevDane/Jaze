@@ -6,7 +6,7 @@
  *  @Creation: 10-05-2017 21:11:30
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 03-02-2018 21:19:06 UTC+1
+ *  @Last Time: 05-02-2018 00:20:29 UTC+1
  *  
  *  @Description:
  *      Contains all the drawing code for debug windows.
@@ -83,10 +83,20 @@ stat_overlay :: proc(show : ^bool) {
     imgui.begin("Stat Overlay", show, imgui.Window_Flags.NoMove | imgui.Window_Flags.NoTitleBar | imgui.Window_Flags.NoResize | imgui.Window_Flags.NoSavedSettings); 
     {
         io := imgui.get_io();
-        imgui.text("Framerate: %.0ffps (%fms) ", io.framerate, 1000.0 / io.framerate);
-        imgui.text("Draw Calls: %d calls", /*debug_info.ogl.draw_calls*/ -1);
+        imgui.text("Framerate:"); imgui.same_line();
+        ms := 1000.0 / io.framerate;
+        pop := false;
+        if ms > 17 {
+            pop = true;
+            if ms > 33.555 {
+                imgui.push_style_color(imgui.Color.Text, imgui.Vec4{1, 0, 0, 1});
+            } else {
+                imgui.push_style_color(imgui.Color.Text, imgui.Vec4{0.96, 0.86, 0.26, 1});
+            }
+        }
+        imgui.text("%.0ffps (%.2fms)", io.framerate, ms);
+        if pop do imgui.pop_style_color();
         imgui.separator();
-        imgui.text("Mouse Pos: <%v,%v>", io.mouse_pos.x, io.mouse_pos.y);
     }   
     imgui.end();
     imgui.pop_style_color(1);
@@ -418,10 +428,10 @@ show_catalog_window :: proc(catalogs : []^catalog.Catalog, show : ^bool) {
 
                     switch b in a.derived {
                         case ^ja.Texture: {
-                            imgui.text("OpenGL ID:  %v", b.gl_id);
-                            imgui.text("Width:      %v", b.width);
-                            imgui.text("Height:     %v", b.height);
-                            imgui.text("Comp:       %v", b.comp);
+                            imgui.text("Width: %v", b.width);
+                            imgui.text("Height: %v", b.height);
+                            imgui.text("Comp: %v", b.comp);
+                            imgui.text("OpenGL ID: %v", b.gl_id);
                         }
 
                         case ^ja.Shader: {
@@ -431,13 +441,13 @@ show_catalog_window :: proc(catalogs : []^catalog.Catalog, show : ^bool) {
                         }
 
                         case ^ja.Model_3d: {
-                            if b.loaded {
-                                imgui.text("Vertices: %d", b.vert_num);
-                                imgui.text("Normals: %d",  b.norm_num);
-                                imgui.text("UVs: %d",      b.uv_num); 
-                            } else {
-                                imgui.text("Not loaded...");
-                            }
+                           /* imgui.text("Vertices: %d", b.vert_num);
+                            imgui.text("Normals: %d",  b.norm_num);
+                            imgui.text("UVs: %d",      b.uv_num); 
+
+                            imgui.text("Vert Ind: %d", b.vert_ind_num);
+                            imgui.text("Norm Ind: %d", b.norm_ind_num);
+                            imgui.text("Uv Ind: %d", b.uv_ind_num);*/
                         }
                     }
                 }
@@ -462,9 +472,9 @@ show_catalog_window :: proc(catalogs : []^catalog.Catalog, show : ^bool) {
 }
 
 show_input_window :: proc(input : ^jinput.Input, show : ^bool) {
-    imgui.begin("Input##TESTIUYHSEIFUSEYGF", show, STD_WINDOW);
+    imgui.begin("Input##JazeInput", show, STD_WINDOW);
     {
-    imgui.columns(4, "nil", true);
+    imgui.columns(4);
         imgui.text("ID");
         imgui.next_column();
         imgui.text("Key");
@@ -500,7 +510,7 @@ show_input_window :: proc(input : ^jinput.Input, show : ^bool) {
         imgui.columns_reset();
 
         PrintDownHeld :: proc(keyStates : []jinput.ButtonStates) {
-            imgui.columns(2, "nil", true);
+            imgui.columns(2);
             imgui.text("Key");
             imgui.next_column();
             imgui.text("State");
@@ -518,7 +528,7 @@ show_input_window :: proc(input : ^jinput.Input, show : ^bool) {
         }
 
         PrintUpNeutral :: proc(keyStates : []jinput.ButtonStates) {
-            imgui.columns(2, "nil", true);
+            imgui.columns(2);
             imgui.text("Key");
             imgui.next_column();
             imgui.text("State");
@@ -537,7 +547,7 @@ show_input_window :: proc(input : ^jinput.Input, show : ^bool) {
 
         imgui.separator();
         if imgui.collapsing_header("Key states") {
-            imgui.columns(2, "nil", true);
+            imgui.columns(2);
             imgui.begin_child("Down Held", imgui.Vec2{0, 0}, true);
             PrintDownHeld(input.key_states[..]);
             imgui.end_child();

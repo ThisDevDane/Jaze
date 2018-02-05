@@ -6,51 +6,107 @@
  *  @Creation: 23-11-2017 00:26:57
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 03-02-2018 18:15:38 UTC+1
+ *  @Last Time: 05-02-2018 04:06:01 UTC+1
  *  
  *  @Description:
  *      A (bad) Wavefront OBJ parser.
  */
 
+import "core:fmt.odin";
+import "core:math.odin";
+import "core:os.odin";
 import "core:strconv.odin";
+import "core:strings.odin";
 
 import "shared:libbrew/string_util.odin";
 import console "shared:libbrew/imgui_console.odin";
 
 import ja "asset.odin";
 
-parse :: proc(text : string) -> ja.Model_3d {
+Mtl :: struct {
+    name : string,
+    ambient : math.Vec3,
+    diffuse : math.Vec3,
+    specular : math.Vec3,
+}
+
+Mtl_Lib :: struct {
+    materials : map[string]Mtl,
+}
+
+parse :: proc(text : string, path : string) -> ja.Model_3d {
     result := ja.Model_3d{};
+
+    mtl_lib       := Mtl_Lib{};
+    mtl_lib_found := false;
+    current_mtl   := Mtl{diffuse = math.Vec3{1, 0, 1}};
+    
+    vpos    : [dynamic]math.Vec3;
+    normals : [dynamic]math.Vec3;
+    uvs     : [dynamic]math.Vec2;
+
     line, rem := string_util.get_line_and_remainder(text);
-    loop: for rem != "" {
+    loop: for {
         line_header := get_line_header(line);
         switch(line_header) {
             case "v" : 
-                parse_f32_triple_line(line[len("v")+1..], &result.vertices);
+                append(&vpos, parse_vec3_line(line[len("v")+1..]));
 
             case "vn" :
-                parse_f32_triple_line(line[len("vn")+1..], &result.normals);
+                append(&normals, parse_vec3_line(line[len("vn")+1..]));
 
             case "vt" :
-                parse_f32_triple_line(line[len("vt")+1..], &result.uvs);
+                append(&uvs, parse_vec2_line(line[len("vt")+1..]));
 
-            //TODO(Hoej): Parse uv and normal indices, remember that UVs are optional eg 'f 23//2 25//1 73//9'
             case "f" : 
-                parse_indices_line(line[len("f")+1..], &result.vert_indices, 
-                                                       &result.norm_indices,
-                                                       &result.uv_indices);
+                append(&result.vertices, ...parse_indices_line(line[len("f")+1..], vpos[..], normals[..], uvs[..], current_mtl));
+            
+            case "mtllib" : {
+                mtl_lib = parse_mtllib(line[len("mtllib")+1..], path);
+                mtl_lib_found = true;
+            }
+
+            case "usemtl" : {
+                if mtl_lib_found {
+                    name := line[len("usemtl")+1..len(line)-1];
+                    mtl, ok := mtl_lib.materials[name];
+                    fmt.println(mtl);
+                    if !ok {
+                        console.logf_error("Could not find material %s in the mtllib", name);
+                        break;
+                    }
+                    
+                    current_mtl = mtl;
+                } else {
+                    console.logf_error("Trying to use material but no mtllib is loaded");
+                }
+            }
         }
 
         line, rem = string_util.get_line_and_remainder(rem);
+        if line == "" && rem == "" {
+            break loop;
+        }
     }
 
-    result.vert_num = len(result.vertices);
-    result.norm_num = len(result.normals);
-    result.uv_num = len(result.uvs);
-    
-    result.vert_ind_num = len(result.vert_indices);
-    result.norm_ind_num = len(result.norm_indices);
-    result.uv_ind_num   = len(result.uv_indices);
+
+
+/*    for i in 0..len(vert_indices) {
+        vi  := vert_indices[i];
+        uvi := uv_indices[i];
+        ni  := norm_indices[i];
+        pos := vpos[vi];
+        pos.y = -pos.y;
+        uv := uvs[uvi];
+        norm := normals[ni];
+
+        mtl, ok := material_line[vi];
+        if ok {
+            current_mtl = mtl;
+        }
+
+        append(&result.vertices, ja.Vertex{pos, uv, norm, current_mtl.diffuse});
+    }*/
 
     return result;
 }
@@ -64,35 +120,124 @@ get_line_header :: proc(line : string) -> string {
     return "INVALID";
 }
 
-parse_f32_triple_line :: proc(line : string, array : ^[dynamic]f32) {
-    start := 0;
-    for r, end in line {
-        if r == ' ' || r == '\n' {
-            f := line[start..end];
-            start = end+1;
-            append(array, cast(f32)strconv.parse_f64(f));
-            if r == '\n' {
-                break;
-            }
-        }
+parse_vec3_line :: proc(line : string) -> math.Vec3 {
+    values := string_util.split_by(line[..len(line)-1], ' ');
+    if len(values) != 3 {
+        console.logf_error("Error parsing model, expected 3 elements got %d", len(values));
+        return math.Vec3{};
     }
+    v := math.Vec3{f32(strconv.parse_f64(values[0])), 
+                   f32(strconv.parse_f64(values[1])), 
+                   f32(strconv.parse_f64(values[2]))};
+    return v;
 }
 
-parse_indices_line :: proc(line : string, vert, norm, uv : ^[dynamic]u32) {
+parse_vec2_line :: proc(line : string) -> math.Vec2 {
+    values := string_util.split_by(line[..len(line)-1], ' ');
+    if len(values) != 2 {
+        console.logf_error("Error parsing model, expected 2 elements got %d", len(values));
+        return math.Vec2{};
+    }
+    v := math.Vec2{f32(strconv.parse_f64(values[0])), 
+                   f32(strconv.parse_f64(values[1]))};
+    return v; 
+}
+
+parse_indices_line :: proc(line : string, vpos, norms : []math.Vec3, uvs : []math.Vec2, mtl : Mtl) -> []ja.Vertex {
+    result : [dynamic]ja.Vertex;
     start := 0;
     for r, end in line {
-        if r == ' ' || r == '\n' {
+        if r == ' ' || r == '\n' || (r == '\r' && line[end+1] == '\n')  {
+            vtx := ja.Vertex{};
+            vtx.color = mtl.diffuse;
             index_trio := line[start..end];
             start = end+1;
             values := string_util.split_by(index_trio, '/');
             defer free(values);
-
-            if(values[0] != "") do append(vert, u32(strconv.parse_uint(values[0], 0))-1);
-            if(values[1] != "") do append(uv,   u32(strconv.parse_uint(values[1], 0))-1);
-            if(values[2] != "") do append(norm, u32(strconv.parse_uint(values[2], 0))-1);
-            if r == '\n' {
+            vcount := len(values);
+            if vcount == 1 {
+                vi := u32(strconv.parse_uint(values[0], 0))-1;
+                vtx.pos = vpos[vi];
+                vtx.pos.y = -vtx.pos.y; // Flip y
+            } else if vcount == 2 {
+                vi := u32(strconv.parse_uint(values[0], 0))-1;
+                ui := u32(strconv.parse_uint(values[1], 0))-1;
+                
+                vtx.pos = vpos[vi];
+                vtx.pos.y = -vtx.pos.y; // Flip y
+                vtx.uv = uvs[ui];
+            } else if vcount == 3 {
+                vi := u32(strconv.parse_uint(values[0], 0))-1;
+                ui := u32(strconv.parse_uint(values[1], 0))-1;
+                ni := u32(strconv.parse_uint(values[2], 0))-1;
+                vtx.pos = vpos[vi];
+                vtx.pos.y = -vtx.pos.y; // Flip y
+                vtx.uv = uvs[ui];
+                vtx.norm = norms[ni];
+            }
+            append(&result, vtx);
+            if r == '\n' || (r == '\r' && line[end+1] == '\n')   {
                 break;
             }
         }
     }
+
+    return result[..];
+}
+
+parse_mtllib :: proc(lib_name : string, path : string) -> Mtl_Lib {
+    result := Mtl_Lib{};
+
+    pbuf : [300]byte;
+    pstr := fmt.bprintf(pbuf[..], "%s\\%s", path, lib_name[..len(lib_name)-1]);
+    text, ok := os.read_entire_file(pstr); defer free(text);
+    if !ok {
+        console.logf_error("Could not find material library %s", pstr);
+        return Mtl_Lib{};
+    }
+
+    current_mtl := "NaN";
+    line, rem := string_util.get_line_and_remainder(string(text));
+    loop: for {
+        line_header := get_line_header(line);
+        switch(line_header) {
+            case "newmtl" : {
+                name := strings.new_string(line[len("newmtl")+1..len(line)-1]);
+                result.materials[name] = Mtl{name = name};
+                current_mtl = name;
+            }
+
+            case "Kd" : {
+                mtl, ok := result.materials[current_mtl]; 
+                if ok {
+                    mtl.diffuse = parse_vec3_line(line[len("Kd")+1..]);
+                    result.materials[current_mtl] = mtl;
+                } 
+            } 
+            
+            case "Ka" : {
+                mtl, ok := result.materials[current_mtl]; 
+                if ok {
+                    mtl.ambient = parse_vec3_line(line[len("Kd")+1..]);
+                    result.materials[current_mtl] = mtl;
+                } 
+            } 
+
+            case "Ks" : {
+                mtl, ok := result.materials[current_mtl]; 
+                if ok {
+                    mtl.specular = parse_vec3_line(line[len("Kd")+1..]);
+                    result.materials[current_mtl] = mtl;
+                } 
+            } 
+
+        }
+
+        line, rem = string_util.get_line_and_remainder(rem);
+        if line == "" && rem == "" {
+            break loop;
+        }
+    }
+
+    return result;
 }

@@ -6,7 +6,7 @@
  *  @Creation: 29-10-2017 21:45:51
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 03-02-2018 21:34:53 UTC+1
+ *  @Last Time: 05-02-2018 02:42:39 UTC+1
  *  
  *  @Description:
  *  
@@ -214,7 +214,7 @@ create :: proc(name : string, path : string) -> ^Catalog {
             
             val, exists := res.items[asset.info.file_name];
             if exists {
-                console.logf_error("(%s catalog) Asset id: %s already exists, overwriting...\n%s vs %s", res.name, 
+                console.logf_warning("(%s catalog) Asset id: %s already exists, overwriting...\n%s vs %s", res.name, 
                                                                                                         asset.info.file_name, 
                                                                                                         val.info.path, 
                                                                                                         asset.info.path);
@@ -274,7 +274,7 @@ find_untyped :: proc(catalog : ^Catalog, id_str : string) -> ^ja.Asset {
 
             case : 
                 //TODO(Hoej): Make better error message
-                console.logf_error("(%s Catalog) System does not know how to load '%s' of type %T", catalog.name, id_str, b);
+                console.logf_warning("(%s Catalog) System does not know how to load '%s' of type %T", catalog.name, id_str, b);
         }
 
         return asset;
@@ -288,7 +288,7 @@ _load_model_3d :: proc(model : ^ja.Model_3d, cat : ^Catalog) {
         text, ok := os.read_entire_file(model.info.path); defer free(text);
         if ok {
             asset := model.asset;
-            model^ = obj.parse(string(text));
+            model^ = obj.parse(string(text), cat.path);
             model.asset = asset;
             model.info.loaded = true;
         } else {

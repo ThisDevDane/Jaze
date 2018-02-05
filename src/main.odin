@@ -6,7 +6,7 @@
  *  @Creation: 31-05-2017 21:57:56
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 03-02-2018 21:36:37 UTC+1
+ *  @Last Time: 05-02-2018 02:49:20 UTC+1
  *  
  *  @Description:
  *      Entry point of Jaze
@@ -36,12 +36,13 @@ import         "debug_info.odin";
 import         "gl_util.odin";
 import         "engine.odin";
 import         "catalog.odin";
+import         "renderer.odin";
 import obj     "obj_parser.odin";
 import shower  "window_shower.odin";
 import dbg_win "debug_windows.odin";
 import jinput  "input.odin";
 import ja      "asset.odin";
-//import kvs     "key_value_store.odin";
+import kvs     "key_value_store.odin";
 
 opengl_debug_callback :: proc "cdecl" (source : gl.DebugSource, type_ : gl.DebugType, id : i32, severity : gl.DebugSeverity, length : i32, message : ^u8, userParam : rawptr) {
     console.logf_error("[%v | %v | %v] %s \n", source, type_, severity, strings.to_odin_string(message));
@@ -143,7 +144,7 @@ jaze_style :: proc() {
 }
 
 
-main :: proc() {
+main :: proc() {    
     console.set_error_callback(console_error_callback);
     console.add_default_commands();
     console.log("Program Start...");
@@ -192,7 +193,7 @@ main :: proc() {
     sound_catalog   := catalog.create("sound", "data\\sounds");
     font_catalog    := catalog.create("font", "data\\fonts");
     model_catalog   := catalog.create("model", "data\\models");
-    
+
     shower.set_window_state("console", true);
     
     console.log("Creating engine context");
@@ -206,47 +207,7 @@ main :: proc() {
 
     xinput.init(set_proc_xinput, load_lib, true);
 
-    console.log("Model test setup");
-    vertex  := catalog.find(shader_catalog, "basic_vert", ja.Shader);
-    frag    := catalog.find(shader_catalog, "basic_frag", ja.Shader);
-    test_program := gl_util.create_program(vertex, frag);
-    test_program.Attributes["model_pos"] = gl.get_attrib_location(test_program, "model_pos");
-    test_program.Attributes["model_norm"] = gl.get_attrib_location(test_program, "model_norm");
-    test_program.Uniforms["angle"] = gl.get_uniform_location(test_program, "angle");
-    test_program.Uniforms["res"] = gl.get_uniform_location(test_program, "res");
-
-    test_vao := gl.gen_vertex_array();
-    gl.bind_vertex_array(test_vao);
-    test_vbo := gl.gen_vbo();
-    test_normals := gl.gen_vbo();
-    test_ebo := gl.gen_ebo();
-    model := catalog.find(model_catalog, "knightRed", ja.Model_3d);
-    console.logf("Vert: %d", model.vert_num);
-    console.logf("Norm: %d", model.norm_num);
-    console.logf("UV:   %d", model.uv_num);
-
-    console.logf("Vert Ind: %d", model.vert_ind_num);
-    console.logf("Norm Ind: %d", model.norm_ind_num);
-    console.logf("UV Ind:   %d", model.uv_ind_num);
-    
-    {
-        if model != nil {
-            gl.bind_buffer(test_vbo);
-            gl.buffer_data(gl.BufferTargets.Array, model.vertices[..], gl.BufferDataUsage.StaticDraw);
-            gl.enable_vertex_attrib_array(u32(test_program.Attributes["model_pos"]));
-            gl.vertex_attrib_pointer(u32(test_program.Attributes["model_pos"]), 3, gl.VertexAttribDataType.Float, false, 3 * size_of(f32), nil);
-            
-            gl.bind_buffer(test_ebo);
-            gl.buffer_data(gl.BufferTargets.ElementArray, model.vert_indices[..], gl.BufferDataUsage.StaticDraw);
-            
-            gl.bind_buffer(test_normals);
-            gl.buffer_data(gl.BufferTargets.Array, model.normals[..], gl.BufferDataUsage.StaticDraw);
-            gl.enable_vertex_attrib_array(u32(test_program.Attributes["model_norm"]));
-            gl.vertex_attrib_pointer(u32(test_program.Attributes["model_norm"]), 3, gl.VertexAttribDataType.Float, false, 3 * size_of(f32), nil);
-        } else {
-            console.log_error("Could not load monkey");       
-        }
-    }
+    renderer.init(shader_catalog, model_catalog, width, height);
 
     console.log("Entering Main Loop...");
 main_loop: 
@@ -333,14 +294,7 @@ main_loop:
 
         gl.clear(gl.ClearFlags.COLOR_BUFFER | gl.ClearFlags.DEPTH_BUFFER);
 
-        {
-            gl.bind_vertex_array(test_vao);
-            gl.use_program(test_program);
-            gl.uniform(test_program.Uniforms["angle"], f32(acc_time ));
-            gl.uniform(test_program.Uniforms["res"], f32(width), f32(height));
-            gl.enable(gl.Capabilities.DepthTest);
-            gl.draw_elements(gl.DrawModes.Triangles, model.vert_ind_num, gl.DrawElementsType.UInt, nil);
-        }
+        renderer.render(acc_time, width, height);
 
         if new_frame_state.window_focus {
             jinput.update(EngineContext.input);
@@ -443,6 +397,29 @@ main_loop:
             shower.set_window_state("console_log", cl);
             shower.set_window_state("console_history", ch);
         }
+
+        if imgui.begin("Camer Controls") {
+            defer imgui.end();
+            imgui.push_button_repeat(true);
+            if imgui.button("-##posx") do renderer.camera.pos.x -= 1;
+            imgui.same_line();
+            imgui.text("x: %v", renderer.camera.pos.x);
+            imgui.same_line();
+            if imgui.button("+##posx") do renderer.camera.pos.x += 1;
+
+            if imgui.button("-##posy") do renderer.camera.pos.y -= 1;
+            imgui.same_line();
+            imgui.text("y: %v", renderer.camera.pos.y);
+            imgui.same_line();
+            if imgui.button("+##posy") do renderer.camera.pos.y += 1;
+
+            if imgui.button("-##posz") do renderer.camera.pos.z -= 1;
+            imgui.same_line();
+            imgui.text("z: %v", renderer.camera.pos.z);
+            imgui.same_line();
+            if imgui.button("+##posz") do renderer.camera.pos.z += 1;
+            imgui.pop_button_repeat();
+        }
      
         shower.try_show_window("texture_overview", dbg_win.show_gl_texture_overview);
         shower.try_show_window("debug_state",      shower.show_debug_windows_states);
@@ -452,11 +429,8 @@ main_loop:
         dbg_win.stat_overlay(nil);
 
         jinput.clear_char_queue(EngineContext.input);
-        if(show_imgui) {
-            imgui.render_proc(dear_state, width, height);
-        }
+        imgui.render_proc(dear_state, show_imgui, width, height);
         window.swap_buffers(wnd_handle);
-        //brew.sleep(1);
     }
 
     console.log("Ending Application...");

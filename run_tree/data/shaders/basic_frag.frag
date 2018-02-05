@@ -1,11 +1,16 @@
 #version 330
 
-in vec3 vert_norm;
+in vec3 frag_norm;
+in mat4 frag_modelview;
+in vec2 frag_uv;
+in vec3 frag_color;
+
 out vec4 out_color;
 
-void main() {
-    float costheta = clamp(dot(vert_norm, vec3(0, 0, -1)), 0, 1);
+uniform vec4 color;
 
-    out_color = vec4(vec3(costheta), 1.0);
-    out_color = vec4(0.5 + 0.5 *vert_norm, 1.0);      
+void main() {
+    vec3 n = normalize(mat3(frag_modelview) * frag_norm);
+    out_color.rgb = 0.5 + 0.5 * n;
+    out_color.rgb = frag_color;
 }

@@ -6,7 +6,7 @@
  *  @Creation: 04-05-2017 15:13:05
  *
  *  @Last By:   Mikkel Hjortshoej
- *  @Last Time: 25-01-2018 00:04:28 UTC+1
+ *  @Last Time: 04-02-2018 22:18:53 UTC+1
  *  
  *  @Description:
  *      Contains the engine context.
@@ -20,14 +20,11 @@ import imgui "shared:libbrew/brew_imgui.odin";
 Context :: struct {
     settings             : ^Setting,
     input                : ^input.Input,
-    virtual_screen       : ^renderer.VirtualScreen,
     imgui_state          : ^imgui.State,
     time                 : ^time.Data,
-    render_state         : ^renderer.State_t,
 
     adaptive_vsync       : bool,
     scale_factor         : math.Vec2,
-    game_draw_region     : renderer.DrawRegion,
     window_size          : math.Vec2,
 }
 
@@ -41,7 +38,6 @@ create_context :: proc() -> ^Context {
     ctx               := new(Context);
     ctx.input          = new(input.Input);
     ctx.settings       = new(Setting);
-    ctx.virtual_screen = renderer.create_virtual_screen(1920, 1080);
     ctx.imgui_state    = new(imgui.State);
     ctx.time           = time.create_data();
 
